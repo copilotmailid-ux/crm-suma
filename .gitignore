@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories (ignored everywhere)
+node_modules/
+**/node_modules/
+
+# Lock files (requested by user to be excluded)
+package-lock.json
+**/package-lock.json
+
+# Environment variables (sensitive data)
+.env
+**/.env
+.env.local
+.env.*.local
+
+# Production/build outputs
+dist/
+**/dist/
+build/
+**/build/
+dist-ssr/
+
+# Editor/System directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Documentation and project reports
+implementation_plan
+implementation_plan-bulk students add
+Tech_Stack_and_Project_Report.pdf
