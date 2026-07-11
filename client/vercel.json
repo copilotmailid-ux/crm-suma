@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": ""https://crm-suma.onrender.com/api/:path*"/api/:path*"
+      "destination": "https://crm-suma.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
