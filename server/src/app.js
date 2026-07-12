@@ -30,6 +30,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Root route (helps Uptime Robot keep the server awake and shows active status)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'active',
+    message: 'CRM Placement Backend is running and active!',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handler (must be after routes)
 app.use(errorHandler);
 
