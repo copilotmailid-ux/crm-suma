@@ -149,6 +149,96 @@ const StudentPortalPage = () => {
     };
   };
 
+  // Get student's recruitment progression and round status for a drive
+  const getStudentDriveStatus = (drive) => {
+    if (!student || !drive) return null;
+    const sId = student._id.toString();
+
+    // 1. Check if finally placed / selected
+    if (drive.finalSelectedStudents?.some((f) => (f.studentId?._id || f.studentId)?.toString() === sId)) {
+      return {
+        type: 'placed',
+        title: '🏆 You Are Placed!',
+        badge: 'Placed',
+        message: `Congratulations! Official placement offer for ${drive.role} at ₹${drive.package} LPA!`,
+        bg: '#f0fdf4',
+        border: '#86efac',
+        color: '#15803d',
+      };
+    }
+
+    // 2. Check rounds
+    if (drive.rounds && drive.rounds.length > 0) {
+      for (let i = drive.rounds.length - 1; i >= 0; i--) {
+        const r = drive.rounds[i];
+        const cand = r.candidates?.find((c) => (c.studentId?._id || c.studentId)?.toString() === sId);
+        if (cand) {
+          if (cand.status === 'selected') {
+            return {
+              type: 'placed',
+              title: '🏆 Selected & Placed!',
+              badge: 'Placed',
+              message: `Cleared ${r.name}. Offer granted!`,
+              bg: '#f0fdf4',
+              border: '#86efac',
+              color: '#15803d',
+            };
+          }
+          if (cand.status === 'shortlisted' || cand.status === 'pending') {
+            const formattedDate = r.scheduledDate
+              ? new Date(r.scheduledDate).toLocaleString('en-IN', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true,
+                })
+              : 'Schedule to be announced';
+
+            return {
+              type: 'round',
+              title: `🎯 Shortlisted for ${r.name}`,
+              badge: `Round ${r.roundNumber}`,
+              message: `📅 ${formattedDate} • 📍 ${r.venue || 'Online / Campus'}`,
+              bg: '#eff6ff',
+              border: '#bfdbfe',
+              color: '#1d4ed8',
+            };
+          }
+          if (cand.status === 'eliminated') {
+            return {
+              type: 'eliminated',
+              title: `Completed ${r.name}`,
+              badge: 'Completed',
+              message: 'Selection rounds concluded for this drive.',
+              bg: '#f8fafc',
+              border: '#e2e8f0',
+              color: '#64748b',
+            };
+          }
+        }
+      }
+    }
+
+    const isRegistered = drive.registeredStudents?.some(
+      (s) => (s._id || s).toString() === sId
+    );
+    if (isRegistered) {
+      return {
+        type: 'registered',
+        title: '✓ Registered for Drive',
+        badge: 'Registered',
+        message: 'Your registration is confirmed. Awaiting round 1 screening.',
+        bg: '#ecfdf5',
+        border: '#a7f3d0',
+        color: '#059669',
+      };
+    }
+
+    return null;
+  };
+
   const handleApply = async (driveId, companyName) => {
     try {
       await applyForDrive(driveId);
@@ -401,6 +491,30 @@ const StudentPortalPage = () => {
                           </span>
                         </div>
                       </div>
+
+                      {/* Real-time Recruitment Round Progression Status */}
+                      {(() => {
+                        const statusObj = getStudentDriveStatus(drive);
+                        if (!statusObj) return null;
+                        return (
+                          <div
+                            style={{
+                              background: statusObj.bg,
+                              border: `1px solid ${statusObj.border}`,
+                              borderRadius: '8px',
+                              padding: '10px 14px',
+                              marginBottom: '12px',
+                              fontSize: '0.82rem',
+                              color: statusObj.color,
+                            }}
+                          >
+                            <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>{statusObj.title}</span>
+                            </div>
+                            <div style={{ opacity: 0.9 }}>{statusObj.message}</div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Eligibility Box */}
                       <div className={`drive-eligibility-box ${eligible ? 'eligible' : 'ineligible'}`}>

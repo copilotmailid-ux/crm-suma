@@ -1,5 +1,12 @@
 const Drive = require('../models/Drive');
 const Company = require('../models/Company');
+const Student = require('../models/Student');
+const Placement = require('../models/Placement');
+const Alumni = require('../models/Alumni');
+const {
+  sendRoundShortlistEmail,
+  sendFinalSelectionEmail,
+} = require('../utils/emailService');
 
 // @desc    Get all company placement drives / requirements
 // @route   GET /api/drives
@@ -23,6 +30,7 @@ exports.getDrives = async (req, res, next) => {
     const drives = await Drive.find(query)
       .populate('companyId', 'name industry website contactPerson contactEmail')
       .populate('registeredStudents', 'name rollNumber department cgpa email phone')
+      .populate('finalSelectedStudents.studentId', 'name rollNumber department')
       .sort({ driveDate: 1 });
 
     res.json(drives);
@@ -37,7 +45,10 @@ exports.getDrive = async (req, res, next) => {
   try {
     const drive = await Drive.findById(req.params.id)
       .populate('companyId')
-      .populate('registeredStudents', 'name rollNumber department batch cgpa email phone resumeUrl');
+      .populate('registeredStudents', 'name rollNumber department batch cgpa email phone resumeUrl')
+      .populate('rounds.candidates.studentId', 'name rollNumber department batch cgpa email phone resumeUrl')
+      .populate('finalSelectedStudents.studentId', 'name rollNumber department batch cgpa email phone')
+      .populate('finalSelectedStudents.placementId');
 
     if (!drive) {
       return res.status(404).json({ message: 'Drive not found' });
@@ -102,6 +113,26 @@ exports.createDrive = async (req, res, next) => {
       return res.status(400).json({ message: 'Company name is required' });
     }
 
+    const dDate = driveDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    const initialSelectionProcess = selectionProcess || 'Round 1: Online Assessment, Round 2: Technical Interview, Round 3: HR Interview';
+
+    // Parse selection process to initialize default rounds
+    const roundNames = initialSelectionProcess
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const initialRounds = roundNames.map((name, idx) => ({
+      roundNumber: idx + 1,
+      name: name.startsWith('Round') ? name : `Round ${idx + 1}: ${name}`,
+      type: idx === 0 ? 'Online Assessment' : idx === roundNames.length - 1 ? 'HR Interview' : 'Technical Interview',
+      scheduledDate: idx === 0 ? dDate : null,
+      venue: jobLocation || 'Campus / Online',
+      instructions: idx === 0 ? 'Aptitude & Technical Online Assessment' : '',
+      status: idx === 0 ? 'In Progress' : 'Upcoming',
+      candidates: [],
+    }));
+
     const drive = await Drive.create({
       companyId: compId,
       companyName: compName,
@@ -116,12 +147,24 @@ exports.createDrive = async (req, res, next) => {
       minTwelfthMarks: minTwelfthMarks !== undefined ? Number(minTwelfthMarks) : 60,
       maxCurrentArrears: maxCurrentArrears !== undefined ? Number(maxCurrentArrears) : 0,
       maxHistoryArrears: maxHistoryArrears !== undefined ? Number(maxHistoryArrears) : 2,
-      driveDate: driveDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      driveDate: dDate,
       registrationDeadline: registrationDeadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       status: status || 'Upcoming',
       jobDescription: jobDescription || '',
-      selectionProcess: selectionProcess || 'Round 1: Online Assessment, Round 2: Technical Interview, Round 3: HR Interview',
+      selectionProcess: initialSelectionProcess,
       applicationLink: applicationLink || '',
+      currentRound: 1,
+      rounds: initialRounds.length > 0 ? initialRounds : [
+        {
+          roundNumber: 1,
+          name: 'Round 1: Online Assessment',
+          type: 'Online Assessment',
+          scheduledDate: dDate,
+          venue: jobLocation || 'Campus / Online',
+          status: 'In Progress',
+          candidates: [],
+        },
+      ],
     });
 
     res.status(201).json({
@@ -216,11 +259,572 @@ exports.applyForDrive = async (req, res, next) => {
     }
 
     drive.registeredStudents.push(student._id);
+
+    // Also add student to Round 1 candidates if rounds exist
+    if (drive.rounds && drive.rounds.length > 0) {
+      const round1 = drive.rounds.find((r) => r.roundNumber === 1);
+      if (round1) {
+        const inRound1 = round1.candidates.some(
+          (c) => c.studentId.toString() === student._id.toString()
+        );
+        if (!inRound1) {
+          round1.candidates.push({
+            studentId: student._id,
+            status: 'pending',
+          });
+        }
+      }
+    }
+
     await drive.save();
 
     res.json({
       message: `Successfully registered for ${drive.companyName} placement drive!`,
       registered: true,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get candidates (registered & eligible), rounds pipeline, and final selections (Admin)
+// @route   GET /api/drives/:id/candidates
+exports.getDriveCandidates = async (req, res, next) => {
+  try {
+    let drive = await Drive.findById(req.params.id);
+
+    if (!drive) {
+      return res.status(404).json({ message: 'Placement drive not found' });
+    }
+
+    let shouldSave = false;
+
+    // Auto-initialize rounds if empty
+    if (!drive.rounds || drive.rounds.length === 0) {
+      const selectionProcess = drive.selectionProcess || 'Round 1: Online Assessment, Round 2: Technical Interview, Round 3: HR Interview';
+      const roundNames = selectionProcess
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      drive.rounds = roundNames.map((name, idx) => ({
+        roundNumber: idx + 1,
+        name: name.startsWith('Round') ? name : `Round ${idx + 1}: ${name}`,
+        type: idx === 0 ? 'Online Assessment' : idx === roundNames.length - 1 ? 'HR Interview' : 'Technical Interview',
+        scheduledDate: idx === 0 ? drive.driveDate : null,
+        venue: drive.jobLocation || 'Campus / Online',
+        instructions: idx === 0 ? 'Initial online screening & aptitude assessment' : '',
+        status: idx === 0 ? 'In Progress' : 'Upcoming',
+        candidates:
+          idx === 0
+            ? (drive.registeredStudents || []).map((sid) => ({
+                studentId: sid,
+                status: 'pending',
+              }))
+            : [],
+      }));
+
+      drive.currentRound = 1;
+      shouldSave = true;
+    } else {
+      // Ensure all registered students are synced into Round 1
+      const round1 = drive.rounds.find((r) => r.roundNumber === 1);
+      if (round1) {
+        const currentCandSet = new Set(round1.candidates.map((c) => c.studentId.toString()));
+        for (const sid of drive.registeredStudents || []) {
+          if (!currentCandSet.has(sid.toString())) {
+            round1.candidates.push({
+              studentId: sid,
+              status: 'pending',
+            });
+            shouldSave = true;
+          }
+        }
+      }
+    }
+
+    if (shouldSave) {
+      await drive.save();
+    }
+
+    // Fully populate drive
+    drive = await Drive.findById(req.params.id)
+      .populate('companyId')
+      .populate({
+        path: 'registeredStudents',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'rounds.candidates.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'finalSelectedStudents.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears tenthPercentage twelfthPercentage email phone resumeUrl careerPreference status',
+      })
+      .populate('finalSelectedStudents.placementId');
+
+    // Build query for all eligible students in the college
+    const eligibleQuery = {
+      department: { $in: drive.eligibleDepartments || [] },
+      cgpa: { $gte: Number(drive.minCgpa) || 0 },
+      currentArrears: { $lte: Number(drive.maxCurrentArrears ?? 0) },
+    };
+
+    if (drive.eligibleBatches && drive.eligibleBatches.length > 0) {
+      eligibleQuery.batch = { $in: drive.eligibleBatches };
+    }
+
+    if (drive.minTenthMarks && drive.minTenthMarks > 0) {
+      eligibleQuery.tenthPercentage = { $gte: Number(drive.minTenthMarks) };
+    }
+
+    if (drive.minTwelfthMarks && drive.minTwelfthMarks > 0) {
+      eligibleQuery.twelfthPercentage = { $gte: Number(drive.minTwelfthMarks) };
+    }
+
+    const eligibleStudents = await Student.find(eligibleQuery)
+      .select(
+        'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status'
+      )
+      .sort({ cgpa: -1 });
+
+    res.json({
+      drive,
+      rounds: drive.rounds || [],
+      currentRound: drive.currentRound || 1,
+      finalSelectedStudents: drive.finalSelectedStudents || [],
+      registeredStudents: drive.registeredStudents || [],
+      registeredCount: (drive.registeredStudents || []).length,
+      eligibleStudents: eligibleStudents || [],
+      eligibleCount: (eligibleStudents || []).length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Advance selected candidates to next round (e.g. Round 2, Round 3, ... Round N)
+// @route   POST /api/drives/:id/rounds/:roundNumber/advance
+exports.advanceRoundCandidates = async (req, res, next) => {
+  try {
+    const { id, roundNumber } = req.params;
+    const currentRNum = Number(roundNumber);
+    const {
+      selectedStudentIds,
+      nextRoundNumber,
+      nextRoundName,
+      scheduledDate,
+      venue,
+      instructions,
+      sendEmail = true,
+      customSubject,
+      customMessage,
+    } = req.body;
+
+    if (!selectedStudentIds || !Array.isArray(selectedStudentIds) || selectedStudentIds.length === 0) {
+      return res.status(400).json({ message: 'Please select at least one student to advance to the next round' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const nextRNum = Number(nextRoundNumber) || currentRNum + 1;
+    const nextRTitle = nextRoundName?.trim() || `Round ${nextRNum}: Technical Interview`;
+
+    // 1. Update candidates in current round
+    const currentRound = drive.rounds.find((r) => r.roundNumber === currentRNum);
+    if (currentRound) {
+      currentRound.status = 'Completed';
+      currentRound.completedAt = new Date();
+
+      const selectedSet = new Set(selectedStudentIds.map(String));
+      currentRound.candidates.forEach((cand) => {
+        if (selectedSet.has(cand.studentId.toString())) {
+          cand.status = 'shortlisted';
+        } else if (cand.status === 'pending') {
+          cand.status = 'eliminated';
+        }
+      });
+    }
+
+    // 2. Find or create next round
+    let nextRound = drive.rounds.find((r) => r.roundNumber === nextRNum);
+    if (!nextRound) {
+      nextRound = {
+        roundNumber: nextRNum,
+        name: nextRTitle,
+        type: 'Technical Interview',
+        scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
+        venue: venue || 'Campus Lab / Online',
+        instructions: instructions || '',
+        status: 'In Progress',
+        candidates: selectedStudentIds.map((sid) => ({
+          studentId: sid,
+          status: 'pending',
+          emailSent: false,
+        })),
+      };
+      drive.rounds.push(nextRound);
+    } else {
+      nextRound.name = nextRTitle;
+      if (scheduledDate) nextRound.scheduledDate = new Date(scheduledDate);
+      if (venue) nextRound.venue = venue;
+      if (instructions !== undefined) nextRound.instructions = instructions;
+      nextRound.status = 'In Progress';
+
+      // Merge candidates
+      const existingCandIds = new Set(nextRound.candidates.map((c) => c.studentId.toString()));
+      selectedStudentIds.forEach((sid) => {
+        if (!existingCandIds.has(String(sid))) {
+          nextRound.candidates.push({
+            studentId: sid,
+            status: 'pending',
+            emailSent: false,
+          });
+        }
+      });
+    }
+
+    drive.currentRound = nextRNum;
+    await drive.save();
+
+    // 3. Send emails if requested
+    let emailResults = [];
+    if (sendEmail) {
+      const students = await Student.find({ _id: { $in: selectedStudentIds } });
+      const nextRoundObj = drive.rounds.find((r) => r.roundNumber === nextRNum);
+
+      for (const student of students) {
+        const sendRes = await sendRoundShortlistEmail({
+          student,
+          drive,
+          roundName: nextRTitle,
+          roundNumber: nextRNum,
+          scheduledDate: scheduledDate || nextRoundObj?.scheduledDate,
+          venue: venue || nextRoundObj?.venue,
+          instructions: instructions || nextRoundObj?.instructions,
+          customSubject,
+          customMessage,
+        });
+
+        emailResults.push(sendRes);
+
+        // Mark candidate emailSent
+        if (nextRoundObj && sendRes.success) {
+          const cand = nextRoundObj.candidates.find(
+            (c) => c.studentId.toString() === student._id.toString()
+          );
+          if (cand) {
+            cand.emailSent = true;
+            cand.emailSentAt = new Date();
+          }
+        }
+      }
+
+      await drive.save();
+    }
+
+    // Refetch populated drive
+    const updatedDrive = await Drive.findById(id)
+      .populate('companyId')
+      .populate({
+        path: 'registeredStudents',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'rounds.candidates.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'finalSelectedStudents.studentId',
+        select: 'name rollNumber department batch cgpa currentArrears email phone resumeUrl careerPreference status',
+      })
+      .populate('finalSelectedStudents.placementId');
+
+    const successfulEmails = emailResults.filter((e) => e.success).length;
+
+    res.json({
+      message: `Successfully advanced ${selectedStudentIds.length} candidate(s) to ${nextRTitle}!${sendEmail ? ` Notification emails sent to ${successfulEmails} candidate(s).` : ''}`,
+      drive: updatedDrive,
+      emailResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Select candidates for final placement offers at the company
+// @route   POST /api/drives/:id/select-final
+exports.selectFinalCandidates = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      selectedStudentIds,
+      currentRoundNumber,
+      role,
+      package: pkg,
+      placementDate,
+      sendEmail = true,
+      customSubject,
+      customMessage,
+    } = req.body;
+
+    if (!selectedStudentIds || !Array.isArray(selectedStudentIds) || selectedStudentIds.length === 0) {
+      return res.status(400).json({ message: 'Please select at least one student for final selection' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const company = await Company.findById(drive.companyId);
+
+    const placedRole = role?.trim() || drive.role;
+    const placedPackage = Number(pkg) || drive.package;
+    const pDate = placementDate ? new Date(placementDate) : new Date();
+
+    const createdPlacements = [];
+    const studentsToEmail = [];
+
+    for (const studentId of selectedStudentIds) {
+      const student = await Student.findById(studentId);
+      if (!student) continue;
+
+      // Check if already in finalSelectedStudents
+      const alreadySelected = drive.finalSelectedStudents.some(
+        (f) => f.studentId.toString() === student._id.toString()
+      );
+
+      let placementId = student.placementId;
+
+      if (!alreadySelected) {
+        // Create placement record
+        const placement = await Placement.create({
+          studentId: student._id,
+          companyId: drive.companyId,
+          role: placedRole,
+          package: placedPackage,
+          placementDate: pDate,
+          offerType: 'on_campus',
+          status: 'offered',
+        });
+
+        placementId = placement._id;
+        createdPlacements.push(placement);
+
+        // Update student status to placed
+        student.status = 'placed';
+        student.placementId = placement._id;
+        await student.save();
+
+        // Increment company placed count
+        if (company) {
+          company.studentsPlaced = (company.studentsPlaced || 0) + 1;
+          await company.save();
+        }
+
+        // Create alumni record
+        const gradYear = student.batch.includes('-')
+          ? student.batch.split('-')[1]
+          : student.batch;
+
+        await Alumni.create({
+          studentId: student._id,
+          placementId: placement._id,
+          companyId: drive.companyId,
+          currentCompany: drive.companyName,
+          currentRole: placedRole,
+          graduationYear: gradYear,
+          department: student.department,
+        });
+
+        drive.finalSelectedStudents.push({
+          studentId: student._id,
+          role: placedRole,
+          package: placedPackage,
+          placementDate: pDate,
+          placementId: placement._id,
+          emailSent: false,
+        });
+      }
+
+      // Mark candidate as 'selected' in the specified or current round
+      if (currentRoundNumber) {
+        const round = drive.rounds.find((r) => r.roundNumber === Number(currentRoundNumber));
+        if (round) {
+          const cand = round.candidates.find(
+            (c) => c.studentId.toString() === student._id.toString()
+          );
+          if (cand) cand.status = 'selected';
+        }
+      }
+
+      studentsToEmail.push(student);
+    }
+
+    // If drive status was Ongoing, and final candidates selected, consider marking completed if desired
+    await drive.save();
+
+    // Send emails if requested
+    let emailResults = [];
+    if (sendEmail) {
+      for (const student of studentsToEmail) {
+        const sendRes = await sendFinalSelectionEmail({
+          student,
+          drive,
+          role: placedRole,
+          package: placedPackage,
+          customSubject,
+          customMessage,
+        });
+
+        emailResults.push(sendRes);
+
+        if (sendRes.success) {
+          const finalItem = drive.finalSelectedStudents.find(
+            (f) => f.studentId.toString() === student._id.toString()
+          );
+          if (finalItem) {
+            finalItem.emailSent = true;
+            finalItem.emailSentAt = new Date();
+          }
+        }
+      }
+
+      await drive.save();
+    }
+
+    // Refetch populated drive
+    const updatedDrive = await Drive.findById(id)
+      .populate('companyId')
+      .populate({
+        path: 'registeredStudents',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'rounds.candidates.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'finalSelectedStudents.studentId',
+        select: 'name rollNumber department batch cgpa currentArrears email phone resumeUrl careerPreference status',
+      })
+      .populate('finalSelectedStudents.placementId');
+
+    const successfulEmails = emailResults.filter((e) => e.success).length;
+
+    res.json({
+      message: `🎉 Successfully selected ${selectedStudentIds.length} student(s) for ${drive.companyName}! Official placement records generated.${sendEmail ? ` Offer congratulation emails sent to ${successfulEmails} student(s).` : ''}`,
+      drive: updatedDrive,
+      emailResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add or update a recruitment round for a drive (Admin)
+// @route   POST /api/drives/:id/rounds
+exports.addOrUpdateRound = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { roundNumber, name, type, scheduledDate, venue, instructions, status } = req.body;
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const rNum = Number(roundNumber) || drive.rounds.length + 1;
+    let round = drive.rounds.find((r) => r.roundNumber === rNum);
+
+    if (round) {
+      if (name) round.name = name;
+      if (type) round.type = type;
+      if (scheduledDate !== undefined) round.scheduledDate = scheduledDate ? new Date(scheduledDate) : null;
+      if (venue) round.venue = venue;
+      if (instructions !== undefined) round.instructions = instructions;
+      if (status) round.status = status;
+    } else {
+      round = {
+        roundNumber: rNum,
+        name: name || `Round ${rNum}`,
+        type: type || 'Technical Interview',
+        scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
+        venue: venue || 'Campus / Online',
+        instructions: instructions || '',
+        status: status || 'Upcoming',
+        candidates: [],
+      };
+      drive.rounds.push(round);
+    }
+
+    await drive.save();
+
+    res.json({
+      message: `Round ${rNum} (${round.name}) configured successfully`,
+      round,
+      drive,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Send custom email to selected candidates or round participants
+// @route   POST /api/drives/:id/rounds/:roundNumber/send-email
+exports.sendCustomRoundEmail = async (req, res, next) => {
+  try {
+    const { id, roundNumber } = req.params;
+    const { studentIds, subject, message: customMessage } = req.body;
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const round = drive.rounds.find((r) => r.roundNumber === Number(roundNumber));
+    if (!round) {
+      return res.status(404).json({ message: 'Round not found' });
+    }
+
+    const targetStudentIds =
+      studentIds && studentIds.length > 0
+        ? studentIds
+        : round.candidates.map((c) => c.studentId);
+
+    const students = await Student.find({ _id: { $in: targetStudentIds } });
+
+    const emailResults = [];
+    for (const student of students) {
+      const result = await sendRoundShortlistEmail({
+        student,
+        drive,
+        roundName: round.name,
+        roundNumber: round.roundNumber,
+        scheduledDate: round.scheduledDate,
+        venue: round.venue,
+        instructions: round.instructions,
+        customSubject: subject,
+        customMessage,
+      });
+      emailResults.push(result);
+    }
+
+    res.json({
+      message: `Sent emails to ${emailResults.filter((e) => e.success).length} candidate(s)`,
+      emailResults,
     });
   } catch (error) {
     next(error);

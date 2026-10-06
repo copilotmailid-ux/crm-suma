@@ -96,6 +96,91 @@ const driveSchema = new mongoose.Schema(
         ref: 'Student',
       },
     ],
+    currentRound: {
+      type: Number,
+      default: 1,
+    },
+    rounds: [
+      {
+        roundNumber: {
+          type: Number,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        type: {
+          type: String,
+          default: 'Interview',
+        },
+        scheduledDate: {
+          type: Date,
+        },
+        venue: {
+          type: String,
+          trim: true,
+          default: 'Online / Campus',
+        },
+        instructions: {
+          type: String,
+          trim: true,
+          default: '',
+        },
+        status: {
+          type: String,
+          enum: ['Upcoming', 'In Progress', 'Completed'],
+          default: 'In Progress',
+        },
+        candidates: [
+          {
+            studentId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'Student',
+              required: true,
+            },
+            status: {
+              type: String,
+              enum: ['shortlisted', 'selected', 'eliminated', 'pending'],
+              default: 'pending',
+            },
+            feedback: {
+              type: String,
+              default: '',
+            },
+            emailSent: {
+              type: Boolean,
+              default: false,
+            },
+            emailSentAt: {
+              type: Date,
+            },
+          },
+        ],
+        completedAt: {
+          type: Date,
+        },
+      },
+    ],
+    finalSelectedStudents: [
+      {
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Student',
+          required: true,
+        },
+        role: { type: String, trim: true },
+        package: { type: Number, min: 0 },
+        placementDate: { type: Date, default: Date.now },
+        placementId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Placement',
+        },
+        emailSent: { type: Boolean, default: false },
+        emailSentAt: { type: Date },
+      },
+    ],
   },
   { timestamps: true }
 );

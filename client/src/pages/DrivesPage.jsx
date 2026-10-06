@@ -13,6 +13,7 @@ import {
 import { getDrives, createDrive, updateDrive, deleteDrive } from '../api/driveApi';
 import { getCompanies } from '../api/companyApi';
 import ConfirmModal from '../components/common/ConfirmModal';
+import CompanyDriveModal from '../components/common/CompanyDriveModal';
 import Loader from '../components/common/Loader';
 import { useDebounce } from '../hooks/useDebounce';
 import toast from 'react-hot-toast';
@@ -202,7 +203,26 @@ const DrivesPage = () => {
             <tbody>
               {drives.map((d) => (
                 <tr key={d._id}>
-                  <td style={{ fontWeight: 700 }}>{d.companyName}</td>
+                  <td
+                    style={{ fontWeight: 700, cursor: 'pointer' }}
+                    onClick={() => setViewDrive(d)}
+                    title="Click company to view registered & eligible candidates"
+                  >
+                    <span
+                      style={{
+                        color: 'var(--primary-color, #2563eb)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'opacity 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                    >
+                      {d.companyName}
+                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>↗</span>
+                    </span>
+                  </td>
                   <td>{d.role}</td>
                   <td>
                     <span className="badge badge-success" style={{ fontWeight: 700 }}>
@@ -232,8 +252,25 @@ const DrivesPage = () => {
                       {d.status}
                     </span>
                   </td>
-                  <td>
-                    <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <td
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setViewDrive(d)}
+                    title="Click to view registered candidates"
+                  >
+                    <span
+                      className="badge"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        background: (d.registeredStudents?.length || 0) > 0 ? 'rgba(37, 99, 235, 0.12)' : 'var(--bg-input, #f1f5f9)',
+                        color: (d.registeredStudents?.length || 0) > 0 ? '#2563eb' : 'var(--text-muted, #64748b)',
+                        fontWeight: 700,
+                        padding: '4px 10px',
+                        cursor: 'pointer',
+                        border: (d.registeredStudents?.length || 0) > 0 ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid transparent',
+                      }}
+                    >
                       <HiOutlineUserGroup /> {d.registeredStudents?.length || 0}
                     </span>
                   </td>
@@ -241,7 +278,7 @@ const DrivesPage = () => {
                     <div className="table-actions">
                       <button
                         className="btn-icon"
-                        title="View Full Details & Registered Candidates"
+                        title="View Registered & Eligible Students"
                         onClick={() => setViewDrive(d)}
                       >
                         <HiOutlineEye />
@@ -473,99 +510,15 @@ const DrivesPage = () => {
         </div>
       )}
 
-      {/* View Drive Details & Registered Students */}
+      {/* Company Drive Applicants & Eligible Students Modal */}
       {viewDrive && (
-        <div className="form-overlay" onClick={() => setViewDrive(null)}>
-          <div className="form-modal" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="form-header">
-              <div>
-                <h3 className="form-title">{viewDrive.companyName} Placement Drive</h3>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  {viewDrive.role} • ₹{viewDrive.package} LPA
-                </div>
-              </div>
-              <button className="form-close" onClick={() => setViewDrive(null)}>
-                ×
-              </button>
-            </div>
-
-            <div className="form-body">
-              <div className="detail-grid" style={{ marginBottom: '16px' }}>
-                <div className="detail-field">
-                  <span className="detail-label">Status</span>
-                  <span className="detail-value">{viewDrive.status}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Location</span>
-                  <span className="detail-value">{viewDrive.jobLocation}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Min CGPA</span>
-                  <span className="detail-value">{viewDrive.minCgpa}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Max Arrears</span>
-                  <span className="detail-value">{viewDrive.maxCurrentArrears ?? 0}</span>
-                </div>
-                <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
-                  <span className="detail-label">Eligible Departments</span>
-                  <span className="detail-value">{viewDrive.eligibleDepartments?.join(', ')}</span>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                  Selection Process:
-                </h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  {viewDrive.selectionProcess}
-                </p>
-              </div>
-
-              <div>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px' }}>
-                  Registered Candidates ({viewDrive.registeredStudents?.length || 0}):
-                </h4>
-                {viewDrive.registeredStudents && viewDrive.registeredStudents.length > 0 ? (
-                  <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 'var(--radius-sm)' }}>
-                    <table className="data-table" style={{ fontSize: '0.8rem' }}>
-                      <thead>
-                        <tr>
-                          <th>Roll No</th>
-                          <th>Name</th>
-                          <th>Dept</th>
-                          <th>CGPA</th>
-                          <th>Phone</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {viewDrive.registeredStudents.map((s, idx) => (
-                          <tr key={idx}>
-                            <td style={{ fontWeight: 600 }}>{s.rollNumber}</td>
-                            <td>{s.name}</td>
-                            <td>{s.department}</td>
-                            <td>{s.cgpa}</td>
-                            <td>{s.phone || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    No students have registered for this drive yet.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="form-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setViewDrive(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <CompanyDriveModal
+          drive={viewDrive}
+          onClose={() => {
+            setViewDrive(null);
+            fetchDrives();
+          }}
+        />
       )}
 
       {/* Delete Confirmation */}
