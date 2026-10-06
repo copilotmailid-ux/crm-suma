@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Fix for Windows/DNS querySrv ETIMEOUT with MongoDB Atlas
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {
+  // ignore if restricted
+}
 
 const connectDB = async () => {
   try {

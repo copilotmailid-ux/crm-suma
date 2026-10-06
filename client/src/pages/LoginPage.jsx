@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { HiOutlineUserGroup, HiOutlineShieldCheck, HiOutlineAcademicCap } from 'react-icons/hi';
+import { HiOutlineUserGroup, HiOutlineShieldCheck, HiOutlineAcademicCap, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -16,10 +16,12 @@ const LoginPage = () => {
   // Admin form state
   const [email, setEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // Student form state
   const [rollNumber, setRollNumber] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -129,15 +131,26 @@ const LoginPage = () => {
 
               <div className="form-group">
                 <label className="form-label" htmlFor="student-password">Password</label>
-                <input
-                  id="student-password"
-                  className="form-input"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={studentPassword}
-                  onChange={(e) => setStudentPassword(e.target.value)}
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="student-password"
+                    className="form-input"
+                    type={showStudentPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={studentPassword}
+                    onChange={(e) => setStudentPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowStudentPassword(!showStudentPassword)}
+                    aria-label={showStudentPassword ? 'Hide password' : 'Show password'}
+                    title={showStudentPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showStudentPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
+                  </button>
+                </div>
               </div>
 
               <div className="auth-hint">
@@ -162,15 +175,26 @@ const LoginPage = () => {
 
               <div className="form-group">
                 <label className="form-label" htmlFor="login-password">Admin Password</label>
-                <input
-                  id="login-password"
-                  className="form-input"
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="login-password"
+                    className="form-input"
+                    type={showAdminPassword ? 'text' : 'password'}
+                    placeholder="Enter admin password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                    aria-label={showAdminPassword ? 'Hide password' : 'Show password'}
+                    title={showAdminPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showAdminPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
+                  </button>
+                </div>
               </div>
             </>
           )}
