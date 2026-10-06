@@ -1,0 +1,321 @@
+/* ===== Student Portal Styles ===== */
+
+.student-portal-layout {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.student-navbar {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.student-navbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.student-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-nav-brand img {
+  height: 44px;
+  object-fit: contain;
+}
+
+.student-brand-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.student-brand-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.student-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  border-radius: var(--radius-md);
+}
+
+.student-nav-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.student-nav-tab:hover {
+  color: var(--text-primary);
+}
+
+.student-nav-tab.active {
+  background: white;
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.student-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.student-user-pill {
+  text-align: right;
+}
+
+.student-user-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.student-user-roll {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.student-portal-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+  width: 100%;
+  flex: 1;
+}
+
+/* Hero Section */
+.student-hero {
+  background: linear-gradient(135deg, rgba(11, 29, 55, 0.05) 0%, rgba(197, 158, 81, 0.1) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.student-hero-title {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.student-hero-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.student-stat-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.student-stat-pill {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.student-stat-pill strong {
+  color: var(--text-primary);
+  margin-left: 4px;
+}
+
+/* Company Drives Cards Grid */
+.drives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.drive-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.drive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.drive-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.drive-company-name {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.drive-role-title {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.drive-package-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  white-space: nowrap;
+}
+
+.drive-criteria-list {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.criteria-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.criteria-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.criteria-val {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.drive-eligibility-box {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drive-eligibility-box.eligible {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #065f46;
+}
+
+.drive-eligibility-box.ineligible {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #991b1b;
+}
+
+.drive-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.drive-deadline-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Profile Form Layout */
+.profile-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.profile-section-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.readonly-badge {
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}

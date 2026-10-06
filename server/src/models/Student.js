@@ -61,11 +61,91 @@ const studentSchema = new mongoose.Schema(
       ref: 'Placement',
       default: null,
     },
+    // Authentication
+    password: {
+      type: String,
+      select: false,
+    },
+    // College Placement Profile Requirements
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'Other', ''],
+      default: '',
+    },
+    dob: {
+      type: String,
+      default: '',
+    },
+    tenthPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    twelfthPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    currentArrears: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    historyOfArrears: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    resumeUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    linkedinUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    githubUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    portfolioUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    address: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 );
 
 // Index for search performance
 studentSchema.index({ name: 'text', rollNumber: 'text', email: 'text' });
+
+const bcrypt = require('bcryptjs');
+
+// Hash password before saving if modified
+studentSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || !this.password) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Compare password method
+studentSchema.methods.comparePassword = async function (enteredPassword) {
+  if (!this.password) return false;
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model('Student', studentSchema);

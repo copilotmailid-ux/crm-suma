@@ -1,0 +1,584 @@
+import { useState, useEffect, useCallback } from 'react';
+import {
+  HiOutlinePlus,
+  HiOutlinePencil,
+  HiOutlineTrash,
+  HiOutlineEye,
+  HiOutlineSearch,
+  HiOutlineUserGroup,
+  HiOutlineCalendar,
+  HiOutlineCash,
+  HiOutlineBriefcase,
+} from 'react-icons/hi';
+import { getDrives, createDrive, updateDrive, deleteDrive } from '../api/driveApi';
+import { getCompanies } from '../api/companyApi';
+import ConfirmModal from '../components/common/ConfirmModal';
+import Loader from '../components/common/Loader';
+import { useDebounce } from '../hooks/useDebounce';
+import toast from 'react-hot-toast';
+
+const DEPARTMENTS = ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'];
+
+const emptyDriveForm = {
+  companyName: '',
+  role: '',
+  package: '',
+  jobLocation: 'Pan India / Hybrid',
+  eligibleDepartments: ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'],
+  minCgpa: '6.5',
+  maxCurrentArrears: '0',
+  minTenthMarks: '60',
+  minTwelfthMarks: '60',
+  driveDate: '',
+  registrationDeadline: '',
+  status: 'Upcoming',
+  jobDescription: '',
+  selectionProcess: 'Round 1: Online Assessment, Round 2: Technical Interview, Round 3: HR Interview',
+  applicationLink: '',
+};
+
+const DrivesPage = () => {
+  const [drives, setDrives] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState(emptyDriveForm);
+  const [deleteId, setDeleteId] = useState(null);
+  const [viewDrive, setViewDrive] = useState(null);
+  const debouncedSearch = useDebounce(search);
+
+  const fetchDrives = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getDrives({ search: debouncedSearch, status: statusFilter });
+      setDrives(res.data);
+    } catch {
+      toast.error('Failed to fetch placement drives');
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch, statusFilter]);
+
+  useEffect(() => {
+    fetchDrives();
+  }, [fetchDrives]);
+
+  useEffect(() => {
+    getCompanies({ limit: 100 })
+      .then((res) => setCompanies(res.data.companies || []))
+      .catch(() => {});
+  }, []);
+
+  const openCreateModal = () => {
+    setEditId(null);
+    setForm(emptyDriveForm);
+    setShowModal(true);
+  };
+
+  const openEditModal = (drive) => {
+    setEditId(drive._id);
+    setForm({
+      companyName: drive.companyName,
+      role: drive.role,
+      package: drive.package,
+      jobLocation: drive.jobLocation || '',
+      eligibleDepartments: drive.eligibleDepartments || [],
+      minCgpa: drive.minCgpa || '',
+      maxCurrentArrears: drive.maxCurrentArrears !== undefined ? drive.maxCurrentArrears : '0',
+      minTenthMarks: drive.minTenthMarks || '60',
+      minTwelfthMarks: drive.minTwelfthMarks || '60',
+      driveDate: drive.driveDate ? drive.driveDate.split('T')[0] : '',
+      registrationDeadline: drive.registrationDeadline ? drive.registrationDeadline.split('T')[0] : '',
+      status: drive.status || 'Upcoming',
+      jobDescription: drive.jobDescription || '',
+      selectionProcess: drive.selectionProcess || '',
+      applicationLink: drive.applicationLink || '',
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editId) {
+        await updateDrive(editId, form);
+        toast.success('Placement drive requirements updated! (Visible to students)');
+      } else {
+        await createDrive(form);
+        toast.success('New placement drive entered! (Now live on student side)');
+      }
+      setShowModal(false);
+      fetchDrives();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Operation failed');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteDrive(deleteId);
+      toast.success('Drive deleted');
+      setDeleteId(null);
+      fetchDrives();
+    } catch {
+      toast.error('Failed to delete drive');
+    }
+  };
+
+  const toggleDept = (dept) => {
+    const list = form.eligibleDepartments || [];
+    if (list.includes(dept)) {
+      setForm({ ...form, eligibleDepartments: list.filter((d) => d !== dept) });
+    } else {
+      setForm({ ...form, eligibleDepartments: [...list, dept] });
+    }
+  };
+
+  return (
+    <div className="page-container">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Company Placement Drives</h1>
+          <p className="page-subtitle">
+            Enter visiting companies and eligibility criteria. These requirements are shown directly on the student portal.
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={openCreateModal} id="btn-add-drive">
+          <HiOutlinePlus /> Enter Company Requirements
+        </button>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="filter-bar">
+        <div className="search-bar">
+          <HiOutlineSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search company or role..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <select
+          className="form-select filter-select"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">All Statuses</option>
+          <option value="Upcoming">Upcoming</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+
+      {/* Drives Table */}
+      {loading ? (
+        <Loader />
+      ) : drives.length === 0 ? (
+        <div className="empty-state">
+          <p>No company placement drives entered yet. Click "Enter Company Requirements" to add one.</p>
+        </div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Package</th>
+                <th>Min CGPA</th>
+                <th>Max Arrears</th>
+                <th>Eligible Depts</th>
+                <th>Drive Date</th>
+                <th>Status</th>
+                <th>Registered</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {drives.map((d) => (
+                <tr key={d._id}>
+                  <td style={{ fontWeight: 700 }}>{d.companyName}</td>
+                  <td>{d.role}</td>
+                  <td>
+                    <span className="badge badge-success" style={{ fontWeight: 700 }}>
+                      ₹{d.package} LPA
+                    </span>
+                  </td>
+                  <td>{d.minCgpa || 'Any'}</td>
+                  <td>
+                    <span className={`badge ${d.maxCurrentArrears === 0 ? 'badge-neutral' : 'badge-warning'}`}>
+                      {d.maxCurrentArrears ?? 0}
+                    </span>
+                  </td>
+                  <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {d.eligibleDepartments?.join(', ')}
+                  </td>
+                  <td>{new Date(d.driveDate).toLocaleDateString('en-IN')}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        d.status === 'Completed'
+                          ? 'badge-neutral'
+                          : d.status === 'Ongoing'
+                          ? 'badge-success'
+                          : 'badge-warning'
+                      }`}
+                    >
+                      {d.status}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <HiOutlineUserGroup /> {d.registeredStudents?.length || 0}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        className="btn-icon"
+                        title="View Full Details & Registered Candidates"
+                        onClick={() => setViewDrive(d)}
+                      >
+                        <HiOutlineEye />
+                      </button>
+                      <button
+                        className="btn-icon"
+                        title="Edit Drive Requirements"
+                        onClick={() => openEditModal(d)}
+                      >
+                        <HiOutlinePencil />
+                      </button>
+                      <button
+                        className="btn-icon btn-icon-danger"
+                        title="Delete Drive"
+                        onClick={() => setDeleteId(d._id)}
+                      >
+                        <HiOutlineTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Add / Edit Drive Modal */}
+      {showModal && (
+        <div className="form-overlay" onClick={() => setShowModal(false)}>
+          <div className="form-modal" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="form-header">
+              <h3 className="form-title">
+                {editId ? 'Edit Placement Drive Requirements' : 'Enter Company Placement Requirements'}
+              </h3>
+              <button className="form-close" onClick={() => setShowModal(false)}>
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Company Name *</label>
+                    <input
+                      className="form-input"
+                      placeholder="e.g. Google, Zoho, Bosch"
+                      value={form.companyName}
+                      onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+                      required
+                      list="companies-list"
+                    />
+                    <datalist id="companies-list">
+                      {companies.map((c) => (
+                        <option key={c._id} value={c.name} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Job Role / Designation *</label>
+                    <input
+                      className="form-input"
+                      placeholder="e.g. Software Engineer, Cloud Trainee"
+                      value={form.role}
+                      onChange={(e) => setForm({ ...form, role: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Annual Package (CTC in LPA) *</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="form-input"
+                      placeholder="e.g. 14.5"
+                      value={form.package}
+                      onChange={(e) => setForm({ ...form, package: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Job Location</label>
+                    <input
+                      className="form-input"
+                      placeholder="e.g. Bangalore, Chennai, Hybrid"
+                      value={form.jobLocation}
+                      onChange={(e) => setForm({ ...form, jobLocation: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Minimum CGPA Criteria</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="10"
+                      className="form-input"
+                      placeholder="e.g. 7.5"
+                      value={form.minCgpa}
+                      onChange={(e) => setForm({ ...form, minCgpa: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Max Standing Live Arrears Allowed</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="form-input"
+                      placeholder="0"
+                      value={form.maxCurrentArrears}
+                      onChange={(e) => setForm({ ...form, maxCurrentArrears: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Drive Date *</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={form.driveDate}
+                      onChange={(e) => setForm({ ...form, driveDate: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Registration Deadline *</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={form.registrationDeadline}
+                      onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Eligible Departments</label>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                    {DEPARTMENTS.map((dept) => {
+                      const isSelected = form.eligibleDepartments?.includes(dept);
+                      return (
+                        <button
+                          key={dept}
+                          type="button"
+                          className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                          onClick={() => toggleDept(dept)}
+                        >
+                          {isSelected ? '✓ ' : '+ '}
+                          {dept}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Selection Process & Rounds</label>
+                  <input
+                    className="form-input"
+                    placeholder="Round 1: Online Test, Round 2: Tech Interview, Round 3: HR"
+                    value={form.selectionProcess}
+                    onChange={(e) => setForm({ ...form, selectionProcess: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Job Description / Requirements</label>
+                  <textarea
+                    rows={3}
+                    className="form-input"
+                    placeholder="Job responsibilities, required technical skills, bond details..."
+                    value={form.jobDescription}
+                    onChange={(e) => setForm({ ...form, jobDescription: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Drive Status</label>
+                    <select
+                      className="form-select"
+                      value={form.status}
+                      onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    >
+                      <option value="Upcoming">Upcoming</option>
+                      <option value="Ongoing">Ongoing</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">External Registration Link (Optional)</label>
+                    <input
+                      type="url"
+                      className="form-input"
+                      placeholder="https://forms.gle/..."
+                      value={form.applicationLink}
+                      onChange={(e) => setForm({ ...form, applicationLink: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {editId ? 'Save Requirements' : 'Publish Drive'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Drive Details & Registered Students */}
+      {viewDrive && (
+        <div className="form-overlay" onClick={() => setViewDrive(null)}>
+          <div className="form-modal" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="form-header">
+              <div>
+                <h3 className="form-title">{viewDrive.companyName} Placement Drive</h3>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  {viewDrive.role} • ₹{viewDrive.package} LPA
+                </div>
+              </div>
+              <button className="form-close" onClick={() => setViewDrive(null)}>
+                ×
+              </button>
+            </div>
+
+            <div className="form-body">
+              <div className="detail-grid" style={{ marginBottom: '16px' }}>
+                <div className="detail-field">
+                  <span className="detail-label">Status</span>
+                  <span className="detail-value">{viewDrive.status}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Location</span>
+                  <span className="detail-value">{viewDrive.jobLocation}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Min CGPA</span>
+                  <span className="detail-value">{viewDrive.minCgpa}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Max Arrears</span>
+                  <span className="detail-value">{viewDrive.maxCurrentArrears ?? 0}</span>
+                </div>
+                <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
+                  <span className="detail-label">Eligible Departments</span>
+                  <span className="detail-value">{viewDrive.eligibleDepartments?.join(', ')}</span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
+                  Selection Process:
+                </h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  {viewDrive.selectionProcess}
+                </p>
+              </div>
+
+              <div>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px' }}>
+                  Registered Candidates ({viewDrive.registeredStudents?.length || 0}):
+                </h4>
+                {viewDrive.registeredStudents && viewDrive.registeredStudents.length > 0 ? (
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 'var(--radius-sm)' }}>
+                    <table className="data-table" style={{ fontSize: '0.8rem' }}>
+                      <thead>
+                        <tr>
+                          <th>Roll No</th>
+                          <th>Name</th>
+                          <th>Dept</th>
+                          <th>CGPA</th>
+                          <th>Phone</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {viewDrive.registeredStudents.map((s, idx) => (
+                          <tr key={idx}>
+                            <td style={{ fontWeight: 600 }}>{s.rollNumber}</td>
+                            <td>{s.name}</td>
+                            <td>{s.department}</td>
+                            <td>{s.cgpa}</td>
+                            <td>{s.phone || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    No students have registered for this drive yet.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="form-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setViewDrive(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteId && (
+        <ConfirmModal
+          title="Delete Placement Drive"
+          message="Are you sure you want to delete this placement drive? Students will no longer see it."
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default DrivesPage;

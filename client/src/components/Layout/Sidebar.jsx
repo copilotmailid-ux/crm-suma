@@ -1,10 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { HiOutlineAcademicCap, HiOutlineChartBar, HiOutlineUserGroup, HiOutlineOfficeBuilding, HiOutlineBriefcase, HiOutlineUsers, HiOutlineLogout, HiOutlineTrendingUp } from 'react-icons/hi';
+import { HiOutlineAcademicCap, HiOutlineChartBar, HiOutlineUserGroup, HiOutlineOfficeBuilding, HiOutlineBriefcase, HiOutlineUsers, HiOutlineLogout, HiOutlineTrendingUp, HiOutlineClipboardCheck } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: <HiOutlineChartBar /> },
   { label: 'Students', path: '/students', icon: <HiOutlineUserGroup /> },
+  { label: 'Placement Drives', path: '/drives', icon: <HiOutlineClipboardCheck /> },
   { label: 'Companies', path: '/companies', icon: <HiOutlineOfficeBuilding /> },
   { label: 'Placements', path: '/placements', icon: <HiOutlineBriefcase /> },
   { label: 'Alumni', path: '/alumni', icon: <HiOutlineUsers /> },

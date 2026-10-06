@@ -578,10 +578,82 @@ const StudentsPage = () => {
                 <div className="detail-field"><span className="detail-label">Batch</span><span className="detail-value">{viewStudent.batch}</span></div>
                 <div className="detail-field"><span className="detail-label">CGPA</span><span className="detail-value">{viewStudent.cgpa}</span></div>
                 <div className="detail-field">
-                  <span className="detail-label">Status</span>
+                  <span className="detail-label">Live Standing Arrears</span>
+                  <span className="detail-value">
+                    <span className={`badge ${Number(viewStudent.currentArrears) > 0 ? 'badge-warning' : 'badge-neutral'}`}>
+                      {viewStudent.currentArrears !== undefined ? viewStudent.currentArrears : 0}
+                    </span>
+                  </span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">History of Arrears</span>
+                  <span className="detail-value">{viewStudent.historyOfArrears !== undefined ? viewStudent.historyOfArrears : 0}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">10th Board %</span>
+                  <span className="detail-value">{viewStudent.tenthPercentage ? `${viewStudent.tenthPercentage}%` : '-'}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">12th / Diploma %</span>
+                  <span className="detail-value">{viewStudent.twelfthPercentage ? `${viewStudent.twelfthPercentage}%` : '-'}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Gender</span>
+                  <span className="detail-value">{viewStudent.gender || '-'}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Date of Birth</span>
+                  <span className="detail-value">{viewStudent.dob || '-'}</span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Placement Status</span>
                   <span className={`badge ${viewStudent.status === 'placed' ? 'badge-success' : 'badge-warning'}`}>
                     {viewStudent.status === 'placed' ? 'Placed' : 'Not Placed'}
                   </span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">Resume Link</span>
+                  <span className="detail-value">
+                    {viewStudent.resumeUrl ? (
+                      <a
+                        href={viewStudent.resumeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-secondary"
+                        style={{ padding: '2px 8px', fontSize: '0.75rem', textDecoration: 'none' }}
+                      >
+                        Open Resume ↗
+                      </a>
+                    ) : '-'}
+                  </span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">LinkedIn</span>
+                  <span className="detail-value">
+                    {viewStudent.linkedinUrl ? (
+                      <a href={viewStudent.linkedinUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
+                        View LinkedIn ↗
+                      </a>
+                    ) : '-'}
+                  </span>
+                </div>
+                <div className="detail-field">
+                  <span className="detail-label">GitHub / Portfolio</span>
+                  <span className="detail-value">
+                    {viewStudent.githubUrl ? (
+                      <a href={viewStudent.githubUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
+                        GitHub ↗
+                      </a>
+                    ) : viewStudent.portfolioUrl ? (
+                      <a href={viewStudent.portfolioUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
+                        Portfolio ↗
+                      </a>
+                    ) : '-'}
+                  </span>
+                </div>
+                <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
+                  <span className="detail-label">Address</span>
+                  <span className="detail-value">{viewStudent.address || '-'}</span>
                 </div>
                 <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
                   <span className="detail-label">Skills</span>

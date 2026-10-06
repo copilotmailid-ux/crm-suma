@@ -4,11 +4,13 @@ const errorHandler = require('./middleware/errorHandler');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
+const studentAuthRoutes = require('./routes/studentAuthRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const placementRoutes = require('./routes/placementRoutes');
 const alumniRoutes = require('./routes/alumniRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const driveRoutes = require('./routes/driveRoutes');
 
 const app = express();
 
@@ -19,11 +21,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/student-auth', studentAuthRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/placements', placementRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/drives', driveRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

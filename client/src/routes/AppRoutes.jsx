@@ -9,26 +9,56 @@ import CompaniesPage from '../pages/CompaniesPage';
 import PlacementsPage from '../pages/PlacementsPage';
 import AlumniPage from '../pages/AlumniPage';
 import AnalysisPage from '../pages/AnalysisPage';
+import DrivesPage from '../pages/DrivesPage';
+import StudentPortalPage from '../pages/StudentPortalPage';
 
 const AppRoutes = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, userRole, loading } = useAuth();
 
   return (
     <Routes>
+      {/* Public / Login Routes */}
       <Route
         path="/login"
         element={
-          !loading && isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+          !loading && isAuthenticated ? (
+            userRole === 'student' ? <Navigate to="/student/drives" replace /> : <Navigate to="/" replace />
+          ) : (
+            <LoginPage />
+          )
         }
       />
       <Route
+        path="/student/login"
+        element={
+          !loading && isAuthenticated ? (
+            userRole === 'student' ? <Navigate to="/student/drives" replace /> : <Navigate to="/" replace />
+          ) : (
+            <LoginPage />
+          )
+        }
+      />
+
+      {/* Student Portal Routes */}
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute requiredRole="student">
+            <StudentPortalPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin CRM Routes */}
+      <Route
         path="/*"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <AppLayout>
               <Routes>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/students" element={<StudentsPage />} />
+                <Route path="/drives" element={<DrivesPage />} />
                 <Route path="/companies" element={<CompaniesPage />} />
                 <Route path="/placements" element={<PlacementsPage />} />
                 <Route path="/alumni" element={<AlumniPage />} />
