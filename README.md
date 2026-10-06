@@ -1,6 +1,6 @@
-# Placement Cell CRM - Admin Panel
+# NSCET Placement Cell CRM - Admin Panel
 
-A modern, responsive admin dashboard to manage student records, placement records, company details, and alumni data.
+A modern, responsive admin dashboard for Nadar Saraswathi College of Engineering and Technology (NSCET) to manage student records, placement records, company details, and alumni data.
 
 ## Tech Stack
 
@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-The server will start on `http://localhost:5000`.  
+The server will start on `http://localhost:5001`.  
 On first run, a default admin is seeded:
 - **Email:** `admin@placementcell.com`
 - **Password:** `Admin@123`

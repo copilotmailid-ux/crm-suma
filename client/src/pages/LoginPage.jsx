@@ -64,18 +64,18 @@ const LoginPage = () => {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <img
-            src="/logo.png"
-            alt="Sri Krishna CE Logo"
-            className="auth-logo-img"
-            style={{
-              height: '100px',
-              margin: '0 auto 12px',
-              objectFit: 'contain',
-            }}
+          <img 
+            src="/logo.png" 
+            alt="NSCET Logo" 
+            className="auth-logo-img" 
+            style={{ 
+              height: '110px', 
+              margin: '0 auto 16px', 
+              objectFit: 'contain'
+            }} 
           />
-          <h1 className="auth-title" style={{ fontSize: '1.35rem', fontWeight: 800, lineHeight: 1.2 }}>
-            Sri Krishna College of Eng & Tech
+          <h1 className="auth-title" style={{ fontSize: '1.45rem', fontWeight: 800, lineHeight: 1.2 }}>
+            Nadar Saraswathi College of Engineering and Technology
           </h1>
           <p className="auth-subtitle" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
             Training & Placement Cell Portal
