@@ -25,6 +25,7 @@ const StudentsPage = () => {
   const [filterDept, setFilterDept] = useState('');
   const [filterBatch, setFilterBatch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterCareer, setFilterCareer] = useState('');
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -49,6 +50,7 @@ const StudentsPage = () => {
       if (filterDept) params.department = filterDept;
       if (filterBatch) params.batch = filterBatch;
       if (filterStatus) params.status = filterStatus;
+      if (filterCareer) params.careerPreference = filterCareer;
       const res = await getStudents(params);
       setStudents(res.data.students);
       setTotal(res.data.total);
@@ -58,7 +60,7 @@ const StudentsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, filterDept, filterBatch, filterStatus]);
+  }, [page, debouncedSearch, filterDept, filterBatch, filterStatus, filterCareer]);
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
@@ -314,6 +316,7 @@ const StudentsPage = () => {
       if (filterDept) params.department = filterDept;
       if (filterBatch) params.batch = filterBatch;
       if (filterStatus) params.status = filterStatus;
+      if (filterCareer) params.careerPreference = filterCareer;
       const res = await getStudents(params);
       return res.data.students;
     } catch {
@@ -330,6 +333,7 @@ const StudentsPage = () => {
     { header: 'Department', accessor: (r) => r.department },
     { header: 'Batch', accessor: (r) => r.batch },
     { header: 'CGPA', accessor: (r) => r.cgpa },
+    { header: 'Career Goal', accessor: (r) => r.careerPreference || 'Placement' },
     { header: 'Status', accessor: (r) => r.status === 'placed' ? 'Placed' : 'Not Placed' },
   ];
 
@@ -373,7 +377,15 @@ const StudentsPage = () => {
             <option value="placed">Placed</option>
             <option value="not_placed">Not Placed</option>
           </select>
-          {(search || filterDept || filterBatch || filterStatus) && (
+          <select className="filter-select" value={filterCareer} onChange={(e) => { setFilterCareer(e.target.value); setPage(1); }}>
+            <option value="">All Career Paths</option>
+            <option value="Placement">💼 Placement</option>
+            <option value="Entrepreneurship">🚀 Entrepreneurship</option>
+            <option value="Higher Studies">🎓 Higher Studies (PG)</option>
+            <option value="Government Job">🏛️ Government Job</option>
+            <option value="Other">🌐 Other</option>
+          </select>
+          {(search || filterDept || filterBatch || filterStatus || filterCareer) && (
             <button 
               className="btn btn-secondary btn-sm" 
               onClick={() => {
@@ -381,6 +393,7 @@ const StudentsPage = () => {
                 setFilterDept('');
                 setFilterBatch('');
                 setFilterStatus('');
+                setFilterCareer('');
                 setPage(1);
               }}
               style={{
@@ -413,6 +426,7 @@ const StudentsPage = () => {
                   <th>Department</th>
                   <th>Batch</th>
                   <th>CGPA</th>
+                  <th>Career Goal</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -420,7 +434,7 @@ const StudentsPage = () => {
               <tbody>
                 {students.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>
+                    <td colSpan={8}>
                       <div className="empty-state">
                         <div className="empty-icon"><HiOutlineUserGroup /></div>
                         <p className="empty-title">No students found</p>
@@ -435,6 +449,29 @@ const StudentsPage = () => {
                     <td><span className="badge badge-info">{s.department}</span></td>
                     <td>{s.batch}</td>
                     <td>{s.cgpa}</td>
+                    <td>
+                      {s.careerPreference === 'Entrepreneurship' ? (
+                        <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#2563eb', border: '1px solid rgba(59, 130, 246, 0.25)', fontWeight: 600 }}>
+                          🚀 Entrepreneur
+                        </span>
+                      ) : s.careerPreference === 'Higher Studies' ? (
+                        <span className="badge" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#7c3aed', border: '1px solid rgba(139, 92, 246, 0.25)', fontWeight: 600 }}>
+                          🎓 Higher Studies
+                        </span>
+                      ) : s.careerPreference === 'Government Job' ? (
+                        <span className="badge" style={{ background: 'rgba(6, 182, 212, 0.12)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.25)', fontWeight: 600 }}>
+                          🏛️ Govt Job
+                        </span>
+                      ) : s.careerPreference === 'Other' ? (
+                        <span className="badge" style={{ background: 'rgba(107, 114, 128, 0.12)', color: '#4b5563', border: '1px solid rgba(107, 114, 128, 0.25)', fontWeight: 600 }}>
+                          🌐 Other
+                        </span>
+                      ) : (
+                        <span className="badge badge-neutral" style={{ fontWeight: 500 }}>
+                          💼 Placement
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <span className={`badge ${s.status === 'placed' ? 'badge-success' : 'badge-warning'}`}>
                         {s.status === 'placed' ? 'Placed' : 'Not Placed'}
@@ -605,6 +642,52 @@ const StudentsPage = () => {
                   <span className="detail-label">Date of Birth</span>
                   <span className="detail-value">{viewStudent.dob || '-'}</span>
                 </div>
+                <div className="detail-field">
+                  <span className="detail-label">Career Goal / Track</span>
+                  <span className="detail-value">
+                    <strong
+                      style={{
+                        color:
+                          viewStudent.careerPreference === 'Entrepreneurship'
+                            ? '#2563eb'
+                            : viewStudent.careerPreference === 'Higher Studies'
+                            ? '#7c3aed'
+                            : viewStudent.careerPreference === 'Government Job'
+                            ? '#0891b2'
+                            : viewStudent.careerPreference === 'Other'
+                            ? '#4b5563'
+                            : '#10b981',
+                      }}
+                    >
+                      {viewStudent.careerPreference === 'Entrepreneurship'
+                        ? '🚀 Entrepreneurship / Startup Founder'
+                        : viewStudent.careerPreference === 'Higher Studies'
+                        ? '🎓 Higher Studies (PG - MS / M.Tech / MBA)'
+                        : viewStudent.careerPreference === 'Government Job'
+                        ? '🏛️ Government Exams & Civil Services'
+                        : viewStudent.careerPreference === 'Other'
+                        ? '🌐 Other / Family Business'
+                        : '💼 Campus Placement'}
+                    </strong>
+                  </span>
+                </div>
+                {viewStudent.careerDetails && (
+                  <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
+                    <span className="detail-label">Startup / Higher Studies / Exam Details</span>
+                    <span
+                      className="detail-value"
+                      style={{
+                        background: 'rgba(0,0,0,0.03)',
+                        padding: '8px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'block',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {viewStudent.careerDetails}
+                    </span>
+                  </div>
+                )}
                 <div className="detail-field">
                   <span className="detail-label">Placement Status</span>
                   <span className={`badge ${viewStudent.status === 'placed' ? 'badge-success' : 'badge-warning'}`}>

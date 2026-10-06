@@ -56,6 +56,16 @@ const studentSchema = new mongoose.Schema(
       enum: ['not_placed', 'placed'],
       default: 'not_placed',
     },
+    careerPreference: {
+      type: String,
+      enum: ['Placement', 'Entrepreneurship', 'Higher Studies', 'Government Job', 'Other'],
+      default: 'Placement',
+    },
+    careerDetails: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     placementId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Placement',

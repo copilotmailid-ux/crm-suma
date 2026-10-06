@@ -114,12 +114,16 @@ exports.updateStudentProfile = async (req, res, next) => {
       githubUrl,
       portfolioUrl,
       address,
+      careerPreference,
+      careerDetails,
     } = req.body;
 
     // Updatable fields
     if (phone !== undefined) student.phone = phone.trim();
     if (gender !== undefined) student.gender = gender;
     if (dob !== undefined) student.dob = dob;
+    if (careerPreference !== undefined) student.careerPreference = careerPreference;
+    if (careerDetails !== undefined) student.careerDetails = careerDetails.trim();
     if (tenthPercentage !== undefined) student.tenthPercentage = Number(tenthPercentage) || 0;
     if (twelfthPercentage !== undefined) student.twelfthPercentage = Number(twelfthPercentage) || 0;
     if (currentArrears !== undefined) student.currentArrears = Number(currentArrears) || 0;

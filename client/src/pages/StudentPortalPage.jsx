@@ -16,6 +16,7 @@ import {
   HiOutlineSearch,
   HiOutlineIdentification,
   HiOutlineDocumentText,
+  HiOutlineTrendingUp,
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import Loader from '../components/common/Loader';
@@ -37,6 +38,8 @@ const StudentPortalPage = () => {
     phone: '',
     gender: '',
     dob: '',
+    careerPreference: 'Placement',
+    careerDetails: '',
     tenthPercentage: '',
     twelfthPercentage: '',
     currentArrears: '0',
@@ -66,6 +69,8 @@ const StudentPortalPage = () => {
         phone: student.phone || '',
         gender: student.gender || '',
         dob: student.dob || '',
+        careerPreference: student.careerPreference || 'Placement',
+        careerDetails: student.careerDetails || '',
         tenthPercentage: student.tenthPercentage !== undefined ? String(student.tenthPercentage) : '',
         twelfthPercentage: student.twelfthPercentage !== undefined ? String(student.twelfthPercentage) : '',
         currentArrears: student.currentArrears !== undefined ? String(student.currentArrears) : '0',
@@ -274,6 +279,33 @@ const StudentPortalPage = () => {
             </div>
             <div className="student-stat-pill">
               Live Arrears: <strong style={{ color: Number(student.currentArrears) > 0 ? '#ef4444' : '#10b981' }}>{student.currentArrears || 0}</strong>
+            </div>
+            <div className="student-stat-pill">
+              Career Goal:{' '}
+              <strong
+                style={{
+                  color:
+                    profileForm.careerPreference === 'Entrepreneurship'
+                      ? '#3b82f6'
+                      : profileForm.careerPreference === 'Higher Studies'
+                      ? '#8b5cf6'
+                      : profileForm.careerPreference === 'Government Job'
+                      ? '#06b6d4'
+                      : profileForm.careerPreference === 'Other'
+                      ? '#6b7280'
+                      : '#10b981',
+                }}
+              >
+                {profileForm.careerPreference === 'Entrepreneurship'
+                  ? 'Entrepreneur 🚀'
+                  : profileForm.careerPreference === 'Higher Studies'
+                  ? 'Higher Studies (PG) 🎓'
+                  : profileForm.careerPreference === 'Government Job'
+                  ? 'Govt Job 🏛️'
+                  : profileForm.careerPreference === 'Other'
+                  ? 'Other 🌐'
+                  : 'Placement 💼'}
+              </strong>
             </div>
             <div className="student-stat-pill">
               Status:{' '}
@@ -526,9 +558,70 @@ const StudentPortalPage = () => {
                 </div>
               </div>
 
-              {/* Section 2: Academic Record */}
+              {/* Career Goal & Placement Preference */}
               <div className="profile-section-title">
-                <HiOutlineDocumentText /> 2. Academic Records & Arrears (Eligibility Critical)
+                <HiOutlineTrendingUp /> 2. Career Track & Placement Aspiration
+              </div>
+              <div
+                style={{
+                  background: 'rgba(0,0,0,0.02)',
+                  padding: '18px',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: '24px',
+                  border: '1px solid rgba(0,0,0,0.07)',
+                }}
+              >
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label className="form-label" style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                    Select Your Career Goal / Placement Opt-In *
+                  </label>
+                  <select
+                    className="form-select"
+                    value={profileForm.careerPreference}
+                    onChange={(e) => setProfileForm({ ...profileForm, careerPreference: e.target.value })}
+                    style={{ fontSize: '0.92rem', fontWeight: 600, padding: '10px 14px' }}
+                  >
+                    <option value="Placement">💼 Campus Placement (Looking for Campus Placements & Company Offers)</option>
+                    <option value="Entrepreneurship">🚀 Entrepreneurship / Startup Founder (Building Own Venture)</option>
+                    <option value="Higher Studies">🎓 Higher Studies / Post Graduation (PG - MS / M.Tech / MBA / PhD)</option>
+                    <option value="Government Job">🏛️ Government Jobs & Civil Services (UPSC / GATE / TNPSC / Defense / Banking)</option>
+                    <option value="Other">🌐 Other / Family Business / Freelance</option>
+                  </select>
+                </div>
+
+                {profileForm.careerPreference !== 'Placement' && (
+                  <div className="form-group" style={{ marginTop: '12px' }}>
+                    <label className="form-label" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {profileForm.careerPreference === 'Entrepreneurship' && '🚀 Startup Details (Startup Name, Domain, Current Status):'}
+                      {profileForm.careerPreference === 'Higher Studies' && '🎓 Higher Studies Details (Target Degree, Field, Target Universities & Exams like GRE/GATE/CAT):'}
+                      {profileForm.careerPreference === 'Government Job' && '🏛️ Government Job Aspirations (Target Exam, e.g. UPSC CSE, TNPSC, IES, GATE PSU):'}
+                      {profileForm.careerPreference === 'Other' && '🌐 Describe Your Career Path / Family Business:'}
+                    </label>
+                    <textarea
+                      className="form-input"
+                      rows={2}
+                      placeholder={
+                        profileForm.careerPreference === 'Entrepreneurship'
+                          ? 'e.g. AgriTech IoT Solutions - Smart irrigation startup, prototype ready'
+                          : profileForm.careerPreference === 'Higher Studies'
+                          ? 'e.g. Planning MS in Computer Science in Germany / USA for Fall 2026. Target: TU Munich, CMU. GRE: 320'
+                          : profileForm.careerPreference === 'Government Job'
+                          ? 'e.g. Preparing for UPSC Civil Services Examination and GATE PSU recruitment'
+                          : 'e.g. Joining family manufacturing business / Independent freelance developer'
+                      }
+                      value={profileForm.careerDetails}
+                      onChange={(e) => setProfileForm({ ...profileForm, careerDetails: e.target.value })}
+                    />
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      💡 This choice will be automatically updated on the Placement Cell Admin portal so the administration can track your career aspirations accurately.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 3: Academic Record */}
+              <div className="profile-section-title">
+                <HiOutlineDocumentText /> 3. Academic Records & Arrears (Eligibility Critical)
               </div>
               <div className="profile-form-grid">
                 <div className="form-group">

@@ -4,7 +4,7 @@ const Student = require('../models/Student');
 // @route   GET /api/students
 exports.getStudents = async (req, res, next) => {
   try {
-    const { search, department, batch, status, page = 1, limit = 10 } = req.query;
+    const { search, department, batch, status, careerPreference, page = 1, limit = 10 } = req.query;
 
     const query = {};
 
@@ -19,6 +19,7 @@ exports.getStudents = async (req, res, next) => {
     if (department) query.department = department;
     if (batch) query.batch = batch;
     if (status) query.status = status;
+    if (careerPreference) query.careerPreference = careerPreference;
 
     const total = await Student.countDocuments(query);
     const students = await Student.find(query)
