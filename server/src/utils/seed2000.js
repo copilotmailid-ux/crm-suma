@@ -7,6 +7,7 @@
 
 require('dotenv').config();
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Student = require('../models/Student');
 const Company = require('../models/Company');
 const Placement = require('../models/Placement');
@@ -128,6 +129,74 @@ const deptRoles = {
   CE: ['Structural Design Engineer', 'Project Planning Engineer', 'BIM Modeler', 'Site Operations Engineer', 'Civil Estimation Engineer']
 };
 
+const addresses = [
+  '14, Gandhi Road, RS Puram, Coimbatore - 641002',
+  '27, Anna Nagar 2nd Street, Chennai - 600040',
+  '88, West Masi Street, Madurai - 625001',
+  '45, Saradha College Road, Salem - 636016',
+  '12, Subban Street, Theni - 625531',
+  '73, Cross Cut Road, Gandhipuram, Coimbatore - 641012',
+  '19, Thillai Nagar 10th Cross, Trichy - 620018',
+  '56, Palayamkottai High Road, Tirunelveli - 627002',
+  '34, College Road, Erode - 638001',
+  '91, Nethaji Road, Pollachi - 642001',
+  '62, Race Course Road, Coimbatore - 641018',
+  '105, Kamarajar Salai, Madurai - 625009',
+  '38, Velachery Main Road, Chennai - 600042',
+  '15, Junction Road, Salem - 636004',
+  '42, KPN Colony, Tirupur - 641601',
+  '78, Perundurai Road, Erode - 638011'
+];
+
+const femaleNames = new Set([
+  'Aditi', 'Aishwarya', 'Amrita', 'Ananya', 'Anjali', 'Bhavna', 'Deepa', 'Divya',
+  'Geetha', 'Harini', 'Ishita', 'Janani', 'Kavya', 'Keerthana', 'Lakshmi', 'Meera',
+  'Monika', 'Nidhi', 'Nisha', 'Pavithra', 'Pooja', 'Preethi', 'Priya', 'Rhea',
+  'Rithika', 'Riya', 'Sakshi', 'Sandhya', 'Shalini', 'Shreya', 'Shruti', 'Sneha',
+  'Soundarya', 'Swati', 'Tanvi', 'Vaishnavi', 'Yukta', 'Ahana', 'Diya'
+]);
+
+const entrepreneurshipDetails = [
+  'Founder of AgriTech IoT: automated drip irrigation & soil health monitoring system for farms in Pollachi. Incubated in college innovation lab.',
+  'Building SaaS micro-tool for college event management and ticketing. In pre-seed pitch stage.',
+  'Working on autonomous delivery rover prototype using ROS and computer vision. Team of 4.',
+  'Co-founding EcoPack: biodegradable packaging made from areca palm leaf waste. Seed grant applied.',
+  'Developing AI resume screener & mock interview platform for engineering college students in Tamil Nadu.',
+  'Hardware startup prototyping low-cost EV battery monitoring systems (BMS) for 2-wheelers.',
+  'Fintech micro-savings app for college students and gig workers. Working on MVP.',
+  'Drone-based aerial survey & pesticide spraying service startup. DGCA certification in progress.'
+];
+
+const higherStudiesDetails = [
+  'Preparing for GATE 2025 (CSE). Aiming for M.Tech in Artificial Intelligence at IIT Madras or IISc Bangalore.',
+  'GRE score: 324 (Quant 168, Verbal 156), TOEFL: 110. Applying for MS in Computer Science for Fall 2025 at ASU & TU Munich.',
+  'Preparing for CAT / XAT 2024. Target B-schools: IIM Bangalore, SPJIMR, XLRI for MBA in Tech Management.',
+  'GATE 2025 (ECE) aspirant. Target: Microelectronics and VLSI Design at IISc Bangalore.',
+  'Applied for DAAD Scholarship & Masters in Robotics and Automation at RWTH Aachen, Germany.',
+  'IELTS score: 8.0. Seeking Master of Engineering Management (MEM) at Northeastern University, USA.',
+  'Preparing for GATE 2025 (Mechanical). Targeting M.Tech in Thermal Engineering at NIT Trichy.',
+  'Targeting MS in Data Science & Machine Learning at National University of Singapore (NUS).'
+];
+
+const govtJobDetails = [
+  'Preparing for UPSC Civil Services Examination (IAS/IPS). Optional subject: Geography.',
+  'Targeting TNPSC Combined Engineering Services Examination (CESE) & Group 1 Services (Assistant Director / DSP).',
+  'Preparing for SSC CGL (Staff Selection Commission) & Indian Railways (RRB Senior Section Engineer).',
+  'IES / ESE (Indian Engineering Services) preparation. Target: Central Water Commission / Indian Railway Service of Mechanical Engineers.',
+  'Preparing for Banking Exams (IBPS PO & SBI PO Specialist IT Officer).',
+  'Targeting ISRO / DRDO Scientist-SC recruitment exam for Electronics & Mechanical branches.',
+  'Preparing for Airport Authority of India (AAI) Junior Executive (Air Traffic Control / Technical).',
+  'State Electricity Board (TANGEDCO) Assistant Engineer recruitment preparation.'
+];
+
+const otherDetails = [
+  'Joining and modernizing 2nd generation family textile export & manufacturing business in Tirupur.',
+  'Full-time Freelance UI/UX Designer & Frontend Developer serving international clients on Upwork.',
+  'Selected for Teach For India Fellowship: 2-year leadership program focusing on rural education.',
+  'Professional athlete (badminton university team) / Sports management & academy pathway.',
+  'Family agricultural farm modernization and organic produce distribution in Theni.'
+];
+
 function getRandomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -140,6 +209,14 @@ function getRandomSubset(arr, count) {
 function getRandomNumber(min, max, decimals = 1) {
   const val = Math.random() * (max - min) + min;
   return parseFloat(val.toFixed(decimals));
+}
+
+function getRandomDob(batch) {
+  const startYear = parseInt(batch.slice(0, 4), 10);
+  const birthYear = isNaN(startYear) ? 2003 : startYear - 18;
+  const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+  const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+  return `${birthYear}-${month}-${day}`;
 }
 
 async function runSeed() {
@@ -172,9 +249,13 @@ async function runSeed() {
     const studentsToInsert = [];
     const studentPlacementMeta = []; // Stores helper data to generate placement records next
 
+    const salt = await bcrypt.genSalt(10);
+    const defaultHashedPassword = await bcrypt.hash('Student@123', salt);
+
     // 2000 students = 500 students per batch
     // In each batch, 500 students distributed over 8 departments (~62-63 students per dept)
     let globalIndex = 1;
+    let unplacedCounter = 0;
 
     for (const b of batches) {
       for (const dept of departments) {
@@ -187,6 +268,9 @@ async function runSeed() {
           const fName = getRandomElement(firstNames);
           const lName = getRandomElement(lastNames);
           const fullName = `${fName} ${lName}`;
+          const isFemale = femaleNames.has(fName);
+          const gender = isFemale ? 'Female' : 'Male';
+          const nameSlug = fullName.toLowerCase().replace(/[^a-z]/g, '');
           
           // Roll Number format: e.g. 21CSE001, 22AIDS045
           const rollNumber = `${b.prefix}${dept}${String(i).padStart(3, '0')}`;
@@ -206,6 +290,53 @@ async function runSeed() {
           const cgpaFactor = cgpa >= 8.5 ? 1.25 : cgpa >= 7.5 ? 1.0 : 0.7;
           const isPlaced = Math.random() < (b.placementRate * cgpaFactor);
 
+          // 10th and 12th marks correlated with CGPA
+          const basePercentage = cgpa * 9.5;
+          const tenthPercentage = getRandomNumber(
+            Math.max(68, Math.min(94, basePercentage - 5)),
+            Math.min(99, basePercentage + 6),
+            1
+          );
+          const twelfthPercentage = getRandomNumber(
+            Math.max(65, Math.min(93, basePercentage - 6)),
+            Math.min(98.5, basePercentage + 5),
+            1
+          );
+
+          // Arrears
+          const randArrears = Math.random();
+          let currentArrears = 0;
+          if (randArrears > 0.98) currentArrears = 3;
+          else if (randArrears > 0.95) currentArrears = 2;
+          else if (randArrears > 0.85) currentArrears = 1;
+          const historyOfArrears = currentArrears + (Math.random() < 0.2 ? 1 : 0);
+
+          // Career Preference Track
+          let careerPreference = 'Placement';
+          let careerDetails = '';
+
+          if (isPlaced) {
+            careerPreference = 'Placement';
+          } else {
+            unplacedCounter++;
+            const mod = unplacedCounter % 100;
+            if (mod < 50) {
+              careerPreference = 'Placement';
+            } else if (mod < 66) {
+              careerPreference = 'Entrepreneurship';
+              careerDetails = getRandomElement(entrepreneurshipDetails);
+            } else if (mod < 84) {
+              careerPreference = 'Higher Studies';
+              careerDetails = getRandomElement(higherStudiesDetails);
+            } else if (mod < 96) {
+              careerPreference = 'Government Job';
+              careerDetails = getRandomElement(govtJobDetails);
+            } else {
+              careerPreference = 'Other';
+              careerDetails = getRandomElement(otherDetails);
+            }
+          }
+
           studentsToInsert.push({
             name: fullName,
             rollNumber,
@@ -216,6 +347,20 @@ async function runSeed() {
             cgpa,
             skills,
             status: isPlaced ? 'placed' : 'not_placed',
+            careerPreference,
+            careerDetails,
+            tenthPercentage,
+            twelfthPercentage,
+            currentArrears,
+            historyOfArrears,
+            gender,
+            dob: getRandomDob(b.batch),
+            address: getRandomElement(addresses),
+            resumeUrl: `https://drive.google.com/file/d/student_resume_${rollNumber.toLowerCase()}/view`,
+            linkedinUrl: `https://linkedin.com/in/${nameSlug}-${rollNumber.toLowerCase()}`,
+            githubUrl: `https://github.com/${nameSlug}${rollNumber.slice(-3).toLowerCase()}`,
+            portfolioUrl: `https://${nameSlug}.dev`,
+            password: defaultHashedPassword,
             placementId: null
           });
 
@@ -238,14 +383,32 @@ async function runSeed() {
       const dept = getRandomElement(departments);
       const fName = getRandomElement(firstNames);
       const lName = getRandomElement(lastNames);
+      const fullName = `${fName} ${lName}`;
+      const isFemale = femaleNames.has(fName);
+      const gender = isFemale ? 'Female' : 'Male';
+      const nameSlug = fullName.toLowerCase().replace(/[^a-z]/g, '');
+
       const rollNumber = `${b.prefix}${dept}${String(globalIndex).padStart(4, '0')}`;
       const email = `${fName.toLowerCase()}.${lName.toLowerCase()}.${rollNumber.toLowerCase()}@skcet.ac.in`;
       const phone = `98${Math.floor(10000000 + Math.random() * 90000000)}`;
       const cgpa = getRandomNumber(6.5, 9.5, 2);
       const isPlaced = Math.random() < b.placementRate;
 
+      const basePercentage = cgpa * 9.5;
+      const tenthPercentage = getRandomNumber(70, 98, 1);
+      const twelfthPercentage = getRandomNumber(68, 97, 1);
+
+      let careerPreference = 'Placement';
+      let careerDetails = '';
+      if (!isPlaced) {
+        careerPreference = getRandomElement(['Entrepreneurship', 'Higher Studies', 'Government Job', 'Placement']);
+        if (careerPreference === 'Entrepreneurship') careerDetails = getRandomElement(entrepreneurshipDetails);
+        else if (careerPreference === 'Higher Studies') careerDetails = getRandomElement(higherStudiesDetails);
+        else if (careerPreference === 'Government Job') careerDetails = getRandomElement(govtJobDetails);
+      }
+
       studentsToInsert.push({
-        name: `${fName} ${lName}`,
+        name: fullName,
         rollNumber,
         email,
         phone,
@@ -254,6 +417,20 @@ async function runSeed() {
         cgpa,
         skills: getRandomSubset(deptSkills[dept], 4),
         status: isPlaced ? 'placed' : 'not_placed',
+        careerPreference,
+        careerDetails,
+        tenthPercentage,
+        twelfthPercentage,
+        currentArrears: 0,
+        historyOfArrears: 0,
+        gender,
+        dob: getRandomDob(b.batch),
+        address: getRandomElement(addresses),
+        resumeUrl: `https://drive.google.com/file/d/student_resume_${rollNumber.toLowerCase()}/view`,
+        linkedinUrl: `https://linkedin.com/in/${nameSlug}-${rollNumber.toLowerCase()}`,
+        githubUrl: `https://github.com/${nameSlug}${rollNumber.slice(-3).toLowerCase()}`,
+        portfolioUrl: `https://${nameSlug}.dev`,
+        password: defaultHashedPassword,
         placementId: null
       });
 
