@@ -26,7 +26,7 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       console.log('\n======================================================');
-      console.log('   🎓  SRI KRISHNA COLLEGE OF ENG & TECH - CRM  🎓   ');
+      console.log('   🎓  NADAR SARASWATHI COLLEGE OF ENG & TECH - CRM  🎓   ');
       console.log('======================================================');
       console.log(` 📡  Status    : Running Successfully`);
       console.log(` 🔌  Local URL : http://localhost:${PORT}`);

@@ -79,11 +79,11 @@ const DashboardPage = () => {
       {/* College Placement Banner */}
       <div className="dashboard-banner">
         <div className="banner-logo-wrapper">
-          <img src="/logo.png" alt="Sri Krishna College of Engineering and Technology Logo" className="banner-logo" />
+          <img src="/logo.png" alt="Nadar Saraswathi College of Engineering and Technology Logo" className="banner-logo" />
         </div>
         <div className="banner-info">
-          <h2 className="banner-title">Sri Krishna College of Engineering and Technology</h2>
-          <p className="banner-subtitle">Coimbatore, Tamil Nadu, India</p>
+          <h2 className="banner-title">Nadar Saraswathi College of Engineering and Technology</h2>
+          <p className="banner-subtitle">Theni, Tamil Nadu, India</p>
           <div className="banner-badge">
             <span>TRAINING & PLACEMENT CELL</span>
           </div>

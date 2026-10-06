@@ -219,10 +219,10 @@ const AnalysisPage = () => {
       {/* College Print Header (only visible on print) */}
       <div className="print-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', borderBottom: '2px solid #0b1d37', paddingBottom: '16px', marginBottom: '24px', width: '100%' }}>
-          <img src="/logo.png" alt="Sri Krishna CE Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="NSCET Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0b1d37', margin: 0 }}>SRI KRISHNA COLLEGE OF ENGINEERING AND TECHNOLOGY</h1>
-            <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '4px 0 0', fontWeight: 500 }}>Coimbatore, Tamil Nadu, India | Training & Placement Cell</p>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0b1d37', margin: 0 }}>NADAR SARASWATHI COLLEGE OF ENGINEERING AND TECHNOLOGY</h1>
+            <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '4px 0 0', fontWeight: 500 }}>Theni, Tamil Nadu, India | Training & Placement Cell</p>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#c59e51', margin: '8px 0 0' }}>Batch {selectedBatch} - Placement Analysis Report</h2>
           </div>
         </div>

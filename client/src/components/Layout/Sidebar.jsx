@@ -19,8 +19,8 @@ const Sidebar = ({ collapsed }) => {
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-brand">
-        <img src="/logo.png" alt="SKCET Logo" className="brand-logo-img" />
-        <span className="brand-text" style={{ fontSize: '0.95rem' }}>SKCET</span>
+        <img src="/logo.png" alt="NSCET Logo" className="brand-logo-img" />
+        <span className="brand-text" style={{ fontSize: '0.95rem' }}>NSCET</span>
       </div>
 
 

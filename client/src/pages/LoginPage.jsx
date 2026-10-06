@@ -32,7 +32,7 @@ const LoginPage = () => {
         <div className="auth-logo">
           <img 
             src="/logo.png" 
-            alt="Sri Krishna CE Logo" 
+            alt="NSCET Logo" 
             className="auth-logo-img" 
             style={{ 
               height: '110px', 
@@ -41,7 +41,7 @@ const LoginPage = () => {
             }} 
           />
           <h1 className="auth-title" style={{ fontSize: '1.45rem', fontWeight: 800, lineHeight: 1.2 }}>
-            Sri Krishna College of Engineering and Technology
+            Nadar Saraswathi College of Engineering and Technology
           </h1>
           <p className="auth-subtitle" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
             Training & Placement Cell Admin Login
