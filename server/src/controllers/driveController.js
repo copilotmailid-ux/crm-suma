@@ -6,6 +6,8 @@ const Alumni = require('../models/Alumni');
 const {
   sendRoundShortlistEmail,
   sendFinalSelectionEmail,
+  resetTransporter,
+  sendTestEmail,
 } = require('../utils/emailService');
 
 // @desc    Get all company placement drives / requirements
@@ -825,6 +827,264 @@ exports.sendCustomRoundEmail = async (req, res, next) => {
     res.json({
       message: `Sent emails to ${emailResults.filter((e) => e.success).length} candidate(s)`,
       emailResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Resend round invitation email to candidate(s)
+// @route   POST /api/drives/:id/rounds/:roundNumber/resend-email
+exports.resendRoundEmail = async (req, res, next) => {
+  try {
+    const { id, roundNumber } = req.params;
+    const { studentIds, customSubject, customMessage } = req.body;
+
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ message: 'Please specify at least one student to resend email' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const round = drive.rounds.find((r) => r.roundNumber === Number(roundNumber));
+    if (!round) {
+      return res.status(404).json({ message: 'Round not found' });
+    }
+
+    const students = await Student.find({ _id: { $in: studentIds } });
+    if (students.length === 0) {
+      return res.status(404).json({ message: 'Students not found' });
+    }
+
+    const emailResults = [];
+    for (const student of students) {
+      const sendRes = await sendRoundShortlistEmail({
+        student,
+        drive,
+        roundName: round.name,
+        roundNumber: round.roundNumber,
+        scheduledDate: round.scheduledDate,
+        venue: round.venue,
+        instructions: round.instructions,
+        customSubject,
+        customMessage,
+      });
+
+      emailResults.push(sendRes);
+
+      if (sendRes.success) {
+        const cand = round.candidates.find(
+          (c) => c.studentId.toString() === student._id.toString()
+        );
+        if (cand) {
+          cand.emailSent = true;
+          cand.emailSentAt = new Date();
+        }
+      }
+    }
+
+    await drive.save();
+
+    const isConfigured = Boolean(
+      (process.env.EMAILJS_SERVICE_ID && (process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID)) ||
+      (process.env.GMAIL_USER && (process.env.GMAIL_PASS || process.env.GMAIL_APP_PASSWORD)) ||
+      (process.env.SMTP_HOST && process.env.SMTP_USER)
+    );
+
+    const anyUnconfigured = emailResults.some((e) => e.notConfigured);
+    const failedEmails = emailResults.filter((e) => !e.success && !e.notConfigured);
+    const successCount = emailResults.filter((e) => e.success).length;
+
+    if (!isConfigured || anyUnconfigured) {
+      return res.status(400).json({
+        success: false,
+        notConfigured: true,
+        message: failedEmails[0]?.error || 'Email service not configured in server/.env',
+        emailResults,
+      });
+    }
+
+    if (failedEmails.length > 0 && successCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: failedEmails[0]?.error || failedEmails[0]?.message || 'Email delivery failed.',
+        emailResults,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully delivered invitation email to ${successCount} student(s)!`,
+      emailResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Resend final placement offer congratulations email
+// @route   POST /api/drives/:id/resend-offer-email
+exports.resendOfferEmail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { studentIds, customSubject, customMessage } = req.body;
+
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ message: 'Please specify at least one student' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Placement drive not found' });
+    }
+
+    const students = await Student.find({ _id: { $in: studentIds } });
+    const emailResults = [];
+
+    for (const student of students) {
+      const finalEntry = drive.finalSelectedStudents.find(
+        (f) => f.studentId.toString() === student._id.toString()
+      );
+
+      const sendRes = await sendFinalSelectionEmail({
+        student,
+        drive,
+        role: finalEntry?.role || drive.role,
+        package: finalEntry?.package || drive.package,
+        customSubject,
+        customMessage,
+      });
+
+      emailResults.push(sendRes);
+
+      if (sendRes.success && finalEntry) {
+        finalEntry.emailSent = true;
+        finalEntry.emailSentAt = new Date();
+      }
+    }
+
+    await drive.save();
+
+    const isConfigured = Boolean(
+      (process.env.EMAILJS_SERVICE_ID && (process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID)) ||
+      (process.env.GMAIL_USER && (process.env.GMAIL_PASS || process.env.GMAIL_APP_PASSWORD)) ||
+      (process.env.SMTP_HOST && process.env.SMTP_USER)
+    );
+
+    const anyUnconfigured = emailResults.some((e) => e.notConfigured);
+    const failedEmails = emailResults.filter((e) => !e.success && !e.notConfigured);
+    const successCount = emailResults.filter((e) => e.success).length;
+
+    if (!isConfigured || anyUnconfigured) {
+      return res.status(400).json({
+        success: false,
+        notConfigured: true,
+        message: failedEmails[0]?.error || 'Email service credentials not configured in server/.env',
+        emailResults,
+      });
+    }
+
+    if (failedEmails.length > 0 && successCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: failedEmails[0]?.error || failedEmails[0]?.message || 'Failed to deliver offer email.',
+        emailResults,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully delivered offer congratulations email to ${successCount} student(s)!`,
+      emailResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get email configuration status
+// @route   GET /api/drives/email-config
+exports.getEmailConfig = async (req, res, next) => {
+  try {
+    const hasGmail = Boolean(process.env.GMAIL_USER && (process.env.GMAIL_PASS || process.env.GMAIL_APP_PASSWORD));
+    const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
+
+    res.json({
+      configured: hasGmail || hasSmtp,
+      service: hasGmail ? 'Gmail' : hasSmtp ? 'Custom SMTP' : 'Unconfigured',
+      senderEmail: process.env.GMAIL_USER || process.env.SMTP_USER || process.env.EMAIL_FROM || '',
+      smtpHost: process.env.SMTP_HOST || '',
+      smtpPort: process.env.SMTP_PORT || '',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Save email configuration and send test email
+// @route   POST /api/drives/email-config
+exports.saveEmailConfig = async (req, res, next) => {
+  try {
+    const { gmailUser, gmailPass, smtpHost, smtpPort, smtpUser, smtpPass, emailFrom, testRecipient } = req.body;
+
+    const fs = require('fs');
+    const path = require('path');
+    const envPath = path.resolve(__dirname, '../../.env');
+
+    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+
+    const setEnvKey = (key, val) => {
+      const regex = new RegExp(`^${key}=.*$`, 'm');
+      if (val !== undefined && val !== null && val !== '') {
+        if (regex.test(envContent)) {
+          envContent = envContent.replace(regex, `${key}=${val}`);
+        } else {
+          envContent += `\n${key}=${val}`;
+        }
+        process.env[key] = val;
+      } else if (regex.test(envContent)) {
+        envContent = envContent.replace(regex, `${key}=`);
+        delete process.env[key];
+      }
+    };
+
+    if (gmailUser !== undefined) setEnvKey('GMAIL_USER', gmailUser.trim());
+    if (gmailPass !== undefined) {
+      const cleanedPass = gmailPass.trim().replace(/\s+/g, '');
+      setEnvKey('GMAIL_PASS', cleanedPass);
+      setEnvKey('GMAIL_APP_PASSWORD', cleanedPass);
+    }
+    if (smtpHost !== undefined) setEnvKey('SMTP_HOST', smtpHost.trim());
+    if (smtpPort !== undefined) setEnvKey('SMTP_PORT', smtpPort.trim());
+    if (smtpUser !== undefined) setEnvKey('SMTP_USER', smtpUser.trim());
+    if (smtpPass !== undefined) setEnvKey('SMTP_PASS', smtpPass.trim());
+    if (emailFrom !== undefined) setEnvKey('EMAIL_FROM', emailFrom.trim());
+
+    fs.writeFileSync(envPath, envContent.trim() + '\n', 'utf8');
+
+    // Reset transporter cache
+    resetTransporter();
+
+    let testResult = null;
+    if (testRecipient && testRecipient.trim()) {
+      testResult = await sendTestEmail(testRecipient.trim());
+    }
+
+    if (testResult && !testResult.success) {
+      return res.status(400).json({
+        message: `Gmail test verification failed: ${testResult.error || 'Authentication failed'}. Please verify your Gmail address and 16-character Google App Password.`,
+        testResult,
+      });
+    }
+
+    res.json({
+      message: testResult?.success
+        ? `✅ Email settings saved and test email successfully delivered to ${testRecipient.trim()}!`
+        : '✅ Email configuration saved successfully!',
+      testResult,
     });
   } catch (error) {
     next(error);

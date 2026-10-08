@@ -15,3 +15,9 @@ export const addOrUpdateRound = (id, data) =>
   api.post(`/drives/${id}/rounds`, data);
 export const sendCustomRoundEmail = (id, roundNumber, data) =>
   api.post(`/drives/${id}/rounds/${roundNumber}/send-email`, data);
+export const resendRoundEmail = (id, roundNumber, data) =>
+  api.post(`/drives/${id}/rounds/${roundNumber}/resend-email`, data);
+export const resendOfferEmail = (id, data) =>
+  api.post(`/drives/${id}/resend-offer-email`, data);
+export const getEmailConfig = () => api.get('/drives/email-config');
+export const saveEmailConfig = (data) => api.post('/drives/email-config', data);

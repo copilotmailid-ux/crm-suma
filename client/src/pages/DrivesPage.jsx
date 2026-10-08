@@ -139,41 +139,43 @@ const DrivesPage = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
+    <>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
         <div>
-          <h1 className="page-title">Company Placement Drives</h1>
-          <p className="page-subtitle">
+          <h2 className="page-header-title" style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Company Placement Drives</h2>
+          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
             Enter visiting companies and eligibility criteria. These requirements are shown directly on the student portal.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={openCreateModal} id="btn-add-drive">
+        <button className="btn btn-primary" onClick={openCreateModal} id="btn-add-drive" style={{ whiteSpace: 'nowrap' }}>
           <HiOutlinePlus /> Enter Company Requirements
         </button>
       </div>
 
-      {/* Filter Bar */}
-      <div className="filter-bar">
-        <div className="search-bar">
-          <HiOutlineSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search company or role..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+      {/* Toolbar */}
+      <div className="table-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+        <div className="toolbar-left" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+          <div className="search-box" style={{ maxWidth: '320px', width: '100%' }}>
+            <HiOutlineSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search company or role..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-        <select
-          className="form-select filter-select"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Statuses</option>
-          <option value="Upcoming">Upcoming</option>
-          <option value="Ongoing">Ongoing</option>
-          <option value="Completed">Completed</option>
-        </select>
+          <select
+            className="filter-select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="Upcoming">Upcoming</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
       </div>
 
       {/* Drives Table */}
@@ -184,125 +186,141 @@ const DrivesPage = () => {
           <p>No company placement drives entered yet. Click "Enter Company Requirements" to add one.</p>
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Role</th>
-                <th>Package</th>
-                <th>Min CGPA</th>
-                <th>Max Arrears</th>
-                <th>Eligible Depts</th>
-                <th>Drive Date</th>
-                <th>Status</th>
-                <th>Registered</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {drives.map((d) => (
-                <tr key={d._id}>
-                  <td
-                    style={{ fontWeight: 700, cursor: 'pointer' }}
-                    onClick={() => setViewDrive(d)}
-                    title="Click company to view registered & eligible candidates"
-                  >
-                    <span
-                      style={{
-                        color: 'var(--primary-color, #2563eb)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: 'opacity 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
-                    >
-                      {d.companyName}
-                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>↗</span>
-                    </span>
-                  </td>
-                  <td>{d.role}</td>
-                  <td>
-                    <span className="badge badge-success" style={{ fontWeight: 700 }}>
-                      ₹{d.package} LPA
-                    </span>
-                  </td>
-                  <td>{d.minCgpa || 'Any'}</td>
-                  <td>
-                    <span className={`badge ${d.maxCurrentArrears === 0 ? 'badge-neutral' : 'badge-warning'}`}>
-                      {d.maxCurrentArrears ?? 0}
-                    </span>
-                  </td>
-                  <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.eligibleDepartments?.join(', ')}
-                  </td>
-                  <td>{new Date(d.driveDate).toLocaleDateString('en-IN')}</td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        d.status === 'Completed'
-                          ? 'badge-neutral'
-                          : d.status === 'Ongoing'
-                          ? 'badge-success'
-                          : 'badge-warning'
-                      }`}
-                    >
-                      {d.status}
-                    </span>
-                  </td>
-                  <td
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setViewDrive(d)}
-                    title="Click to view registered candidates"
-                  >
-                    <span
-                      className="badge"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        background: (d.registeredStudents?.length || 0) > 0 ? 'rgba(37, 99, 235, 0.12)' : 'var(--bg-input, #f1f5f9)',
-                        color: (d.registeredStudents?.length || 0) > 0 ? '#2563eb' : 'var(--text-muted, #64748b)',
-                        fontWeight: 700,
-                        padding: '4px 10px',
-                        cursor: 'pointer',
-                        border: (d.registeredStudents?.length || 0) > 0 ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid transparent',
-                      }}
-                    >
-                      <HiOutlineUserGroup /> {d.registeredStudents?.length || 0}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        className="btn-icon"
-                        title="View Registered & Eligible Students"
-                        onClick={() => setViewDrive(d)}
-                      >
-                        <HiOutlineEye />
-                      </button>
-                      <button
-                        className="btn-icon"
-                        title="Edit Drive Requirements"
-                        onClick={() => openEditModal(d)}
-                      >
-                        <HiOutlinePencil />
-                      </button>
-                      <button
-                        className="btn-icon btn-icon-danger"
-                        title="Delete Drive"
-                        onClick={() => setDeleteId(d._id)}
-                      >
-                        <HiOutlineTrash />
-                      </button>
-                    </div>
-                  </td>
+        <div className="data-table-wrapper" style={{ width: '100%', overflow: 'hidden' }}>
+          <div className="table-scroll" style={{ width: '100%', overflowX: 'auto' }}>
+            <table className="data-table" style={{ width: '100%', minWidth: '950px' }}>
+              <thead>
+                <tr>
+                  <th style={{ minWidth: '160px' }}>Company</th>
+                  <th style={{ minWidth: '180px' }}>Role</th>
+                  <th style={{ minWidth: '100px' }}>Package</th>
+                  <th style={{ minWidth: '85px' }}>Min CGPA</th>
+                  <th style={{ minWidth: '95px' }}>Max Arrears</th>
+                  <th style={{ minWidth: '140px' }}>Eligible Depts</th>
+                  <th style={{ minWidth: '105px' }}>Drive Date</th>
+                  <th style={{ minWidth: '95px' }}>Status</th>
+                  <th style={{ minWidth: '105px', textAlign: 'center' }}>Registered</th>
+                  <th style={{ width: '110px', minWidth: '110px', textAlign: 'center' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {drives.map((d) => (
+                  <tr key={d._id}>
+                    <td
+                      style={{ fontWeight: 700, cursor: 'pointer' }}
+                      onClick={() => setViewDrive(d)}
+                      title="Click company to view registered & eligible candidates"
+                    >
+                      <span
+                        style={{
+                          color: 'var(--primary-color, #2563eb)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'opacity 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                      >
+                        {d.companyName}
+                        <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>↗</span>
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{d.role}</td>
+                    <td>
+                      <span className="badge badge-success" style={{ fontWeight: 700 }}>
+                        ₹{d.package} LPA
+                      </span>
+                    </td>
+                    <td>{d.minCgpa || 'Any'}</td>
+                    <td>
+                      <span className={`badge ${d.maxCurrentArrears === 0 ? 'badge-neutral' : 'badge-warning'}`}>
+                        {d.maxCurrentArrears ?? 0}
+                      </span>
+                    </td>
+                    <td
+                      style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      title={d.eligibleDepartments?.join(', ')}
+                    >
+                      {d.eligibleDepartments && d.eligibleDepartments.length > 0 ? (
+                        <span>
+                          {d.eligibleDepartments.slice(0, 3).join(', ')}
+                          {d.eligibleDepartments.length > 3 && (
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: '4px' }}>
+                              +{d.eligibleDepartments.length - 3}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        'All Depts'
+                      )}
+                    </td>
+                    <td>{new Date(d.driveDate).toLocaleDateString('en-IN')}</td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          d.status === 'Completed'
+                            ? 'badge-neutral'
+                            : d.status === 'Ongoing'
+                            ? 'badge-success'
+                            : 'badge-warning'
+                        }`}
+                      >
+                        {d.status}
+                      </span>
+                    </td>
+                    <td
+                      style={{ textAlign: 'center', cursor: 'pointer' }}
+                      onClick={() => setViewDrive(d)}
+                      title="Click to view registered candidates"
+                    >
+                      <span
+                        className="badge"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: (d.registeredStudents?.length || 0) > 0 ? 'rgba(37, 99, 235, 0.12)' : 'var(--bg-input, #f1f5f9)',
+                          color: (d.registeredStudents?.length || 0) > 0 ? '#2563eb' : 'var(--text-muted, #64748b)',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          cursor: 'pointer',
+                          border: (d.registeredStudents?.length || 0) > 0 ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid transparent',
+                        }}
+                      >
+                        <HiOutlineUserGroup /> {d.registeredStudents?.length || 0}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center', width: '110px' }}>
+                      <div className="table-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <button
+                          className="btn-icon"
+                          title="View Candidates & Rounds"
+                          onClick={() => setViewDrive(d)}
+                        >
+                          <HiOutlineEye />
+                        </button>
+                        <button
+                          className="btn-icon"
+                          title="Edit Drive Requirements"
+                          onClick={() => openEditModal(d)}
+                        >
+                          <HiOutlinePencil />
+                        </button>
+                        <button
+                          className="btn-icon btn-icon-danger"
+                          title="Delete Drive"
+                          onClick={() => setDeleteId(d._id)}
+                        >
+                          <HiOutlineTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -530,7 +548,7 @@ const DrivesPage = () => {
           onCancel={() => setDeleteId(null)}
         />
       )}
-    </div>
+    </>
   );
 };
 

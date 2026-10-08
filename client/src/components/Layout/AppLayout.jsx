@@ -6,9 +6,11 @@ import Topbar from './Topbar';
 const pageTitles = {
   '/': 'Dashboard',
   '/students': 'Students',
+  '/drives': 'Company Placement Drives',
   '/companies': 'Companies',
   '/placements': 'Placements',
   '/alumni': 'Alumni',
+  '/analysis': 'Analysis',
 };
 
 const AppLayout = ({ children }) => {

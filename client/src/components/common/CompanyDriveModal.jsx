@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   HiOutlineX,
   HiOutlineUserGroup,
@@ -11,13 +12,13 @@ import {
   HiOutlineLocationMarker,
   HiOutlineAcademicCap,
   HiOutlineDocumentText,
-  HiOutlineExclamationCircle,
   HiOutlineMail,
   HiOutlineArrowRight,
   HiOutlinePlus,
-  HiOutlineClock,
   HiOutlineSparkles,
-  HiOutlineCheck,
+  HiOutlineCog,
+  HiOutlineRefresh,
+  HiOutlineExclamation,
 } from 'react-icons/hi';
 import * as XLSX from 'xlsx';
 import {
@@ -25,11 +26,22 @@ import {
   advanceRoundCandidates,
   selectFinalCandidates,
   addOrUpdateRound,
+  resendRoundEmail,
+  resendOfferEmail,
 } from '../../api/driveApi';
 import Loader from './Loader';
 import toast from 'react-hot-toast';
 
 const CompanyDriveModal = ({ drive, onClose }) => {
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = orig;
+    };
+  }, []);
+
   // Tabs: 'pipeline' (Rounds) | 'placed' | 'registered' | 'eligible' | 'info'
   const [activeTab, setActiveTab] = useState('pipeline');
   const [loading, setLoading] = useState(true);
@@ -50,6 +62,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
   // Checkbox Selection for Active Round
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [resendingId, setResendingId] = useState(null);
 
   // Modal: Advance to Next Round ("When is 2nd round" + Mail)
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
@@ -145,7 +158,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     if (!activeRound) return [];
     return (activeRound.candidates || []).map((cand) => {
       let student = cand.studentId;
-      // If studentId is an ObjectId string or unpopulated, resolve from studentMap
       if (!student || typeof student === 'string' || !student.name) {
         const sid = (cand.studentId?._id || cand.studentId || '').toString();
         student = studentMap.get(sid) || { _id: sid, name: 'Student (' + sid.slice(-5) + ')', email: '' };
@@ -232,6 +244,75 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     }
   };
 
+  // Resend Email for a single student in current round
+  const handleResendSingle = async (studentId, studentName) => {
+    setResendingId(studentId);
+    try {
+      const res = await resendRoundEmail(driveData._id, selectedRoundNumber, {
+        studentIds: [studentId],
+      });
+      if (res.data.success) {
+        toast.success(res.data.message || `Invitation email delivered to ${studentName}!`);
+      } else {
+        toast(res.data.message || 'Notification recorded for candidate.', { icon: 'ℹ️' });
+      }
+      loadDriveDetails();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to resend email';
+      toast.error(msg);
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  // Bulk Resend Email for selected students in current round
+  const handleBulkResend = async () => {
+    if (selectedStudentIds.length === 0) {
+      toast.error('Select at least one candidate to resend email');
+      return;
+    }
+
+    setResendingId('bulk');
+    try {
+      const res = await resendRoundEmail(driveData._id, selectedRoundNumber, {
+        studentIds: selectedStudentIds,
+      });
+      if (res.data.success) {
+        toast.success(res.data.message || `Successfully delivered invitations to ${selectedStudentIds.length} candidate(s)!`);
+      } else {
+        toast(res.data.message || 'Notifications recorded.', { icon: 'ℹ️' });
+      }
+      setSelectedStudentIds([]);
+      loadDriveDetails();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to resend emails';
+      toast.error(msg);
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  // Resend Placement Offer Email
+  const handleResendOffer = async (studentId, studentName) => {
+    setResendingId(studentId);
+    try {
+      const res = await resendOfferEmail(driveData._id, {
+        studentIds: [studentId],
+      });
+      if (res.data.success) {
+        toast.success(res.data.message || `Offer congratulations email delivered to ${studentName}!`);
+      } else {
+        toast(res.data.message || 'Offer notification recorded.', { icon: 'ℹ️' });
+      }
+      loadDriveDetails();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to resend offer email';
+      toast.error(msg);
+    } finally {
+      setResendingId(null);
+    }
+  };
+
   // Open "Advance to Next Round" modal
   const handleOpenAdvanceModal = () => {
     if (selectedStudentIds.length === 0) {
@@ -242,7 +323,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     const nextRNum = selectedRoundNumber + 1;
     const existingNextRound = rounds.find((r) => r.roundNumber === nextRNum);
 
-    // Default next round date: tomorrow at 10:00 AM local time
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(10, 0, 0, 0);
@@ -305,7 +385,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
       setShowAdvanceModal(false);
       setSelectedStudentIds([]);
-      // Switch to the newly advanced round!
       setSelectedRoundNumber(Number(advanceForm.nextRoundNumber));
       loadDriveDetails();
     } catch (err) {
@@ -315,7 +394,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     }
   };
 
-  // Open "Mark as Finally Selected (Company Offer)" modal
+  // Open "Mark as Finally Selected" modal
   const handleOpenFinalModal = () => {
     if (selectedStudentIds.length === 0) {
       toast.error('Please select at least one student to mark as Finally Selected');
@@ -334,7 +413,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     setShowFinalModal(true);
   };
 
-  // Execute Final Placement Selection + Send Offer Mail
+  // Execute Final Placement Selection
   const handleConfirmFinalSelection = async (e) => {
     e.preventDefault();
     setSelectingFinal(true);
@@ -537,46 +616,73 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     toast.success(`Exported ${eligibleStudents.length} eligible candidates to Excel!`);
   };
 
-  return (
-    <div className="form-overlay" onClick={onClose} style={{ zIndex: 1050 }}>
+  const modalContent = (
+    <div
+      className="form-overlay"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 99999,
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px 16px',
+        overflowY: 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
       <div
         className="form-modal"
         style={{
-          maxWidth: '1180px',
-          width: '95%',
-          maxHeight: '94vh',
+          maxWidth: '1420px',
+          width: '98%',
+          height: 'calc(100vh - 40px)',
+          maxHeight: '940px',
+          minHeight: '560px',
           display: 'flex',
           flexDirection: 'column',
           padding: 0,
           overflow: 'hidden',
-          borderRadius: '16px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+          borderRadius: '18px',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          background: 'var(--bg-card, #ffffff)',
+          margin: '0 auto',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div
           style={{
-            padding: '18px 24px',
+            padding: '16px 24px',
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             color: '#fff',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div
               style={{
-                width: '50px',
-                height: '50px',
+                width: '48px',
+                height: '48px',
                 borderRadius: '12px',
                 background: 'rgba(56, 189, 248, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.5rem',
+                fontSize: '1.4rem',
                 fontWeight: 800,
                 color: '#38bdf8',
                 border: '1px solid rgba(56, 189, 248, 0.3)',
@@ -587,7 +693,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fff', margin: 0 }}>
                   {driveData.companyName}
                 </h2>
                 <span
@@ -646,7 +752,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   </span>
                 )}
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: '#94a3b8' }}>
+              <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
                 Role: <strong style={{ color: '#e2e8f0' }}>{driveData.role}</strong> • Drive Date:{' '}
                 <strong style={{ color: '#e2e8f0' }}>
                   {new Date(driveData.driveDate).toLocaleDateString('en-IN', {
@@ -659,26 +765,27 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
-              color: '#fff',
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              fontSize: '1.2rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s',
-            }}
-            title="Close"
-          >
-            <HiOutlineX />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                color: '#fff',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Close"
+            >
+              <HiOutlineX />
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -690,10 +797,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             padding: '4px 24px 0',
             borderBottom: '1px solid var(--border-color, #e2e8f0)',
             background: 'var(--bg-card, #ffffff)',
+            flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            {/* Primary Tab: Recruitment Rounds (Pipeline) */}
             <button
               onClick={() => {
                 setActiveTab('pipeline');
@@ -730,7 +837,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               </span>
             </button>
 
-            {/* Placed Students Tab */}
             <button
               onClick={() => {
                 setActiveTab('placed');
@@ -767,7 +873,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               </span>
             </button>
 
-            {/* Registered Candidates Tab */}
             <button
               onClick={() => {
                 setActiveTab('registered');
@@ -792,7 +897,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               <HiOutlineUserGroup style={{ fontSize: '1.15rem' }} /> Registered ({registeredStudents.length})
             </button>
 
-            {/* All Eligible Students Tab */}
             <button
               onClick={() => {
                 setActiveTab('eligible');
@@ -817,7 +921,6 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               <HiOutlineAcademicCap style={{ fontSize: '1.15rem' }} /> All Eligible ({eligibleStudents.length})
             </button>
 
-            {/* Drive Info Tab */}
             <button
               onClick={() => {
                 setActiveTab('info');
@@ -891,7 +994,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         </div>
 
         {/* Modal Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: 'var(--bg-page, #f8fafc)' }}>
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '18px 24px', background: 'var(--bg-page, #f8fafc)' }}>
+
           {loading ? (
             <div style={{ padding: '60px 0', textAlign: 'center' }}>
               <Loader />
@@ -911,9 +1015,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   alignItems: 'center',
                   gap: '10px',
                   overflowX: 'auto',
-                  padding: '6px 2px 16px',
+                  padding: '4px 2px 14px',
                   borderBottom: '1px solid var(--border-color, #e2e8f0)',
-                  marginBottom: '18px',
+                  marginBottom: '16px',
                 }}
               >
                 {rounds.map((round) => {
@@ -935,6 +1039,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         gap: '10px',
                         padding: '10px 16px',
                         borderRadius: '12px',
+                        flexShrink: 0,
                         border: isSelected ? '2px solid #2563eb' : '1px solid var(--border-color, #cbd5e1)',
                         background: isSelected
                           ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 100%)'
@@ -1024,6 +1129,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                     gap: '6px',
                     padding: '10px 14px',
                     borderRadius: '12px',
+                    flexShrink: 0,
                     border: '1px dashed #94a3b8',
                     background: 'transparent',
                     color: '#64748b',
@@ -1226,7 +1332,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         }}
                       >
                         <HiOutlineCheckCircle style={{ fontSize: '1.2rem' }} />
-                        <span>{selectedStudentIds.length} candidate(s) selected</span>
+                        <span>{selectedStudentIds.length} selected</span>
                       </div>
 
                       <button
@@ -1235,7 +1341,28 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         className="btn btn-secondary"
                         style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                       >
-                        Clear Selection
+                        Clear
+                      </button>
+
+                      {/* Bulk Resend Email */}
+                      <button
+                        type="button"
+                        onClick={handleBulkResend}
+                        disabled={resendingId === 'bulk'}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '7px 14px',
+                          fontSize: '0.82rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          borderColor: '#3b82f6',
+                          color: '#1d4ed8',
+                        }}
+                        title="Resend invitation emails to all selected candidates"
+                      >
+                        <HiOutlineRefresh className={resendingId === 'bulk' ? 'spin' : ''} />
+                        {resendingId === 'bulk' ? 'Resending...' : `Resend Email (${selectedStudentIds.length})`}
                       </button>
 
                       {/* Primary Button: Advance to Next Round & Send Mail */}
@@ -1244,7 +1371,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         onClick={handleOpenAdvanceModal}
                         className="btn btn-primary"
                         style={{
-                          padding: '8px 18px',
+                          padding: '8px 16px',
                           fontSize: '0.85rem',
                           fontWeight: 700,
                           display: 'inline-flex',
@@ -1262,7 +1389,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         type="button"
                         onClick={handleOpenFinalModal}
                         style={{
-                          padding: '8px 18px',
+                          padding: '8px 16px',
                           fontSize: '0.85rem',
                           fontWeight: 700,
                           borderRadius: '8px',
@@ -1276,12 +1403,12 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
                         }}
                       >
-                        <HiOutlineSparkles /> Mark as Finally Selected / Placed ({selectedStudentIds.length})
+                        <HiOutlineSparkles /> Mark as Placed ({selectedStudentIds.length})
                       </button>
                     </>
                   ) : (
                     <div style={{ fontSize: '0.84rem', color: 'var(--text-muted, #64748b)' }}>
-                      💡 <em>Check the boxes next to students who cleared this round to advance them or mark them as placed.</em>
+                      💡 <em>Check boxes next to students to advance them, resend emails, or mark as placed.</em>
                     </div>
                   )}
                 </div>
@@ -1336,7 +1463,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   }}
                 >
                   <div style={{ overflowX: 'auto' }}>
-                    <table className="data-table" style={{ fontSize: '0.85rem', margin: 0 }}>
+                    <table className="data-table" style={{ fontSize: '0.85rem', margin: 0, minWidth: '950px' }}>
                       <thead>
                         <tr>
                           <th style={{ width: '40px', textAlign: 'center' }}>
@@ -1362,8 +1489,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           <th>CGPA</th>
                           <th>Live Arrears</th>
                           <th>Round Status</th>
-                          <th>Email Sent</th>
-                          <th>Contact</th>
+                          <th style={{ minWidth: '150px' }}>Email Notification</th>
+                          <th>Contact Email & Phone</th>
                           <th>Resume</th>
                         </tr>
                       </thead>
@@ -1476,30 +1603,52 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                 )}
                               </td>
                               <td>
-                                {cand.emailSent ? (
-                                  <span
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {cand.emailSent ? (
+                                    <span
+                                      style={{
+                                        color: '#059669',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                      }}
+                                      title={cand.emailSentAt ? `Sent on ${new Date(cand.emailSentAt).toLocaleString()}` : 'Email sent'}
+                                    >
+                                      <HiOutlineMail /> Sent
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Not Sent</span>
+                                  )}
+
+                                  {/* Resend Email Button */}
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
                                     style={{
-                                      color: '#059669',
+                                      padding: '3px 8px',
+                                      fontSize: '0.72rem',
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: '4px',
-                                      fontSize: '0.75rem',
-                                      fontWeight: 600,
+                                      borderRadius: '6px',
                                     }}
-                                    title={cand.emailSentAt ? `Sent on ${new Date(cand.emailSentAt).toLocaleString()}` : 'Email sent'}
+                                    title={`Resend Round ${selectedRoundNumber} invitation email to ${student.name}`}
+                                    onClick={() => handleResendSingle(sIdStr, student.name, student.email)}
+                                    disabled={resendingId === sIdStr}
                                   >
-                                    <HiOutlineMail /> Sent
-                                  </span>
-                                ) : (
-                                  <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>-</span>
-                                )}
+                                    <HiOutlineRefresh className={resendingId === sIdStr ? 'spin' : ''} />
+                                    {resendingId === sIdStr ? 'Sending...' : 'Resend'}
+                                  </button>
+                                </div>
                               </td>
                               <td>
                                 <div style={{ fontSize: '0.78rem' }}>
                                   {student.email && (
                                     <a
                                       href={`mailto:${student.email}`}
-                                      style={{ color: '#2563eb', textDecoration: 'none', display: 'block' }}
+                                      style={{ color: '#2563eb', textDecoration: 'none', display: 'block', fontWeight: 600 }}
                                     >
                                       {student.email}
                                     </a>
@@ -1645,6 +1794,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                       <tbody>
                         {finalSelectedStudents.map((item, idx) => {
                           const s = item.studentId || {};
+                          const sId = (s._id || s).toString();
                           return (
                             <tr key={s._id || idx}>
                               <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{idx + 1}</td>
@@ -1677,22 +1827,43 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                   : '-'}
                               </td>
                               <td>
-                                {item.emailSent ? (
-                                  <span
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {item.emailSent ? (
+                                    <span
+                                      style={{
+                                        color: '#059669',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      <HiOutlineMail /> Sent
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Not Sent</span>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
                                     style={{
-                                      color: '#059669',
+                                      padding: '2px 8px',
+                                      fontSize: '0.72rem',
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '4px',
-                                      fontSize: '0.75rem',
-                                      fontWeight: 600,
+                                      gap: '3px',
+                                      borderRadius: '6px',
                                     }}
+                                    title={`Resend placement offer congratulation email to ${s.name}`}
+                                    onClick={() => handleResendOffer(sId, s.name, s.email)}
+                                    disabled={resendingId === sId}
                                   >
-                                    <HiOutlineMail /> Sent
-                                  </span>
-                                ) : (
-                                  <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>-</span>
-                                )}
+                                    <HiOutlineRefresh className={resendingId === sId ? 'spin' : ''} />
+                                    {resendingId === sId ? 'Sending...' : 'Resend'}
+                                  </button>
+                                </div>
                               </td>
                               <td>
                                 <div style={{ fontSize: '0.78rem' }}>
@@ -2121,6 +2292,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexShrink: 0,
           }}
         >
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -2133,13 +2305,31 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         </div>
       </div>
 
+
+
       {/* ============================================================
           POPUP MODAL: ADVANCE CANDIDATES TO NEXT ROUND & SEND MAIL
           ============================================================ */}
       {showAdvanceModal && (
         <div
           className="form-overlay"
-          style={{ zIndex: 1100, background: 'rgba(0, 0, 0, 0.65)' }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 10001,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            boxSizing: 'border-box',
+          }}
           onClick={() => setShowAdvanceModal(false)}
         >
           <div
@@ -2330,7 +2520,23 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       {showFinalModal && (
         <div
           className="form-overlay"
-          style={{ zIndex: 1100, background: 'rgba(0, 0, 0, 0.65)' }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 10001,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            boxSizing: 'border-box',
+          }}
           onClick={() => setShowFinalModal(false)}
         >
           <div
@@ -2484,12 +2690,28 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       )}
 
       {/* ============================================================
-          POPUP MODAL: ADD CUSTOM ROUND (e.g. Round 4, Round 5)
+          POPUP MODAL: ADD CUSTOM ROUND
           ============================================================ */}
       {showAddRoundModal && (
         <div
           className="form-overlay"
-          style={{ zIndex: 1100, background: 'rgba(0, 0, 0, 0.65)' }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 10001,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            boxSizing: 'border-box',
+          }}
           onClick={() => setShowAddRoundModal(false)}
         >
           <div
@@ -2586,6 +2808,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       )}
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
 
 export default CompanyDriveModal;
