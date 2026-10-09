@@ -7,13 +7,23 @@ const Alumni = require('../models/Alumni');
 // @route   GET /api/dashboard/stats
 exports.getStats = async (req, res, next) => {
   try {
-    const [totalStudents, placedStudents, totalAlumni, totalCompanies, totalPlacements] =
+    const { batch } = req.query;
+    const studentMatch = batch ? { batch } : {};
+    
+    let totalPlacementsCount;
+    if (batch) {
+      const studentIds = await Student.find(studentMatch).distinct('_id');
+      totalPlacementsCount = await Placement.countDocuments({ studentId: { $in: studentIds } });
+    } else {
+      totalPlacementsCount = await Placement.countDocuments();
+    }
+
+    const [totalStudents, placedStudents, totalAlumni, totalCompanies] =
       await Promise.all([
-        Student.countDocuments(),
-        Student.countDocuments({ status: 'placed' }),
-        Alumni.countDocuments(),
+        Student.countDocuments(studentMatch),
+        Student.countDocuments({ ...studentMatch, status: 'placed' }),
+        Alumni.countDocuments(batch ? { batch } : {}),
         Company.countDocuments(),
-        Placement.countDocuments(),
       ]);
 
     res.json({
@@ -22,7 +32,7 @@ exports.getStats = async (req, res, next) => {
       unplacedStudents: totalStudents - placedStudents,
       totalAlumni,
       totalCompanies,
-      totalPlacements,
+      totalPlacements: totalPlacementsCount,
     });
   } catch (error) {
     next(error);
@@ -33,7 +43,11 @@ exports.getStats = async (req, res, next) => {
 // @route   GET /api/dashboard/dept-wise
 exports.getDeptWise = async (req, res, next) => {
   try {
+    const { batch } = req.query;
+    const matchStage = batch ? [{ $match: { batch } }] : [];
+
     const deptStats = await Student.aggregate([
+      ...matchStage,
       {
         $group: {
           _id: '$department',
@@ -63,7 +77,15 @@ exports.getDeptWise = async (req, res, next) => {
 // @route   GET /api/dashboard/company-wise
 exports.getCompanyWise = async (req, res, next) => {
   try {
+    const { batch } = req.query;
+    let matchStage = [];
+    if (batch) {
+      const studentIds = await Student.find({ batch }).distinct('_id');
+      matchStage = [{ $match: { studentId: { $in: studentIds } } }];
+    }
+
     const companyStats = await Placement.aggregate([
+      ...matchStage,
       {
         $group: {
           _id: '$companyId',
@@ -131,7 +153,14 @@ exports.getBatchWise = async (req, res, next) => {
 // @route   GET /api/dashboard/recent
 exports.getRecent = async (req, res, next) => {
   try {
-    const recentPlacements = await Placement.find()
+    const { batch } = req.query;
+    let query = {};
+    if (batch) {
+      const studentIds = await Student.find({ batch }).distinct('_id');
+      query = { studentId: { $in: studentIds } };
+    }
+
+    const recentPlacements = await Placement.find(query)
       .populate('studentId', 'name rollNumber department batch')
       .populate('companyId', 'name')
       .sort({ createdAt: -1 })

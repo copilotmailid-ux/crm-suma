@@ -629,7 +629,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         width: '100vw',
         height: '100vh',
         zIndex: 99999,
-        background: 'rgba(15, 23, 42, 0.75)',
+        background: 'rgba(11, 29, 55, 0.75)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
@@ -663,7 +663,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         <div
           style={{
             padding: '16px 24px',
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            background: 'linear-gradient(135deg, #0b1d37 0%, #162a45 100%)',
             color: '#fff',
             display: 'flex',
             justifyContent: 'space-between',
@@ -678,14 +678,14 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                background: 'rgba(56, 189, 248, 0.15)',
+                background: 'rgba(197, 158, 81, 0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '1.4rem',
                 fontWeight: 800,
-                color: '#38bdf8',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: '#fbbf24',
+                border: '1px solid rgba(197, 158, 81, 0.4)',
               }}
             >
               {driveData.companyName ? driveData.companyName.charAt(0).toUpperCase() : 'C'}
@@ -752,9 +752,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   </span>
                 )}
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
-                Role: <strong style={{ color: '#e2e8f0' }}>{driveData.role}</strong> • Drive Date:{' '}
-                <strong style={{ color: '#e2e8f0' }}>
+              <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: '#cbd5e1' }}>
+                Role: <strong style={{ color: '#fff' }}>{driveData.role}</strong> • Drive Date:{' '}
+                <strong style={{ color: '#fff' }}>
                   {new Date(driveData.driveDate).toLocaleDateString('en-IN', {
                     day: 'numeric',
                     month: 'short',
@@ -813,8 +813,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 padding: '12px 16px',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeTab === 'pipeline' ? '3px solid #2563eb' : '3px solid transparent',
-                color: activeTab === 'pipeline' ? '#2563eb' : 'var(--text-muted, #64748b)',
+                borderBottom: activeTab === 'pipeline' ? '3px solid #0b1d37' : '3px solid transparent',
+                color: activeTab === 'pipeline' ? '#0b1d37' : 'var(--text-muted, #64748b)',
                 fontWeight: activeTab === 'pipeline' ? 700 : 500,
                 fontSize: '0.92rem',
                 cursor: 'pointer',
@@ -825,7 +825,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               <span>Rounds & Shortlisting</span>
               <span
                 style={{
-                  background: activeTab === 'pipeline' ? '#2563eb' : 'var(--bg-input, #e2e8f0)',
+                  background: activeTab === 'pipeline' ? '#0b1d37' : 'var(--bg-input, #e2e8f0)',
                   color: activeTab === 'pipeline' ? '#fff' : 'var(--text-primary, #0f172a)',
                   padding: '2px 8px',
                   borderRadius: '12px',
@@ -1040,14 +1040,14 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         padding: '10px 16px',
                         borderRadius: '12px',
                         flexShrink: 0,
-                        border: isSelected ? '2px solid #2563eb' : '1px solid var(--border-color, #cbd5e1)',
+                        border: isSelected ? '2px solid #0b1d37' : '1px solid var(--border-color, #cbd5e1)',
                         background: isSelected
-                          ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 100%)'
+                          ? 'rgba(11, 29, 55, 0.05)'
                           : 'var(--bg-card, #ffffff)',
-                        color: isSelected ? '#1d4ed8' : 'var(--text-primary, #0f172a)',
+                        color: isSelected ? '#0b1d37' : 'var(--text-primary, #0f172a)',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        boxShadow: isSelected ? '0 4px 12px rgba(37, 99, 235, 0.15)' : 'none',
+                        boxShadow: isSelected ? '0 4px 12px rgba(11, 29, 55, 0.12)' : 'none',
                         transition: 'all 0.2s ease',
                       }}
                     >
@@ -1056,7 +1056,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           width: '28px',
                           height: '28px',
                           borderRadius: '50%',
-                          background: isSelected ? '#2563eb' : 'var(--bg-input, #e2e8f0)',
+                          background: isSelected ? '#0b1d37' : 'var(--bg-input, #e2e8f0)',
                           color: isSelected ? '#ffffff' : 'var(--text-muted, #64748b)',
                           display: 'flex',
                           alignItems: 'center',
@@ -1093,8 +1093,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                       ) : (
                         <span
                           style={{
-                            background: '#eff6ff',
-                            color: '#2563eb',
+                            background: 'rgba(11, 29, 55, 0.08)',
+                            color: '#0b1d37',
                             padding: '2px 8px',
                             borderRadius: '10px',
                             fontSize: '0.7rem',
@@ -1179,8 +1179,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                             background:
                               activeRound.status === 'Completed'
                                 ? 'rgba(16, 185, 129, 0.15)'
-                                : 'rgba(59, 130, 246, 0.15)',
-                            color: activeRound.status === 'Completed' ? '#059669' : '#2563eb',
+                                : 'rgba(11, 29, 55, 0.08)',
+                            color: activeRound.status === 'Completed' ? '#059669' : '#0b1d37',
                           }}
                         >
                           Status: {activeRound.status}
@@ -1199,7 +1199,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <HiOutlineCalendar style={{ color: '#2563eb' }} />
+                          <HiOutlineCalendar style={{ color: '#0b1d37' }} />
                           <span>
                             Scheduled:{' '}
                             <strong style={{ color: 'var(--text-primary)' }}>
@@ -1296,8 +1296,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  background: selectedStudentIds.length > 0 ? '#eff6ff' : 'var(--bg-card, #ffffff)',
-                  border: selectedStudentIds.length > 0 ? '1px solid #93c5fd' : '1px solid var(--border-color, #e2e8f0)',
+                  background: selectedStudentIds.length > 0 ? 'rgba(11, 29, 55, 0.04)' : 'var(--bg-card, #ffffff)',
+                  border: selectedStudentIds.length > 0 ? '1px solid #cbd5e1' : '1px solid var(--border-color, #e2e8f0)',
                   borderRadius: '10px',
                   padding: '12px 18px',
                   marginBottom: '14px',
@@ -1328,11 +1328,11 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           gap: '6px',
                           fontWeight: 700,
                           fontSize: '0.88rem',
-                          color: '#1d4ed8',
+                          color: '#0b1d37',
                         }}
                       >
-                        <HiOutlineCheckCircle style={{ fontSize: '1.2rem' }} />
-                        <span>{selectedStudentIds.length} selected</span>
+                        <HiOutlineCheckCircle style={{ fontSize: '1.2rem', color: '#0b1d37' }} />
+                        <span>{selectedStudentIds.length} candidate(s) selected</span>
                       </div>
 
                       <button
@@ -1377,8 +1377,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '8px',
-                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                          background: 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)',
+                          boxShadow: '0 4px 12px rgba(11, 29, 55, 0.3)',
                         }}
                       >
                         <HiOutlineArrowRight /> Advance to Round {selectedRoundNumber + 1} & Send Mail ({selectedStudentIds.length})
@@ -1430,8 +1430,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                       width: '60px',
                       height: '60px',
                       borderRadius: '50%',
-                      background: 'rgba(59, 130, 246, 0.1)',
-                      color: '#2563eb',
+                      background: 'rgba(11, 29, 55, 0.08)',
+                      color: '#0b1d37',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1504,7 +1504,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                             <tr
                               key={sIdStr || idx}
                               style={{
-                                background: isSelected ? 'rgba(37, 99, 235, 0.05)' : undefined,
+                                background: isSelected ? 'rgba(11, 29, 55, 0.04)' : undefined,
                               }}
                             >
                               <td style={{ textAlign: 'center' }}>
@@ -1648,7 +1648,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                   {student.email && (
                                     <a
                                       href={`mailto:${student.email}`}
-                                      style={{ color: '#2563eb', textDecoration: 'none', display: 'block', fontWeight: 600 }}
+                                      style={{ color: '#0f172a', textDecoration: 'none', display: 'block', fontWeight: 600 }}
                                     >
                                       {student.email}
                                     </a>
@@ -1899,8 +1899,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                     width: '60px',
                     height: '60px',
                     borderRadius: '50%',
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    color: '#2563eb',
+                    background: 'rgba(11, 29, 55, 0.08)',
+                    color: '#0b1d37',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1986,7 +1986,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                             {student.email ? (
                               <a
                                 href={`mailto:${student.email}`}
-                                style={{ color: '#2563eb', textDecoration: 'underline' }}
+                                style={{ color: '#0f172a', textDecoration: 'none', fontWeight: 600 }}
                               >
                                 {student.email}
                               </a>
@@ -2135,7 +2135,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                               {student.email ? (
                                 <a
                                   href={`mailto:${student.email}`}
-                                  style={{ color: '#2563eb', textDecoration: 'underline' }}
+                                  style={{ color: '#0f172a', textDecoration: 'none', fontWeight: 600 }}
                                 >
                                   {student.email}
                                 </a>
@@ -2390,7 +2390,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
               {/* WHEN IS THE 2ND ROUND / NEXT ROUND (Date & Time) */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700, color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 700, color: '#0b1d37', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <HiOutlineCalendar /> When is Round {advanceForm.nextRoundNumber} Scheduled? (Date & Time)
                 </label>
                 <input
@@ -2399,7 +2399,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   required
                   value={advanceForm.scheduledDate}
                   onChange={(e) => setAdvanceForm({ ...advanceForm, scheduledDate: e.target.value })}
-                  style={{ fontWeight: 600, fontSize: '0.95rem', borderColor: '#3b82f6' }}
+                  style={{ fontWeight: 600, fontSize: '0.95rem', borderColor: '#0b1d37' }}
                 />
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   This date and time will be prominently highlighted in the student&apos;s email invitation.
@@ -2470,7 +2470,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 }}
               >
                 <div style={{ fontWeight: 700, color: '#1e293b', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <HiOutlineMail style={{ color: '#2563eb' }} /> Email Preview Summary:
+                  <HiOutlineMail style={{ color: '#0b1d37' }} /> Email Preview Summary:
                 </div>
                 <div style={{ color: '#475569', lineHeight: 1.5 }}>
                   <strong>Subject:</strong> {advanceForm.customSubject || `Congratulations! Shortlisted for ${advanceForm.nextRoundName || 'Next Round'}`}<br />
@@ -2500,7 +2500,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   style={{
                     padding: '10px 22px',
                     fontWeight: 700,
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    background: 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',

@@ -748,6 +748,11 @@ const StudentsPage = () => {
                 </div>
               </div>
             </div>
+            <div className="form-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setViewStudent(null)}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

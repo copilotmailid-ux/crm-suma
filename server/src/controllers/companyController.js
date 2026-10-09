@@ -1,4 +1,6 @@
 const Company = require('../models/Company');
+const Drive = require('../models/Drive');
+const Placement = require('../models/Placement');
 
 // @desc    Get all companies with search and filter
 // @route   GET /api/companies
@@ -18,10 +20,32 @@ exports.getCompanies = async (req, res, next) => {
     if (industry) query.industry = industry;
 
     const total = await Company.countDocuments(query);
-    const companies = await Company.find(query)
+    const rawCompanies = await Company.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
+
+    // Compute visits (drives count) and placed count for each company
+    const companies = await Promise.all(
+      rawCompanies.map(async (c) => {
+        const [driveCount, placementsCount] = await Promise.all([
+          Drive.countDocuments({
+            $or: [{ companyId: c._id }, { companyName: new RegExp(`^${c.name}$`, 'i') }],
+          }),
+          Placement.countDocuments({ companyId: c._id }),
+        ]);
+
+        const actualVisits = driveCount > 0 ? driveCount : c.visits || 1;
+        const actualPlaced = placementsCount > 0 ? placementsCount : c.studentsPlaced || 0;
+
+        return {
+          ...c,
+          visits: actualVisits,
+          studentsPlaced: actualPlaced,
+        };
+      })
+    );
 
     res.json({
       companies,

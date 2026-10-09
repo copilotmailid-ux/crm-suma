@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/nscet-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NSCET | Home</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap');
+
+/* Puthu fonts - Intha class irukka idathula mattum apply aagum */
+.modern-fonts h1, 
+.modern-fonts h2 { 
+  font-family: 'Poppins', sans-serif !important; 
+  font-weight: 800 !important; 
+  text-transform: uppercase !important; 
+  letter-spacing: 1.5px !important; 
+}
+
+.modern-fonts h3, 
+.modern-fonts h4, 
+.modern-fonts h5, 
+.modern-fonts h6 { 
+  font-family: 'Poppins', sans-serif !important; 
+  font-weight: 600 !important; 
+  letter-spacing: 0.5px !important; 
+}
+
+.modern-fonts p, 
+.modern-fonts span, 
+.modern-fonts li { 
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; 
+  line-height: 1.7 !important; 
+}
+    </style>
+    <script type="module" crossorigin src="/assets/index-BCsR_nRs.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DdcOCKyd.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

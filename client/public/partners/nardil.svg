@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" fill="none">
+  <!-- Crisp high-contrast NaRDil logo in pure white matching reference -->
+  <text
+    x="5"
+    y="36"
+    fill="white"
+    font-family="'Playfair Display', 'Cinzel', Georgia, serif"
+    font-size="34"
+    font-weight="900"
+    letter-spacing="0.5"
+  >
+    NaRDil
+  </text>
+</svg>

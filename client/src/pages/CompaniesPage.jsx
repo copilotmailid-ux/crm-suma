@@ -122,7 +122,8 @@ const CompaniesPage = () => {
     { header: 'Contact Person', accessor: (r) => r.contactPerson },
     { header: 'Contact Email', accessor: (r) => r.contactEmail },
     { header: 'Contact Phone', accessor: (r) => r.contactPhone },
-    { header: 'Students Placed', accessor: (r) => r.studentsPlaced },
+    { header: 'No. of Visits', accessor: (r) => r.visits || 1 },
+    { header: 'Students Placed', accessor: (r) => r.studentsPlaced || 0 },
     { header: 'Website', accessor: (r) => r.website },
   ];
 
@@ -186,14 +187,15 @@ const CompaniesPage = () => {
                   <th>Industry</th>
                   <th>Contact Person</th>
                   <th>Contact Email</th>
-                  <th>Students Placed</th>
-                  <th>Actions</th>
+                  <th style={{ textAlign: 'center' }}>No. of Visits</th>
+                  <th style={{ textAlign: 'center' }}>Students Placed</th>
+                  <th style={{ textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {companies.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={7}>
                       <div className="empty-state">
                         <div className="empty-icon"><HiOutlineOfficeBuilding /></div>
                         <p className="empty-title">No companies found</p>
@@ -207,9 +209,27 @@ const CompaniesPage = () => {
                     <td><span className="badge badge-info">{c.industry}</span></td>
                     <td>{c.contactPerson || '-'}</td>
                     <td>{c.contactEmail || '-'}</td>
-                    <td><span className="badge badge-success">{c.studentsPlaced || 0}</span></td>
-                    <td>
-                      <div className="row-actions">
+                    <td style={{ textAlign: 'center' }}>
+                      <span
+                        className="badge badge-neutral"
+                        style={{
+                          fontWeight: 700,
+                          padding: '3px 10px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        🏢 {c.visits || 1}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="badge badge-success" style={{ fontWeight: 700 }}>
+                        {c.studentsPlaced || 0}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div className="row-actions" style={{ justifyContent: 'center' }}>
                         <button className="btn-icon btn-secondary" onClick={() => setViewCompany(c)} title="View"><HiOutlineEye /></button>
                         <button className="btn-icon btn-secondary" onClick={() => openEdit(c)} title="Edit"><HiOutlinePencil /></button>
                         <button className="btn-icon btn-danger" onClick={() => setDeleteId(c._id)} title="Delete"><HiOutlineTrash /></button>

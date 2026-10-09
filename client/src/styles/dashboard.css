@@ -189,14 +189,24 @@
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-xl);
   margin-bottom: var(--space-xl);
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+}
+
+.dashboard-banner-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  flex: 1;
+  min-width: 320px;
 }
 
 .dashboard-banner::after {
@@ -236,7 +246,7 @@
 }
 
 .banner-title {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: 0.5px;
@@ -245,7 +255,7 @@
 }
 
 .banner-subtitle {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   margin: 0;
   font-weight: 500;
@@ -268,18 +278,127 @@
   box-shadow: 0 2px 6px rgba(11, 29, 55, 0.15);
 }
 
-@media (max-width: 640px) {
+/* Year / Batch Filter Widget */
+.dashboard-filter-card {
+  background: var(--bg-primary, #f8fafc);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 240px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  z-index: 2;
+}
+
+.dashboard-filter-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dashboard-filter-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dashboard-filter-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-batch-select {
+  flex: 1;
+  padding: 8px 30px 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card, #ffffff);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: all 0.2s ease;
+}
+
+.dashboard-batch-select:focus {
+  border-color: #c59e51;
+  box-shadow: 0 0 0 3px rgba(197, 158, 81, 0.15);
+}
+
+.dashboard-batch-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.batch-pill-btn {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.batch-pill-btn:hover {
+  background: var(--bg-card-hover, #f1f5f9);
+  color: var(--text-primary);
+  border-color: #cbd5e1;
+}
+
+.batch-pill-btn.active {
+  background: linear-gradient(135deg, #0b1d37 0%, #1e293b 100%);
+  color: #fde68a !important;
+  border-color: rgba(197, 158, 81, 0.6);
+  box-shadow: 0 2px 6px rgba(11, 29, 55, 0.25);
+}
+
+@media (max-width: 900px) {
   .dashboard-banner {
     flex-direction: column;
-    text-align: center;
+    align-items: stretch;
     gap: var(--space-md);
     padding: var(--space-md);
+  }
+  
+  .dashboard-banner-left {
+    min-width: 100%;
+  }
+
+  .dashboard-filter-card {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-banner-left {
+    flex-direction: column;
+    text-align: center;
   }
   
   .banner-badge {
     justify-content: center;
   }
 }
+
 
 
 

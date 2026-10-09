@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import AppLayout from '../components/Layout/AppLayout';
 import ProtectedRoute from './ProtectedRoute';
 import LoginPage from '../pages/LoginPage';
+import LandingPage from '../pages/LandingPage';
 import DashboardPage from '../pages/DashboardPage';
 import StudentsPage from '../pages/StudentsPage';
 import CompaniesPage from '../pages/CompaniesPage';
@@ -17,6 +18,29 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      {/* Root Route: Landing Page for public visitors, Dashboard for Admin, Student Portal for Students */}
+      <Route
+        path="/"
+        element={
+          !loading && isAuthenticated ? (
+            userRole === 'student' ? (
+              <Navigate to="/student/drives" replace />
+            ) : (
+              <ProtectedRoute requiredRole="admin">
+                <AppLayout>
+                  <DashboardPage />
+                </AppLayout>
+              </ProtectedRoute>
+            )
+          ) : (
+            <LandingPage />
+          )
+        }
+      />
+
+      {/* Explicit Landing Page Route */}
+      <Route path="/landing" element={<LandingPage />} />
+
       {/* Public / Login Routes */}
       <Route
         path="/login"
@@ -56,7 +80,7 @@ const AppRoutes = () => {
           <ProtectedRoute requiredRole="admin">
             <AppLayout>
               <Routes>
-                <Route path="/" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/students" element={<StudentsPage />} />
                 <Route path="/drives" element={<DrivesPage />} />
                 <Route path="/companies" element={<CompaniesPage />} />

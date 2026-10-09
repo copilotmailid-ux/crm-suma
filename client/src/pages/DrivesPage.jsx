@@ -188,19 +188,19 @@ const DrivesPage = () => {
       ) : (
         <div className="data-table-wrapper" style={{ width: '100%', overflow: 'hidden' }}>
           <div className="table-scroll" style={{ width: '100%', overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', minWidth: '950px' }}>
+            <table className="data-table" style={{ width: '100%' }}>
               <thead>
                 <tr>
-                  <th style={{ minWidth: '160px' }}>Company</th>
-                  <th style={{ minWidth: '180px' }}>Role</th>
-                  <th style={{ minWidth: '100px' }}>Package</th>
-                  <th style={{ minWidth: '85px' }}>Min CGPA</th>
-                  <th style={{ minWidth: '95px' }}>Max Arrears</th>
-                  <th style={{ minWidth: '140px' }}>Eligible Depts</th>
-                  <th style={{ minWidth: '105px' }}>Drive Date</th>
-                  <th style={{ minWidth: '95px' }}>Status</th>
-                  <th style={{ minWidth: '105px', textAlign: 'center' }}>Registered</th>
-                  <th style={{ width: '110px', minWidth: '110px', textAlign: 'center' }}>Actions</th>
+                  <th style={{ minWidth: '130px' }}>Company</th>
+                  <th style={{ minWidth: '150px' }}>Role</th>
+                  <th style={{ minWidth: '85px' }}>Package</th>
+                  <th style={{ minWidth: '70px', textAlign: 'center' }}>Min CGPA</th>
+                  <th style={{ minWidth: '80px', textAlign: 'center' }}>Max Arrears</th>
+                  <th style={{ minWidth: '120px' }}>Eligible Depts</th>
+                  <th style={{ minWidth: '95px' }}>Drive Date</th>
+                  <th style={{ minWidth: '85px' }}>Status</th>
+                  <th style={{ minWidth: '85px', textAlign: 'center' }}>Registered</th>
+                  <th style={{ width: '96px', minWidth: '96px', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,17 +213,23 @@ const DrivesPage = () => {
                     >
                       <span
                         style={{
-                          color: 'var(--primary-color, #2563eb)',
+                          color: '#0f172a',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          transition: 'opacity 0.15s ease',
+                          gap: '5px',
+                          transition: 'color 0.15s ease',
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#c59e51';
+                          e.currentTarget.style.textDecoration = 'underline';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#0f172a';
+                          e.currentTarget.style.textDecoration = 'none';
+                        }}
                       >
                         {d.companyName}
-                        <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>↗</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>↗</span>
                       </span>
                     </td>
                     <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{d.role}</td>
@@ -232,14 +238,14 @@ const DrivesPage = () => {
                         ₹{d.package} LPA
                       </span>
                     </td>
-                    <td>{d.minCgpa || 'Any'}</td>
-                    <td>
+                    <td style={{ textAlign: 'center' }}>{d.minCgpa || 'Any'}</td>
+                    <td style={{ textAlign: 'center' }}>
                       <span className={`badge ${d.maxCurrentArrears === 0 ? 'badge-neutral' : 'badge-warning'}`}>
                         {d.maxCurrentArrears ?? 0}
                       </span>
                     </td>
                     <td
-                      style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                       title={d.eligibleDepartments?.join(', ')}
                     >
                       {d.eligibleDepartments && d.eligibleDepartments.length > 0 ? (
@@ -280,39 +286,42 @@ const DrivesPage = () => {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '5px',
-                          background: (d.registeredStudents?.length || 0) > 0 ? 'rgba(37, 99, 235, 0.12)' : 'var(--bg-input, #f1f5f9)',
-                          color: (d.registeredStudents?.length || 0) > 0 ? '#2563eb' : 'var(--text-muted, #64748b)',
+                          background: (d.registeredStudents?.length || 0) > 0 ? 'rgba(11, 29, 55, 0.08)' : 'var(--bg-input, #f1f5f9)',
+                          color: (d.registeredStudents?.length || 0) > 0 ? '#0b1d37' : 'var(--text-muted, #64748b)',
                           fontWeight: 700,
-                          padding: '4px 10px',
+                          padding: '3px 8px',
                           cursor: 'pointer',
-                          border: (d.registeredStudents?.length || 0) > 0 ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid transparent',
+                          border: (d.registeredStudents?.length || 0) > 0 ? '1px solid rgba(11, 29, 55, 0.2)' : '1px solid transparent',
                         }}
                       >
                         <HiOutlineUserGroup /> {d.registeredStudents?.length || 0}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'center', width: '110px' }}>
-                      <div className="table-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <td style={{ textAlign: 'center', width: '96px' }}>
+                      <div className="table-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                         <button
                           className="btn-icon"
+                          style={{ width: '28px', height: '28px' }}
                           title="View Candidates & Rounds"
                           onClick={() => setViewDrive(d)}
                         >
-                          <HiOutlineEye />
+                          <HiOutlineEye style={{ fontSize: '0.9rem' }} />
                         </button>
                         <button
                           className="btn-icon"
+                          style={{ width: '28px', height: '28px' }}
                           title="Edit Drive Requirements"
                           onClick={() => openEditModal(d)}
                         >
-                          <HiOutlinePencil />
+                          <HiOutlinePencil style={{ fontSize: '0.9rem' }} />
                         </button>
                         <button
                           className="btn-icon btn-icon-danger"
+                          style={{ width: '28px', height: '28px' }}
                           title="Delete Drive"
                           onClick={() => setDeleteId(d._id)}
                         >
-                          <HiOutlineTrash />
+                          <HiOutlineTrash style={{ fontSize: '0.9rem' }} />
                         </button>
                       </div>
                     </td>

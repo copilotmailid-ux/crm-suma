@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { HiOutlineUserGroup, HiOutlineShieldCheck, HiOutlineAcademicCap, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import { HiOutlineUserGroup, HiOutlineShieldCheck, HiOutlineAcademicCap, HiOutlineEye, HiOutlineEyeOff, HiOutlineArrowLeft } from 'react-icons/hi';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -9,9 +9,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, studentLogin, isAuthenticated, isAdmin, isStudent } = useAuth();
 
-  // If path is /student/login, default to student tab
+  // If path is /student/login or /student, default to student tab; if /login, default to admin
   const isStudentRoute = location.pathname.includes('/student');
-  const [activeTab, setActiveTab] = useState(isStudentRoute ? 'student' : 'student'); // Default to student for user convenience, or toggle to admin
+  const [activeTab, setActiveTab] = useState(isStudentRoute ? 'student' : 'admin');
 
   // Admin form state
   const [email, setEmail] = useState('');
@@ -27,14 +27,16 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (location.pathname === '/student/login') {
+    if (location.pathname === '/student/login' || location.pathname === '/student') {
       setActiveTab('student');
+    } else if (location.pathname === '/login') {
+      setActiveTab('admin');
     }
   }, [location.pathname]);
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (isAdmin) navigate('/', { replace: true });
+      if (isAdmin) navigate('/dashboard', { replace: true });
       else if (isStudent) navigate('/student/drives', { replace: true });
     }
   }, [isAuthenticated, isAdmin, isStudent, navigate]);
@@ -50,12 +52,12 @@ const LoginPage = () => {
         navigate('/student/drives');
       } else {
         await login(email.trim(), adminPassword);
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          (activeTab === 'student' ? 'Student login failed. Check Roll Number & Password' : 'Admin login failed')
+          (activeTab === 'student' ? 'Student login failed. Check Roll Number & Password' : 'Admin login failed. Check Email & Password')
       );
     } finally {
       setLoading(false);
@@ -64,6 +66,43 @@ const LoginPage = () => {
 
   return (
     <div className="auth-page">
+      {/* Back to Home Button */}
+      <Link
+        to="/"
+        style={{
+          position: 'absolute',
+          top: '24px',
+          left: '24px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 18px',
+          borderRadius: '12px',
+          background: 'rgba(11, 29, 55, 0.65)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          color: '#ffffff',
+          fontSize: '0.85rem',
+          fontWeight: 700,
+          textDecoration: 'none',
+          zIndex: 10,
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.25)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(11, 29, 55, 0.9)';
+          e.currentTarget.style.transform = 'translateX(-3px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(11, 29, 55, 0.65)';
+          e.currentTarget.style.transform = 'translateX(0)';
+        }}
+      >
+        <HiOutlineArrowLeft style={{ fontSize: '1.1rem' }} />
+        <span>Back to Portal Home</span>
+      </Link>
+
       <div className="auth-card">
         <div className="auth-logo">
           <img 

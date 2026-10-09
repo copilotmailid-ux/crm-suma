@@ -1,11 +1,24 @@
 import { useState, useEffect } from 'react';
-import { HiOutlineUserGroup, HiOutlineCheckCircle, HiOutlineUsers, HiOutlineOfficeBuilding, HiOutlineXCircle, HiOutlineBriefcase } from 'react-icons/hi';
+import {
+  HiOutlineUserGroup,
+  HiOutlineCheckCircle,
+  HiOutlineUsers,
+  HiOutlineOfficeBuilding,
+  HiOutlineXCircle,
+  HiOutlineBriefcase,
+  HiOutlineCalendar,
+  HiOutlineFilter,
+  HiOutlineAcademicCap,
+} from 'react-icons/hi';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { getStats, getDeptWise, getCompanyWise, getBatchWise, getRecent } from '../api/dashboardApi';
+import { getBatches } from '../api/studentApi';
 import Loader from '../components/common/Loader';
 import '../styles/dashboard.css';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#ec4899'];
+
+const DEFAULT_BATCHES = ['2023-2027', '2022-2026', '2021-2025', '2020-2024'];
 
 const StatCard = ({ icon, label, value, colorClass }) => (
   <div className="stat-card">
@@ -23,20 +36,37 @@ const DashboardPage = () => {
   const [companyData, setCompanyData] = useState([]);
   const [batchData, setBatchData] = useState([]);
   const [recent, setRecent] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState('');
+  const [batches, setBatches] = useState(DEFAULT_BATCHES);
   const [loading, setLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
 
   useEffect(() => {
-    fetchAll();
+    // Fetch available batches
+    getBatches()
+      .then((res) => {
+        if (res.data && res.data.length > 0) {
+          const combined = Array.from(new Set([...res.data, ...DEFAULT_BATCHES])).sort().reverse();
+          setBatches(combined);
+        }
+      })
+      .catch((err) => console.error('Failed to fetch batch list:', err));
   }, []);
 
-  const fetchAll = async () => {
+  useEffect(() => {
+    fetchDashboardData(selectedBatch);
+  }, [selectedBatch]);
+
+  const fetchDashboardData = async (batch) => {
     try {
+      if (stats) setFilterLoading(true);
+      const params = batch ? { batch } : {};
       const [statsRes, deptRes, companyRes, batchRes, recentRes] = await Promise.all([
-        getStats(),
-        getDeptWise(),
-        getCompanyWise(),
+        getStats(params),
+        getDeptWise(params),
+        getCompanyWise(params),
         getBatchWise(),
-        getRecent(),
+        getRecent(params),
       ]);
       setStats(statsRes.data);
       setDeptData(deptRes.data);
@@ -47,6 +77,7 @@ const DashboardPage = () => {
       console.error('Dashboard fetch error:', err);
     } finally {
       setLoading(false);
+      setFilterLoading(false);
     }
   };
 
@@ -76,22 +107,89 @@ const DashboardPage = () => {
 
   return (
     <>
-      {/* College Placement Banner */}
+      {/* College Placement Banner with Top Year / Batch Filter */}
       <div className="dashboard-banner">
-        <div className="banner-logo-wrapper">
-          <img src="/logo.png" alt="Nadar Saraswathi College of Engineering and Technology Logo" className="banner-logo" />
+        <div className="dashboard-banner-left">
+          <div className="banner-logo-wrapper">
+            <img src="/logo.png" alt="Nadar Saraswathi College of Engineering and Technology Logo" className="banner-logo" />
+          </div>
+          <div className="banner-info">
+            <h2 className="banner-title">Nadar Saraswathi College of Engineering and Technology</h2>
+            <p className="banner-subtitle">Theni, Tamil Nadu, India</p>
+            <div className="banner-badge">
+              <span>TRAINING & PLACEMENT CELL</span>
+            </div>
+          </div>
         </div>
-        <div className="banner-info">
-          <h2 className="banner-title">Nadar Saraswathi College of Engineering and Technology</h2>
-          <p className="banner-subtitle">Theni, Tamil Nadu, India</p>
-          <div className="banner-badge">
-            <span>TRAINING & PLACEMENT CELL</span>
+
+        {/* Year / Batch Filter Widget */}
+        <div className="dashboard-filter-card">
+          <div className="dashboard-filter-label-row">
+            <span className="dashboard-filter-label">
+              <HiOutlineAcademicCap style={{ fontSize: '1rem', color: '#c59e51' }} />
+              Academic Year / Batch
+            </span>
+            {selectedBatch && (
+              <button
+                type="button"
+                onClick={() => setSelectedBatch('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#6366f1',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  textDecoration: 'underline',
+                }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          <div className="dashboard-filter-select-wrap">
+            <select
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              className="dashboard-batch-select"
+              id="dashboard-batch-filter-select"
+            >
+              <option value="">🎓 All Batches (Cumulative)</option>
+              {batches.map((b) => (
+                <option key={b} value={b}>
+                  Batch {b}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Quick Pill Filter Buttons */}
+          <div className="dashboard-batch-pills">
+            <button
+              type="button"
+              className={`batch-pill-btn ${selectedBatch === '' ? 'active' : ''}`}
+              onClick={() => setSelectedBatch('')}
+            >
+              All
+            </button>
+            {batches.slice(0, 4).map((b) => (
+              <button
+                key={b}
+                type="button"
+                className={`batch-pill-btn ${selectedBatch === b ? 'active' : ''}`}
+                onClick={() => setSelectedBatch(b)}
+              >
+                {b}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="dashboard-stats">
+      <div className="dashboard-stats" style={{ opacity: filterLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
 
         <StatCard
           icon={<HiOutlineUserGroup />}
