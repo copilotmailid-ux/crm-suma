@@ -9,6 +9,7 @@ const {
   deleteDrive,
   applyForDrive,
   advanceRoundCandidates,
+  eliminateRoundCandidates,
   selectFinalCandidates,
   addOrUpdateRound,
   sendCustomRoundEmail,
@@ -37,6 +38,7 @@ router.delete('/:id', authMiddleware, deleteDrive);
 // Multi-round progression & selection endpoints (Admin)
 router.post('/:id/rounds', authMiddleware, addOrUpdateRound);
 router.post('/:id/rounds/:roundNumber/advance', authMiddleware, advanceRoundCandidates);
+router.post('/:id/rounds/:roundNumber/eliminate', authMiddleware, eliminateRoundCandidates);
 router.post('/:id/rounds/:roundNumber/send-email', authMiddleware, sendCustomRoundEmail);
 router.post('/:id/rounds/:roundNumber/resend-email', authMiddleware, resendRoundEmail);
 router.post('/:id/select-final', authMiddleware, selectFinalCandidates);

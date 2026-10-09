@@ -9,6 +9,8 @@ export const deleteDrive = (id) => api.delete(`/drives/${id}`);
 export const applyForDrive = (id) => api.post(`/drives/${id}/apply`);
 export const advanceRoundCandidates = (id, roundNumber, data) =>
   api.post(`/drives/${id}/rounds/${roundNumber}/advance`, data);
+export const eliminateRoundCandidates = (id, roundNumber, data) =>
+  api.post(`/drives/${id}/rounds/${roundNumber}/eliminate`, data);
 export const selectFinalCandidates = (id, data) =>
   api.post(`/drives/${id}/select-final`, data);
 export const addOrUpdateRound = (id, data) =>

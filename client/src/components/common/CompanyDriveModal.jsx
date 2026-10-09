@@ -19,11 +19,13 @@ import {
   HiOutlineCog,
   HiOutlineRefresh,
   HiOutlineExclamation,
+  HiOutlineXCircle,
 } from 'react-icons/hi';
 import * as XLSX from 'xlsx';
 import {
   getDriveCandidates,
   advanceRoundCandidates,
+  eliminateRoundCandidates,
   selectFinalCandidates,
   addOrUpdateRound,
   resendRoundEmail,
@@ -63,6 +65,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   // Checkbox Selection for Active Round
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
   const [resendingId, setResendingId] = useState(null);
+  const [eliminating, setEliminating] = useState(false);
 
   // Modal: Advance to Next Round ("When is 2nd round" + Mail)
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
@@ -310,6 +313,55 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       toast.error(msg);
     } finally {
       setResendingId(null);
+    }
+  };
+
+  // Mark candidate(s) as eliminated in current round
+  const handleEliminateSelected = async (targetStudentIds = null) => {
+    const idsToEliminate = targetStudentIds || selectedStudentIds;
+    if (!idsToEliminate || idsToEliminate.length === 0) {
+      toast.error('Please select at least one candidate to eliminate');
+      return;
+    }
+
+    try {
+      setEliminating(true);
+      const res = await eliminateRoundCandidates(driveData._id, selectedRoundNumber, {
+        selectedStudentIds: idsToEliminate,
+      });
+
+      toast.success(res.data.message || `Marked candidate(s) as eliminated in Round ${selectedRoundNumber}`);
+
+      if (res.data.drive) {
+        setDriveData(res.data.drive);
+        setRounds(res.data.drive.rounds || []);
+      } else {
+        setRounds((prevRounds) =>
+          prevRounds.map((r) => {
+            if (r.roundNumber === selectedRoundNumber) {
+              const selSet = new Set(idsToEliminate.map(String));
+              return {
+                ...r,
+                candidates: (r.candidates || []).map((c) => {
+                  const sId = c.studentId?._id || c.studentId;
+                  if (selSet.has(String(sId))) {
+                    return { ...c, status: 'eliminated' };
+                  }
+                  return c;
+                }),
+              };
+            }
+            return r;
+          })
+        );
+      }
+
+      setSelectedStudentIds([]);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to eliminate candidate(s)');
+    } finally {
+      setEliminating(false);
     }
   };
 
@@ -662,30 +714,31 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         {/* Header */}
         <div
           style={{
-            padding: '16px 24px',
-            background: 'linear-gradient(135deg, #0b1d37 0%, #162a45 100%)',
-            color: '#fff',
+            padding: '20px 24px 16px',
+            background: '#ffffff',
+            color: '#0f172a',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            borderBottom: '1px solid #e2e8f0',
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div
               style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                background: 'rgba(197, 158, 81, 0.2)',
+                width: '44px',
+                height: '44px',
+                borderRadius: '10px',
+                background: '#f8fafc',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.4rem',
+                fontSize: '1.3rem',
                 fontWeight: 800,
-                color: '#fbbf24',
-                border: '1px solid rgba(197, 158, 81, 0.4)',
+                color: '#1e293b',
+                border: '1px solid #e2e8f0',
+                flexShrink: 0,
               }}
             >
               {driveData.companyName ? driveData.companyName.charAt(0).toUpperCase() : 'C'}
@@ -693,17 +746,17 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
                   {driveData.companyName}
                 </h2>
                 <span
                   style={{
-                    background: 'rgba(16, 185, 129, 0.2)',
-                    color: '#34d399',
-                    border: '1px solid rgba(52, 211, 153, 0.4)',
-                    padding: '2px 10px',
+                    background: '#ecfdf5',
+                    color: '#059669',
+                    border: '1px solid #a7f3d0',
+                    padding: '3px 10px',
                     borderRadius: '20px',
-                    fontSize: '0.8rem',
+                    fontSize: '0.78rem',
                     fontWeight: 700,
                   }}
                 >
@@ -713,18 +766,23 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   style={{
                     background:
                       driveData.status === 'Ongoing'
-                        ? 'rgba(16, 185, 129, 0.2)'
+                        ? '#ecfdf5'
                         : driveData.status === 'Completed'
-                        ? 'rgba(148, 163, 184, 0.2)'
-                        : 'rgba(245, 158, 11, 0.2)',
+                        ? '#f1f5f9'
+                        : '#fffbeb',
                     color:
                       driveData.status === 'Ongoing'
-                        ? '#34d399'
+                        ? '#059669'
                         : driveData.status === 'Completed'
-                        ? '#94a3b8'
-                        : '#fbbf24',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    padding: '2px 10px',
+                        ? '#475569'
+                        : '#d97706',
+                    border:
+                      driveData.status === 'Ongoing'
+                        ? '1px solid #a7f3d0'
+                        : driveData.status === 'Completed'
+                        ? '1px solid #e2e8f0'
+                        : '1px solid #fde68a',
+                    padding: '3px 10px',
                     borderRadius: '20px',
                     fontSize: '0.78rem',
                     fontWeight: 600,
@@ -736,10 +794,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 {finalSelectedStudents.length > 0 && (
                   <span
                     style={{
-                      background: 'rgba(234, 179, 8, 0.25)',
-                      color: '#facc15',
-                      border: '1px solid rgba(234, 179, 8, 0.4)',
-                      padding: '2px 10px',
+                      background: '#fef3c7',
+                      color: '#b45309',
+                      border: '1px solid #fde68a',
+                      padding: '3px 10px',
                       borderRadius: '20px',
                       fontSize: '0.78rem',
                       fontWeight: 700,
@@ -752,9 +810,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   </span>
                 )}
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: '#cbd5e1' }}>
-                Role: <strong style={{ color: '#fff' }}>{driveData.role}</strong> • Drive Date:{' '}
-                <strong style={{ color: '#fff' }}>
+              <p style={{ margin: '4px 0 0', fontSize: '0.86rem', color: '#64748b' }}>
+                Role: <strong style={{ color: '#1e293b' }}>{driveData.role}</strong> • Drive Date:{' '}
+                <strong style={{ color: '#1e293b' }}>
                   {new Date(driveData.driveDate).toLocaleDateString('en-IN', {
                     day: 'numeric',
                     month: 'short',
@@ -769,17 +827,18 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             <button
               onClick={onClose}
               style={{
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: '#fee2e2',
                 border: 'none',
-                color: '#fff',
+                color: '#ef4444',
                 width: '32px',
                 height: '32px',
-                borderRadius: '50%',
-                fontSize: '1.2rem',
+                borderRadius: '8px',
+                fontSize: '1.15rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                transition: 'background 0.2s',
               }}
               title="Close"
             >
@@ -794,13 +853,15 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '4px 24px 0',
-            borderBottom: '1px solid var(--border-color, #e2e8f0)',
-            background: 'var(--bg-card, #ffffff)',
+            padding: '10px 24px',
+            borderBottom: '1px solid #e2e8f0',
+            background: '#f8fafc',
             flexShrink: 0,
+            gap: '12px',
           }}
         >
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Rounds & Shortlisting Tab Button */}
             <button
               onClick={() => {
                 setActiveTab('pipeline');
@@ -810,26 +871,33 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 16px',
-                background: 'none',
+                padding: '9px 16px',
+                borderRadius: '12px',
+                background: activeTab === 'pipeline'
+                  ? 'linear-gradient(135deg, #1e293b 0%, #2b394f 30%, #a27b38 80%, #b88e44 100%)'
+                  : 'transparent',
                 border: 'none',
-                borderBottom: activeTab === 'pipeline' ? '3px solid #0b1d37' : '3px solid transparent',
-                color: activeTab === 'pipeline' ? '#0b1d37' : 'var(--text-muted, #64748b)',
-                fontWeight: activeTab === 'pipeline' ? 700 : 500,
-                fontSize: '0.92rem',
+                color: activeTab === 'pipeline' ? '#ffffff' : '#334155',
+                fontWeight: activeTab === 'pipeline' ? 700 : 600,
+                fontSize: '0.88rem',
                 cursor: 'pointer',
+                boxShadow: activeTab === 'pipeline'
+                  ? '0 6px 16px -2px rgba(30, 41, 59, 0.35), 0 3px 8px rgba(184, 142, 68, 0.25)'
+                  : 'none',
+                transition: 'all 0.18s ease',
               }}
               id="tab-recruitment-pipeline"
             >
-              <HiOutlineBriefcase style={{ fontSize: '1.15rem' }} />
+              <HiOutlineBriefcase style={{ fontSize: '1.15rem', color: activeTab === 'pipeline' ? '#ffffff' : '#475569' }} />
               <span>Rounds & Shortlisting</span>
               <span
                 style={{
-                  background: activeTab === 'pipeline' ? '#0b1d37' : 'var(--bg-input, #e2e8f0)',
-                  color: activeTab === 'pipeline' ? '#fff' : 'var(--text-primary, #0f172a)',
+                  background: activeTab === 'pipeline' ? 'rgba(255, 255, 255, 0.22)' : '#f1f5f9',
+                  color: activeTab === 'pipeline' ? '#ffffff' : '#475569',
+                  border: activeTab === 'pipeline' ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #e2e8f0',
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  fontSize: '0.72rem',
+                  fontSize: '0.74rem',
                   fontWeight: 700,
                 }}
               >
@@ -837,6 +905,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               </span>
             </button>
 
+            {/* Final Placed Tab Button */}
             <button
               onClick={() => {
                 setActiveTab('placed');
@@ -846,26 +915,33 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 16px',
-                background: 'none',
+                padding: '9px 16px',
+                borderRadius: '12px',
+                background: activeTab === 'placed'
+                  ? 'linear-gradient(135deg, #1e293b 0%, #2b394f 30%, #a27b38 80%, #b88e44 100%)'
+                  : 'transparent',
                 border: 'none',
-                borderBottom: activeTab === 'placed' ? '3px solid #eab308' : '3px solid transparent',
-                color: activeTab === 'placed' ? '#b45309' : 'var(--text-muted, #64748b)',
-                fontWeight: activeTab === 'placed' ? 700 : 500,
-                fontSize: '0.92rem',
+                color: activeTab === 'placed' ? '#ffffff' : '#334155',
+                fontWeight: activeTab === 'placed' ? 700 : 600,
+                fontSize: '0.88rem',
                 cursor: 'pointer',
+                boxShadow: activeTab === 'placed'
+                  ? '0 6px 16px -2px rgba(30, 41, 59, 0.35), 0 3px 8px rgba(184, 142, 68, 0.25)'
+                  : 'none',
+                transition: 'all 0.18s ease',
               }}
               id="tab-final-placed"
             >
-              <HiOutlineSparkles style={{ fontSize: '1.15rem', color: '#eab308' }} />
+              <HiOutlineSparkles style={{ fontSize: '1.15rem', color: activeTab === 'placed' ? '#ffffff' : '#d97706' }} />
               <span>Final Placed</span>
               <span
                 style={{
-                  background: activeTab === 'placed' ? '#eab308' : 'var(--bg-input, #e2e8f0)',
-                  color: activeTab === 'placed' ? '#000' : 'var(--text-primary, #0f172a)',
+                  background: activeTab === 'placed' ? 'rgba(255, 255, 255, 0.22)' : '#f1f5f9',
+                  color: activeTab === 'placed' ? '#ffffff' : '#475569',
+                  border: activeTab === 'placed' ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #e2e8f0',
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  fontSize: '0.72rem',
+                  fontSize: '0.74rem',
                   fontWeight: 700,
                 }}
               >
@@ -873,6 +949,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               </span>
             </button>
 
+            {/* Registered Candidates Tab Button */}
             <button
               onClick={() => {
                 setActiveTab('registered');
@@ -883,20 +960,41 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 16px',
-                background: 'none',
+                padding: '9px 16px',
+                borderRadius: '12px',
+                background: activeTab === 'registered'
+                  ? 'linear-gradient(135deg, #1e293b 0%, #2b394f 30%, #a27b38 80%, #b88e44 100%)'
+                  : 'transparent',
                 border: 'none',
-                borderBottom: activeTab === 'registered' ? '3px solid #6366f1' : '3px solid transparent',
-                color: activeTab === 'registered' ? '#4f46e5' : 'var(--text-muted, #64748b)',
-                fontWeight: activeTab === 'registered' ? 700 : 500,
-                fontSize: '0.92rem',
+                color: activeTab === 'registered' ? '#ffffff' : '#334155',
+                fontWeight: activeTab === 'registered' ? 700 : 600,
+                fontSize: '0.88rem',
                 cursor: 'pointer',
+                boxShadow: activeTab === 'registered'
+                  ? '0 6px 16px -2px rgba(30, 41, 59, 0.35), 0 3px 8px rgba(184, 142, 68, 0.25)'
+                  : 'none',
+                transition: 'all 0.18s ease',
               }}
               id="tab-registered-candidates"
             >
-              <HiOutlineUserGroup style={{ fontSize: '1.15rem' }} /> Registered ({registeredStudents.length})
+              <HiOutlineUserGroup style={{ fontSize: '1.15rem', color: activeTab === 'registered' ? '#ffffff' : '#475569' }} />
+              <span>Registered</span>
+              <span
+                style={{
+                  background: activeTab === 'registered' ? 'rgba(255, 255, 255, 0.22)' : '#f1f5f9',
+                  color: activeTab === 'registered' ? '#ffffff' : '#475569',
+                  border: activeTab === 'registered' ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #e2e8f0',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                }}
+              >
+                {registeredStudents.length}
+              </span>
             </button>
 
+            {/* All Eligible Candidates Tab Button */}
             <button
               onClick={() => {
                 setActiveTab('eligible');
@@ -907,20 +1005,41 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 16px',
-                background: 'none',
+                padding: '9px 16px',
+                borderRadius: '12px',
+                background: activeTab === 'eligible'
+                  ? 'linear-gradient(135deg, #1e293b 0%, #2b394f 30%, #a27b38 80%, #b88e44 100%)'
+                  : 'transparent',
                 border: 'none',
-                borderBottom: activeTab === 'eligible' ? '3px solid #10b981' : '3px solid transparent',
-                color: activeTab === 'eligible' ? '#059669' : 'var(--text-muted, #64748b)',
-                fontWeight: activeTab === 'eligible' ? 700 : 500,
-                fontSize: '0.92rem',
+                color: activeTab === 'eligible' ? '#ffffff' : '#334155',
+                fontWeight: activeTab === 'eligible' ? 700 : 600,
+                fontSize: '0.88rem',
                 cursor: 'pointer',
+                boxShadow: activeTab === 'eligible'
+                  ? '0 6px 16px -2px rgba(30, 41, 59, 0.35), 0 3px 8px rgba(184, 142, 68, 0.25)'
+                  : 'none',
+                transition: 'all 0.18s ease',
               }}
               id="tab-eligible-candidates"
             >
-              <HiOutlineAcademicCap style={{ fontSize: '1.15rem' }} /> All Eligible ({eligibleStudents.length})
+              <HiOutlineAcademicCap style={{ fontSize: '1.15rem', color: activeTab === 'eligible' ? '#ffffff' : '#475569' }} />
+              <span>All Eligible</span>
+              <span
+                style={{
+                  background: activeTab === 'eligible' ? 'rgba(255, 255, 255, 0.22)' : '#f1f5f9',
+                  color: activeTab === 'eligible' ? '#ffffff' : '#475569',
+                  border: activeTab === 'eligible' ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #e2e8f0',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                }}
+              >
+                {eligibleStudents.length}
+              </span>
             </button>
 
+            {/* Requirements Tab Button */}
             <button
               onClick={() => {
                 setActiveTab('info');
@@ -930,27 +1049,47 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '12px 16px',
-                background: 'none',
+                padding: '9px 16px',
+                borderRadius: '12px',
+                background: activeTab === 'info'
+                  ? 'linear-gradient(135deg, #1e293b 0%, #2b394f 30%, #a27b38 80%, #b88e44 100%)'
+                  : 'transparent',
                 border: 'none',
-                borderBottom: activeTab === 'info' ? '3px solid #8b5cf6' : '3px solid transparent',
-                color: activeTab === 'info' ? '#7c3aed' : 'var(--text-muted, #64748b)',
-                fontWeight: activeTab === 'info' ? 700 : 500,
-                fontSize: '0.92rem',
+                color: activeTab === 'info' ? '#ffffff' : '#334155',
+                fontWeight: activeTab === 'info' ? 700 : 600,
+                fontSize: '0.88rem',
                 cursor: 'pointer',
+                boxShadow: activeTab === 'info'
+                  ? '0 6px 16px -2px rgba(30, 41, 59, 0.35), 0 3px 8px rgba(184, 142, 68, 0.25)'
+                  : 'none',
+                transition: 'all 0.18s ease',
               }}
               id="tab-drive-info"
             >
-              <HiOutlineDocumentText style={{ fontSize: '1.15rem' }} /> Requirements & Process
+              <HiOutlineDocumentText style={{ fontSize: '1.15rem', color: activeTab === 'info' ? '#ffffff' : '#475569' }} />
+              <span>Requirements & Process</span>
             </button>
           </div>
 
-          {/* Quick Export on Right */}
-          <div style={{ display: 'flex', gap: '8px', paddingBottom: '6px' }}>
+          {/* Quick Export on Right as clean separated button */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {activeTab === 'pipeline' && (
               <button
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  color: '#1e293b',
+                  fontWeight: 600,
+                  cursor: activeRoundCandidates.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: activeRoundCandidates.length === 0 ? 0.6 : 1,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                }}
                 onClick={handleExportRound}
                 disabled={activeRoundCandidates.length === 0}
               >
@@ -960,8 +1099,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
             {activeTab === 'placed' && (
               <button
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  color: '#1e293b',
+                  fontWeight: 600,
+                  cursor: finalSelectedStudents.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: finalSelectedStudents.length === 0 ? 0.6 : 1,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                }}
                 onClick={handleExportPlaced}
                 disabled={finalSelectedStudents.length === 0}
               >
@@ -971,8 +1123,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
             {activeTab === 'registered' && (
               <button
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  color: '#1e293b',
+                  fontWeight: 600,
+                  cursor: registeredStudents.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: registeredStudents.length === 0 ? 0.6 : 1,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                }}
                 onClick={handleExportRegistered}
                 disabled={registeredStudents.length === 0}
               >
@@ -982,8 +1147,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
             {activeTab === 'eligible' && (
               <button
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  color: '#1e293b',
+                  fontWeight: 600,
+                  cursor: eligibleStudents.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: eligibleStudents.length === 0 ? 0.6 : 1,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                }}
                 onClick={handleExportEligible}
                 disabled={eligibleStudents.length === 0}
               >
@@ -1285,6 +1463,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         </div>
                         <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 600 }}>PLACED</div>
                       </div>
+
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          padding: '6px 14px',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                        }}
+                      >
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#dc2626' }}>
+                          {activeRoundCandidates.filter((c) => c.status === 'eliminated').length}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: '#dc2626', fontWeight: 600 }}>ELIMINATED</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1404,6 +1597,32 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         }}
                       >
                         <HiOutlineSparkles /> Mark as Placed ({selectedStudentIds.length})
+                      </button>
+
+                      {/* Eliminated Button on each round */}
+                      <button
+                        type="button"
+                        onClick={() => handleEliminateSelected()}
+                        disabled={eliminating}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          borderRadius: '8px',
+                          border: '1px solid #fecaca',
+                          cursor: eliminating ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: '#fee2e2',
+                          color: '#dc2626',
+                          boxShadow: '0 2px 6px rgba(220, 38, 38, 0.15)',
+                          transition: 'all 0.15s ease',
+                        }}
+                        title={`Mark ${selectedStudentIds.length} candidate(s) as eliminated in Round ${selectedRoundNumber}`}
+                      >
+                        <HiOutlineXCircle style={{ fontSize: '1.15rem' }} />
+                        {eliminating ? 'Eliminating...' : `Eliminated (${selectedStudentIds.length})`}
                       </button>
                     </>
                   ) : (
@@ -1577,29 +1796,53 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                 ) : cand.status === 'eliminated' ? (
                                   <span
                                     style={{
-                                      background: '#f1f5f9',
-                                      color: '#64748b',
+                                      background: '#fee2e2',
+                                      color: '#dc2626',
+                                      border: '1px solid #fecaca',
                                       padding: '3px 8px',
                                       borderRadius: '12px',
                                       fontSize: '0.74rem',
-                                      fontWeight: 600,
+                                      fontWeight: 700,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
                                     }}
                                   >
-                                    Eliminated
+                                    ✕ Eliminated
                                   </span>
                                 ) : (
-                                  <span
-                                    style={{
-                                      background: '#fef3c7',
-                                      color: '#b45309',
-                                      padding: '3px 8px',
-                                      borderRadius: '12px',
-                                      fontSize: '0.74rem',
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    Pending Review
-                                  </span>
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                    <span
+                                      style={{
+                                        background: '#fef3c7',
+                                        color: '#b45309',
+                                        padding: '3px 8px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      Pending Review
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEliminateSelected([sIdStr])}
+                                      disabled={eliminating}
+                                      style={{
+                                        padding: '2px 6px',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600,
+                                        borderRadius: '6px',
+                                        border: '1px solid #fecaca',
+                                        background: '#fff1f2',
+                                        color: '#e11d48',
+                                        cursor: 'pointer',
+                                      }}
+                                      title="Quick Eliminate"
+                                    >
+                                      ✕ Eliminate
+                                    </button>
+                                  </div>
                                 )}
                               </td>
                               <td>
@@ -2339,34 +2582,38 @@ const CompanyDriveModal = ({ drive, onClose }) => {
           >
             <div
               style={{
-                padding: '18px 22px',
-                background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
-                color: '#fff',
+                padding: '20px 24px 16px',
+                background: '#ffffff',
+                color: '#0f172a',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                borderBottom: '1px solid #e2e8f0',
               }}
             >
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
                   🚀 Advance to Round {advanceForm.nextRoundNumber} & Send Invitations
                 </h3>
-                <p style={{ margin: '3px 0 0', fontSize: '0.82rem', opacity: 0.9 }}>
-                  Shortlisting {selectedStudentIds.length} candidate(s) from Round {selectedRoundNumber}
+                <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
+                  Shortlisting <strong style={{ color: '#0f172a' }}>{selectedStudentIds.length} candidate(s)</strong> from Round {selectedRoundNumber}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAdvanceModal(false)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: '#fee2e2',
                   border: 'none',
-                  color: '#fff',
+                  color: '#ef4444',
                   width: '32px',
                   height: '32px',
-                  borderRadius: '50%',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '1.2rem',
+                  fontSize: '1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 <HiOutlineX />
@@ -2546,34 +2793,38 @@ const CompanyDriveModal = ({ drive, onClose }) => {
           >
             <div
               style={{
-                padding: '20px 24px',
-                background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
-                color: '#fff',
+                padding: '20px 24px 16px',
+                background: '#ffffff',
+                color: '#0f172a',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                borderBottom: '1px solid #e2e8f0',
               }}
             >
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fef08a' }}>
+                <h3 style={{ margin: 0, fontSize: '1.18rem', fontWeight: 800, color: '#0f172a' }}>
                   🎉 Final Placement Selection & Offers
                 </h3>
-                <p style={{ margin: '3px 0 0', fontSize: '0.84rem', opacity: 0.9 }}>
-                  Generating official placement records for {selectedStudentIds.length} candidate(s)
+                <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
+                  Generating official placement records for <strong style={{ color: '#0f172a' }}>{selectedStudentIds.length} candidate(s)</strong>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowFinalModal(false)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: '#fee2e2',
                   border: 'none',
-                  color: '#fff',
+                  color: '#ef4444',
                   width: '32px',
                   height: '32px',
-                  borderRadius: '50%',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '1.2rem',
+                  fontSize: '1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 <HiOutlineX />
@@ -2721,29 +2972,33 @@ const CompanyDriveModal = ({ drive, onClose }) => {
           >
             <div
               style={{
-                padding: '18px 22px',
-                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                color: '#fff',
+                padding: '18px 22px 14px',
+                background: '#ffffff',
+                color: '#0f172a',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                borderBottom: '1px solid #e2e8f0',
               }}
             >
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
                 ➕ Configure Round {newRoundForm.roundNumber}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowAddRoundModal(false)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: '#fee2e2',
                   border: 'none',
-                  color: '#fff',
+                  color: '#ef4444',
                   width: '32px',
                   height: '32px',
-                  borderRadius: '50%',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '1.2rem',
+                  fontSize: '1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 <HiOutlineX />

@@ -563,6 +563,66 @@ exports.advanceRoundCandidates = async (req, res, next) => {
   }
 };
 
+// @desc    Mark selected candidates as eliminated in a specific round
+// @route   POST /api/drives/:id/rounds/:roundNumber/eliminate
+exports.eliminateRoundCandidates = async (req, res, next) => {
+  try {
+    const { id, roundNumber } = req.params;
+    const { selectedStudentIds } = req.body;
+
+    if (!selectedStudentIds || !Array.isArray(selectedStudentIds) || selectedStudentIds.length === 0) {
+      return res.status(400).json({ message: 'Please select at least one student to eliminate' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const currentRound = drive.rounds.find((r) => r.roundNumber === Number(roundNumber));
+    if (!currentRound) {
+      return res.status(404).json({ message: 'Round not found' });
+    }
+
+    const selectedSet = new Set(selectedStudentIds.map(String));
+    let count = 0;
+    currentRound.candidates.forEach((cand) => {
+      if (selectedSet.has(cand.studentId.toString())) {
+        cand.status = 'eliminated';
+        count++;
+      }
+    });
+
+    await drive.save();
+
+    // Refetch populated drive
+    const updatedDrive = await Drive.findById(id)
+      .populate('companyId')
+      .populate({
+        path: 'registeredStudents',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'rounds.candidates.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'finalSelectedStudents.studentId',
+        select: 'name rollNumber department batch cgpa currentArrears email phone resumeUrl careerPreference status',
+      })
+      .populate('finalSelectedStudents.placementId');
+
+    res.json({
+      message: `Marked ${count} candidate(s) as eliminated in Round ${roundNumber}.`,
+      drive: updatedDrive,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Select candidates for final placement offers at the company
 // @route   POST /api/drives/:id/select-final
 exports.selectFinalCandidates = async (req, res, next) => {
