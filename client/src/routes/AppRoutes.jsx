@@ -12,6 +12,7 @@ import AlumniPage from '../pages/AlumniPage';
 import AnalysisPage from '../pages/AnalysisPage';
 import DrivesPage from '../pages/DrivesPage';
 import StudentPortalPage from '../pages/StudentPortalPage';
+import FacultyTimetablePage from '../pages/FacultyTimetablePage';
 
 const AppRoutes = () => {
   const { isAuthenticated, userRole, loading } = useAuth();
@@ -87,6 +88,7 @@ const AppRoutes = () => {
                 <Route path="/placements" element={<PlacementsPage />} />
                 <Route path="/alumni" element={<AlumniPage />} />
                 <Route path="/analysis" element={<AnalysisPage />} />
+                <Route path="/faculty-timetable" element={<FacultyTimetablePage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AppLayout>

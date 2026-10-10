@@ -1,0 +1,938 @@
+/* Faculty & Placement Class Time Table Styles */
+
+.ft-page-container {
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.ft-header-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.ft-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ft-title-area h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px 0;
+}
+
+.ft-title-area p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.ft-nav-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.ft-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ft-tab-btn:hover {
+  background: rgba(14, 165, 233, 0.08);
+  color: var(--text-primary);
+}
+
+.ft-tab-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+/* Quick Stats Bar */
+.ft-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ft-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.ft-stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.ft-stat-num {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.ft-stat-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Timetable Layout with Draggable Faculty Sidebar */
+.ft-timetable-workspace {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .ft-timetable-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Drag Tray */
+.ft-drag-tray {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 90px;
+  max-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.ft-drag-tray-header {
+  margin-bottom: 12px;
+}
+
+.ft-drag-tray-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.ft-drag-tray-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ft-drag-faculty-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  flex: 1;
+}
+
+.ft-draggable-faculty-card {
+  background: var(--bg-main, #f8fafc);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ft-draggable-faculty-card:hover {
+  transform: translateY(-2px);
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+.ft-draggable-faculty-card:active {
+  cursor: grabbing;
+}
+
+.ft-fac-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.ft-fac-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ft-fac-name {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ft-fac-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.ft-fac-badge {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+.ft-fac-periods-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.1);
+  padding: 2px 7px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* Institutional Printed Time Table Container */
+.ft-sheet-container {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
+}
+
+/* Official College Header on Sheet */
+.ft-sheet-header {
+  text-align: center;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.ft-sheet-trust {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ft-sheet-college-name {
+  font-family: 'Cinzel', serif, Georgia, 'Times New Roman';
+  font-size: 1.28rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.8px;
+  margin: 4px 0;
+  text-transform: uppercase;
+}
+
+.ft-sheet-affiliations {
+  font-size: 0.68rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.ft-sheet-title-banner {
+  margin-top: 10px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.ft-sheet-acad-year {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ft-sheet-sub-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-top: 2px;
+}
+
+/* Official Time Table Grid */
+.ft-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+
+.ft-official-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 2px solid #334155;
+  background: #ffffff;
+  min-width: 880px;
+}
+
+.ft-official-table th,
+.ft-official-table td {
+  border: 1.5px solid #64748b;
+  padding: 6px 4px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ft-th-day {
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.88rem;
+  width: 90px;
+  text-transform: uppercase;
+}
+
+.ft-th-hour {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.92rem;
+  width: calc((100% - 90px) / 7);
+}
+
+.ft-td-day-label {
+  background: #f8fafc;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  width: 90px;
+}
+
+/* Interactive Timetable Cell */
+.ft-table-cell {
+  position: relative;
+  min-height: 72px;
+  height: 82px;
+  padding: 5px 3px !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ft-table-cell:hover {
+  background-color: #f0f9ff !important;
+  box-shadow: inset 0 0 0 2px #0284c7;
+}
+
+.ft-table-cell.drag-over {
+  background-color: #e0f2fe !important;
+  box-shadow: inset 0 0 0 3px #0284c7 !important;
+}
+
+.ft-table-cell.continuous-block {
+  background-color: #ffffff !important;
+  text-align: center;
+}
+
+.ft-table-cell.continuous-block .ft-cell-content {
+  padding: 4px 16px;
+}
+
+.ft-cell-empty {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  opacity: 0.6;
+}
+
+.ft-table-cell:hover .ft-cell-empty {
+  opacity: 1;
+  color: #0284c7;
+  font-weight: 600;
+}
+
+/* Filled Cell Content */
+.ft-cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 3px;
+  position: relative;
+  width: 100%;
+}
+
+.ft-cell-drag-handle {
+  position: absolute;
+  top: 0;
+  right: 3px;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.ft-table-cell:hover .ft-cell-drag-handle {
+  opacity: 0.85;
+}
+
+.ft-class-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+}
+
+.ft-faculty-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ft-topic-text {
+  font-size: 0.66rem;
+  color: #475569;
+  font-weight: 500;
+  line-height: 1.15;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Edit Cell Modal */
+.ft-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.ft-modal-card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--radius-lg, 14px);
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: ftModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ftModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ft-modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ft-modal-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.ft-modal-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(85vh - 120px);
+  overflow-y: auto;
+}
+
+.ft-quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ft-tag-btn {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-main, #f8fafc);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ft-tag-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.ft-modal-footer {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* Faculty Directory Cards & Workload Table */
+.ft-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.ft-faculty-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.ft-faculty-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
+
+/* ========================================================================= */
+/* WORKLOAD TABLE STYLES (IMAGE 1 FIX)                                       */
+/* ========================================================================= */
+.ft-workload-table-wrapper {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 22px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  overflow-x: auto;
+}
+
+.ft-workload-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 980px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ft-workload-table thead th {
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 13px 14px;
+  border-bottom: 2px solid #cbd5e1;
+  white-space: nowrap;
+}
+
+.ft-workload-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+  font-size: 0.85rem;
+}
+
+.ft-workload-table tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+.ft-workload-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Day Columns in Workload Table */
+.ft-wl-th-day {
+  width: 65px;
+  min-width: 65px;
+  text-align: center !important;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+}
+
+.ft-wl-td-day {
+  width: 65px;
+  min-width: 65px;
+  text-align: center !important;
+  border-left: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+}
+
+.ft-wl-day-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-weight: 800;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.12);
+}
+
+.ft-wl-day-dash {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+/* Week Total Column */
+.ft-wl-th-total {
+  width: 130px;
+  min-width: 130px;
+  text-align: center !important;
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+  border-left: 2px solid #bae6fd;
+  border-right: 2px solid #bae6fd;
+}
+
+.ft-wl-td-total {
+  width: 130px;
+  min-width: 130px;
+  text-align: center !important;
+  background: rgba(2, 132, 199, 0.04);
+  border-left: 2px solid #bae6fd;
+  border-right: 2px solid #bae6fd;
+}
+
+.ft-wl-total-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+/* Status Badges */
+.ft-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.ft-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Summary Row in Workload */
+.ft-wl-summary-row td {
+  background: #f1f5f9;
+  font-weight: 800;
+  border-top: 2px solid #cbd5e1;
+  color: #0f172a;
+}
+
+/* ========================================================================= */
+/* YEAR-WISE & DEPARTMENT-WISE FILTER STYLES (IMAGE 2)                       */
+/* ========================================================================= */
+.ft-filters-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ft-filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ft-filter-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 105px;
+}
+
+.ft-year-btn {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ft-year-btn:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+  background: #f0f9ff;
+}
+
+.ft-year-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.ft-dept-btn {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 5px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ft-dept-btn:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+  background: #f0f9ff;
+}
+
+.ft-dept-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+/* Year Badge on Cell */
+.ft-cell-year-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.ft-cell-year-badge.yr-1 {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.ft-cell-year-badge.yr-2 {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.ft-cell-year-badge.yr-3 {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.ft-cell-year-badge.yr-4 {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+/* Highlighted Matching Cells in Grid */
+.ft-table-cell.matching-cell {
+  background: #ffffff !important;
+  box-shadow: inset 0 0 0 2px #0284c7 !important;
+}
+
+/* Dedicated Print Styles for Official College Document */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .sidebar,
+  .topbar,
+  .ft-header-top,
+  .ft-nav-tabs,
+  .ft-stats-row,
+  .ft-drag-tray,
+  .ft-controls-bar,
+  .btn,
+  .ft-modal-overlay {
+    display: none !important;
+  }
+
+  .app-layout {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .ft-page-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .ft-timetable-workspace {
+    display: block !important;
+  }
+
+  .ft-sheet-container {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .ft-official-table {
+    border: 2px solid #000000 !important;
+  }
+
+  .ft-official-table th,
+  .ft-official-table td {
+    border: 1.5px solid #000000 !important;
+    color: #000000 !important;
+  }
+
+  .ft-table-cell {
+    height: auto !important;
+    min-height: 60px !important;
+  }
+}

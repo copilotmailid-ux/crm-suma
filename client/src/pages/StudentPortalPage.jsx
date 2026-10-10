@@ -43,6 +43,7 @@ const StudentPortalPage = () => {
 
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
+    email: '',
     phone: '',
     gender: '',
     dob: '',
@@ -77,6 +78,7 @@ const StudentPortalPage = () => {
   useEffect(() => {
     if (student) {
       setProfileForm({
+        email: student.email || '',
         phone: student.phone || '',
         gender: student.gender || '',
         dob: student.dob || '',
@@ -695,8 +697,15 @@ const StudentPortalPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">College Email</label>
-                    <input className="form-input" value={student.email} readOnly disabled />
+                    <label className="form-label">College Email *</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                      placeholder="student@college.edu"
+                      required
+                    />
                   </div>
 
                   <div className="form-group">

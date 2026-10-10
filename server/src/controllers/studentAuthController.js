@@ -100,6 +100,7 @@ exports.updateStudentProfile = async (req, res, next) => {
     }
 
     const {
+      email,
       phone,
       gender,
       dob,
@@ -119,6 +120,16 @@ exports.updateStudentProfile = async (req, res, next) => {
     } = req.body;
 
     // Updatable fields
+    if (email !== undefined && email.trim() !== '') {
+      const cleanEmail = email.trim().toLowerCase();
+      if (cleanEmail !== (student.email || '').toLowerCase()) {
+        const existing = await Student.findOne({ email: cleanEmail, _id: { $ne: student._id } });
+        if (existing) {
+          return res.status(400).json({ message: 'Email address is already in use by another student' });
+        }
+        student.email = cleanEmail;
+      }
+    }
     if (phone !== undefined) student.phone = phone.trim();
     if (gender !== undefined) student.gender = gender;
     if (dob !== undefined) student.dob = dob;

@@ -11,6 +11,7 @@ const placementRoutes = require('./routes/placementRoutes');
 const alumniRoutes = require('./routes/alumniRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const driveRoutes = require('./routes/driveRoutes');
+const facultyRoutes = require('./routes/facultyRoutes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/placements', placementRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/drives', driveRoutes);
+app.use('/api/faculty', facultyRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

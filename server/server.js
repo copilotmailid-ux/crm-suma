@@ -24,7 +24,7 @@ const startServer = async () => {
       }
     }
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log('\n======================================================');
       console.log('   🎓  NADAR SARASWATHI COLLEGE OF ENG & TECH - CRM  🎓   ');
       console.log('======================================================');
@@ -34,6 +34,10 @@ const startServer = async () => {
       console.log(` 🚀  Admin     : Seed Check OK / Ready`);
       console.log('======================================================\n');
     });
+
+    // Prevent proxy ECONNRESET by extending keep-alive timeouts beyond client/proxy timeout
+    server.keepAliveTimeout = 65000;
+    server.headersTimeout = 66000;
   } catch (error) {
     console.error('Failed to start server:', error.message);
     process.exit(1);
