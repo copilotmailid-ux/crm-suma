@@ -88,7 +88,11 @@ const AppRoutes = () => {
                 <Route path="/placements" element={<PlacementsPage />} />
                 <Route path="/alumni" element={<AlumniPage />} />
                 <Route path="/analysis" element={<AnalysisPage />} />
-                <Route path="/faculty-timetable" element={<FacultyTimetablePage />} />
+                <Route path="/training-dashboard" element={<FacultyTimetablePage initialTab="dashboard" />} />
+                <Route path="/placement-timetable" element={<FacultyTimetablePage initialTab="timetable" />} />
+                <Route path="/faculty-directory" element={<FacultyTimetablePage initialTab="faculties" />} />
+                <Route path="/workload-analytics" element={<FacultyTimetablePage initialTab="workload" />} />
+                <Route path="/faculty-timetable" element={<FacultyTimetablePage initialTab="dashboard" />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AppLayout>

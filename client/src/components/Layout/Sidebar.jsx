@@ -13,21 +13,25 @@ import {
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 
-const navItems = [
+const driveNavItems = [
   { label: 'Dashboard', path: '/', icon: <HiOutlineChartBar /> },
   { label: 'Students', path: '/students', icon: <HiOutlineUserGroup /> },
   { label: 'Placement Drives', path: '/drives', icon: <HiOutlineClipboardCheck /> },
-  { label: 'Faculty & Time Table', path: '/faculty-timetable', icon: <HiOutlineCalendar /> },
   { label: 'Companies', path: '/companies', icon: <HiOutlineOfficeBuilding /> },
   { label: 'Placements', path: '/placements', icon: <HiOutlineBriefcase /> },
   { label: 'Alumni', path: '/alumni', icon: <HiOutlineUsers /> },
   { label: 'Analysis', path: '/analysis', icon: <HiOutlineTrendingUp /> },
 ];
 
+const trainingNavItems = [
+  { label: 'Dashboard', path: '/training-dashboard', icon: <HiOutlineChartBar /> },
+  { label: 'Placement Time Table', path: '/placement-timetable', icon: <HiOutlineCalendar /> },
+  { label: 'Faculty Directory', path: '/faculty-directory', icon: <HiOutlineUserGroup /> },
+  { label: 'Workload & Analytics', path: '/workload-analytics', icon: <HiOutlineTrendingUp /> },
+];
 
 const Sidebar = ({ collapsed }) => {
   const { logout } = useAuth();
-  const location = useLocation();
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -36,10 +40,9 @@ const Sidebar = ({ collapsed }) => {
         <span className="brand-text" style={{ fontSize: '0.95rem' }}>NSCET</span>
       </div>
 
-
       <nav className="sidebar-nav">
-        <span className="nav-label">Main Menu</span>
-        {navItems.map((item) => (
+        <span className="nav-label">Placement Drive Modules</span>
+        {driveNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -47,6 +50,22 @@ const Sidebar = ({ collapsed }) => {
               `nav-item ${isActive ? 'active' : ''}`
             }
             end={item.path === '/'}
+          >
+            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-text">{item.label}</span>
+          </NavLink>
+        ))}
+
+        <div style={{ margin: '10px 12px 4px', borderTop: '1px solid var(--border-color, rgba(226, 232, 240, 0.6))', opacity: 0.6 }} />
+
+        <span className="nav-label">Placement Event & Training Modules</span>
+        {trainingNavItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              `nav-item ${isActive ? 'active' : ''}`
+            }
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-text">{item.label}</span>

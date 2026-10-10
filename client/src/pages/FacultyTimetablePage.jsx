@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiOutlineCalendar,
   HiOutlineUserGroup,
@@ -16,6 +17,8 @@ import {
   HiOutlineClock,
   HiOutlineOfficeBuilding,
   HiOutlineBookOpen,
+  HiOutlineArrowRight,
+  HiOutlineTrendingUp,
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import Loader from '../components/common/Loader';
@@ -106,8 +109,27 @@ const QUICK_TOPICS = [
   'Company Specific Assessment & Coding Prep',
 ];
 
-const FacultyTimetablePage = () => {
-  const [activeTab, setActiveTab] = useState('timetable'); // 'timetable' | 'faculties' | 'workload'
+const FacultyTimetablePage = ({ initialTab = null }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+
+  const getResolvedTab = useCallback(() => {
+    if (initialTab) return initialTab;
+    if (location.pathname === '/placement-timetable') return 'timetable';
+    if (location.pathname === '/faculty-directory') return 'faculties';
+    if (location.pathname === '/workload-analytics') return 'workload';
+    if (location.pathname === '/training-dashboard') return 'dashboard';
+    if (urlTab && ['dashboard', 'timetable', 'faculties', 'workload'].includes(urlTab)) return urlTab;
+    return 'dashboard';
+  }, [initialTab, location.pathname, urlTab]);
+
+  const [activeTab, setActiveTab] = useState(getResolvedTab);
+
+  useEffect(() => {
+    setActiveTab(getResolvedTab());
+  }, [getResolvedTab]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [slots, setSlots] = useState([]);
   const [faculties, setFaculties] = useState([]);
@@ -768,14 +790,39 @@ const FacultyTimetablePage = () => {
     <div className="ft-page-container">
       {/* Top Banner & Header */}
       <div className="ft-header-banner">
-        <div className="ft-header-top">
+        <div className="ft-header-top" style={{ marginBottom: activeTab === 'timetable' ? 0 : undefined }}>
           <div className="ft-title-area">
             <h1>
-              <HiOutlineAcademicCap style={{ color: '#0284c7' }} />
-              Faculty Management & Placement Time Table
+              {activeTab === 'dashboard' ? (
+                <>
+                  <HiOutlineAcademicCap style={{ color: '#0284c7' }} />
+                  Placement Event & Training Dashboard
+                </>
+              ) : activeTab === 'timetable' ? (
+                <>
+                  <HiOutlineCalendar style={{ color: '#0284c7' }} />
+                  Placement Time Table (Interactive Grid)
+                </>
+              ) : activeTab === 'faculties' ? (
+                <>
+                  <HiOutlineUserGroup style={{ color: '#0284c7' }} />
+                  Placement Faculty Directory ({faculties.length})
+                </>
+              ) : (
+                <>
+                  <HiOutlineChartBar style={{ color: '#0284c7' }} />
+                  Workload & Periods Analytics
+                </>
+              )}
             </h1>
             <p>
-              Assign faculty across departments and classes, track daily & weekly period workload, and update topics taught in real-time.
+              {activeTab === 'dashboard'
+                ? 'Central operational dashboard for placement training schedules, faculty workload allocations, and department hours.'
+                : activeTab === 'timetable'
+                ? 'Official 7-period placement class time table. Drag & drop faculty onto schedule slots and update class topics.'
+                : activeTab === 'faculties'
+                ? 'Manage placement faculty members, department designations, contact details, and teaching allocations.'
+                : 'Monitor weekly period distribution, faculty load balance, department quotas, and teaching period limits.'}
             </p>
           </div>
 
@@ -783,82 +830,294 @@ const FacultyTimetablePage = () => {
             <button className="btn btn-secondary" onClick={handlePrint} title="Print official timetable notice">
               <HiOutlinePrinter /> Print Official Sheet
             </button>
-            <button className="btn btn-secondary" onClick={handleResetDefault} title="Restore printed photo template">
-              <HiOutlineRefresh /> Reset to Template
-            </button>
+            {activeTab === 'timetable' && (
+              <button className="btn btn-secondary" onClick={handleResetDefault} title="Restore printed photo template">
+                <HiOutlineRefresh /> Reset to Template
+              </button>
+            )}
             <button className="btn btn-primary" onClick={handleOpenAddFaculty}>
               <HiOutlinePlus /> Add New Faculty
             </button>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="ft-nav-tabs">
-          <button
-            className={`ft-tab-btn ${activeTab === 'timetable' ? 'active' : ''}`}
-            onClick={() => setActiveTab('timetable')}
-          >
-            <HiOutlineCalendar /> Placement Time Table (Interactive Grid)
-          </button>
-          <button
-            className={`ft-tab-btn ${activeTab === 'faculties' ? 'active' : ''}`}
-            onClick={() => setActiveTab('faculties')}
-          >
-            <HiOutlineUserGroup /> Faculty Directory ({faculties.length})
-          </button>
-          <button
-            className={`ft-tab-btn ${activeTab === 'workload' ? 'active' : ''}`}
-            onClick={() => setActiveTab('workload')}
-          >
-            <HiOutlineChartBar /> Workload & Periods Analytics
-          </button>
-        </div>
-
-        {/* Quick Statistics Overview */}
-        <div className="ft-stats-row">
-          <div className="ft-stat-card">
-            <div className="ft-stat-icon" style={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
-              <HiOutlineClock />
-            </div>
-            <div>
-              <div className="ft-stat-num">{totalAssignedPeriods}</div>
-              <div className="ft-stat-label">Total Assigned Periods / Wk</div>
-            </div>
-          </div>
-
-          <div className="ft-stat-card">
-            <div className="ft-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-              <HiOutlineUserGroup />
-            </div>
-            <div>
-              <div className="ft-stat-num">{faculties.length}</div>
-              <div className="ft-stat-label">Active Placement Faculties</div>
-            </div>
-          </div>
-
-          <div className="ft-stat-card">
-            <div className="ft-stat-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}>
-              <HiOutlineBookOpen />
-            </div>
-            <div>
-              <div className="ft-stat-num">
-                {faculties.length > 0 ? (totalAssignedPeriods / faculties.length).toFixed(1) : 0}
+        {/* Quick Statistics Overview - Hidden on Placement Time Table per user request */}
+        {activeTab !== 'timetable' && (
+          <div className="ft-stats-row">
+            <div className="ft-stat-card">
+              <div className="ft-stat-icon" style={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
+                <HiOutlineClock />
               </div>
-              <div className="ft-stat-label">Avg Periods / Faculty</div>
+              <div>
+                <div className="ft-stat-num">{totalAssignedPeriods}</div>
+                <div className="ft-stat-label">Total Assigned Periods / Wk</div>
+              </div>
+            </div>
+
+            <div className="ft-stat-card">
+              <div className="ft-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                <HiOutlineUserGroup />
+              </div>
+              <div>
+                <div className="ft-stat-num">{faculties.length}</div>
+                <div className="ft-stat-label">Active Placement Faculties</div>
+              </div>
+            </div>
+
+            <div className="ft-stat-card">
+              <div className="ft-stat-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}>
+                <HiOutlineBookOpen />
+              </div>
+              <div>
+                <div className="ft-stat-num">
+                  {faculties.length > 0 ? (totalAssignedPeriods / faculties.length).toFixed(1) : 0}
+                </div>
+                <div className="ft-stat-label">Avg Periods / Faculty</div>
+              </div>
+            </div>
+
+            <div className="ft-stat-card">
+              <div className="ft-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                <HiOutlineOfficeBuilding />
+              </div>
+              <div>
+                <div className="ft-stat-num">8</div>
+                <div className="ft-stat-label">Engineering Departments</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* DASHBOARD: PLACEMENT EVENT & TRAINING OPERATIONAL DASHBOARD               */}
+      {/* ========================================================================= */}
+      {activeTab === 'dashboard' && (
+        <div className="training-dashboard-view" style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.25s ease' }}>
+          {/* Quick Access Module Hub Cards */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {/* Card 1: Time Table Grid */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                    <HiOutlineCalendar />
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#dbeafe', color: '#1e40af', padding: '3px 10px', borderRadius: '12px' }}>
+                    {totalAssignedPeriods} Periods Assigned
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
+                  Placement Time Table
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                  Interactive 7-period weekly placement class schedule for 1st, 2nd, 3rd, and 4th year engineering students.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate('/placement-timetable')}
+                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
+              >
+                Open Time Table Grid <HiOutlineArrowRight />
+              </button>
+            </div>
+
+            {/* Card 2: Faculty Directory */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                    <HiOutlineUserGroup />
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#d1fae5', color: '#065f46', padding: '3px 10px', borderRadius: '12px' }}>
+                    {faculties.length} Faculty Members
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
+                  Faculty Directory
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                  Manage placement training faculty coordinators, specializations, contacts, and teaching departments.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate('/faculty-directory')}
+                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
+              >
+                View Faculty Directory <HiOutlineArrowRight />
+              </button>
+            </div>
+
+            {/* Card 3: Workload & Analytics */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                    <HiOutlineChartBar />
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#ede9fe', color: '#5b21b6', padding: '3px 10px', borderRadius: '12px' }}>
+                    {(totalAssignedPeriods / (faculties.length || 1)).toFixed(1)} Avg / Faculty
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
+                  Workload & Periods Analytics
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                  Detailed workload distribution, overload detection, and departmental period quota analytics.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate('/workload-analytics')}
+                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
+              >
+                Open Workload Analytics <HiOutlineArrowRight />
+              </button>
             </div>
           </div>
 
-          <div className="ft-stat-card">
-            <div className="ft-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-              <HiOutlineOfficeBuilding />
+          {/* Weekly Schedule Load Breakdown (Mon to Sat) & Department Training Periods */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+            {/* Weekly Daily Load Card */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  📅 Weekly Training Load by Day
+                </h3>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  6 Active Training Days
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', flex: 1 }}>
+                {DAYS.map((day) => {
+                  const count = visibleDayTotals[day] || 0;
+                  const maxPeriods = 20;
+                  const pct = Math.min(100, Math.round((count / maxPeriods) * 100));
+                  return (
+                    <div
+                      key={day}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        padding: '16px 14px',
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', letterSpacing: '0.5px' }}>{day}</span>
+                      <span style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0284c7', lineHeight: 1 }}>{count}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Periods</span>
+                      <div style={{ width: '100%', height: '5px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginTop: '2px' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)', borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div>
-              <div className="ft-stat-num">8</div>
-              <div className="ft-stat-label">Engineering Departments</div>
+
+            {/* Department Breakdown Card */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  🏛️ Training Periods by Department
+                </h3>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0284c7' }}>
+                  {totalAssignedPeriods} Total Periods
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {DEPARTMENTS.filter((d) => d !== 'ALL').map((dept) => {
+                  const deptPeriods = slots.filter((s) => s.department === dept).reduce((sum, s) => sum + (s.span || 1), 0);
+                  const deptFaculties = faculties.filter((f) => f.department === dept).length;
+                  const pct = totalAssignedPeriods > 0 ? Math.round((deptPeriods / totalAssignedPeriods) * 100) : 0;
+                  return (
+                    <div key={dept} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700 }}>
+                        <span style={{ color: 'var(--text-primary)' }}>{dept} ({deptFaculties} Faculty)</span>
+                        <span style={{ color: '#0284c7' }}>{deptPeriods} Periods ({pct}%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)', borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 1: INTERACTIVE TIME TABLE (EXACT OFFICIAL UI)                         */}
@@ -866,74 +1125,76 @@ const FacultyTimetablePage = () => {
       {activeTab === 'timetable' && (
         <div className="ft-timetable-workspace">
           {/* Draggable Faculty Tray */}
-          <div className="ft-drag-tray">
-            <div className="ft-drag-tray-header">
-              <div className="ft-drag-tray-title">
-                <span>Faculty Palette</span>
-                <span className="ft-fac-badge">{filteredFaculties.length}</span>
+          <div className="ft-drag-tray-wrapper">
+            <div className="ft-drag-tray">
+              <div className="ft-drag-tray-header">
+                <div className="ft-drag-tray-title">
+                  <span>Faculty Palette</span>
+                  <span className="ft-fac-badge">{filteredFaculties.length}</span>
+                </div>
+                <p className="ft-drag-tray-desc">
+                  Drag any faculty card onto the timetable slots to assign!
+                </p>
               </div>
-              <p className="ft-drag-tray-desc">
-                Drag any faculty card onto the timetable slots to assign!
-              </p>
-            </div>
 
-            {/* Quick Filter inside tray */}
-            <div style={{ marginBottom: '10px' }}>
-              <div className="search-bar" style={{ padding: '6px 10px', fontSize: '0.8rem' }}>
-                <HiOutlineSearch />
-                <input
-                  type="text"
-                  placeholder="Filter faculty..."
-                  value={facultySearch}
-                  onChange={(e) => setFacultySearch(e.target.value)}
-                  style={{ fontSize: '0.8rem' }}
-                />
+              {/* Quick Filter inside tray */}
+              <div style={{ marginBottom: '10px', flexShrink: 0 }}>
+                <div className="search-bar" style={{ padding: '6px 10px', fontSize: '0.8rem' }}>
+                  <HiOutlineSearch />
+                  <input
+                    type="text"
+                    placeholder="Filter faculty..."
+                    value={facultySearch}
+                    onChange={(e) => setFacultySearch(e.target.value)}
+                    style={{ fontSize: '0.8rem' }}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="ft-drag-faculty-list">
-              {filteredFaculties.map((fac) => {
-                const facWl = workloads.find((w) => String(w.facultyId) === String(fac._id));
-                const weekPeriods = facWl ? facWl.totalWeekPeriods : 0;
+              <div className="ft-drag-faculty-list">
+                {filteredFaculties.map((fac) => {
+                  const facWl = workloads.find((w) => String(w.facultyId) === String(fac._id));
+                  const weekPeriods = facWl ? facWl.totalWeekPeriods : 0;
 
-                return (
-                  <div
-                    key={fac._id}
-                    className="ft-draggable-faculty-card"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, fac)}
-                    title="Drag and drop onto any timetable cell"
-                  >
-                    <div className="ft-fac-avatar" style={{ background: fac.color || '#0284c7' }}>
-                      {fac.name
-                        .split(' ')
-                        .filter((p) => !['Dr.', 'Prof.', 'Mr.', 'Mrs.', 'Ms.'].includes(p))
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase() || 'F'}
-                    </div>
-
-                    <div className="ft-fac-info">
-                      <div className="ft-fac-name">{fac.name}</div>
-                      <div className="ft-fac-sub">
-                        <span className="ft-fac-badge">{fac.department}</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                          {fac.specialization?.slice(0, 16) || 'Placement'}
-                        </span>
+                  return (
+                    <div
+                      key={fac._id}
+                      className="ft-draggable-faculty-card"
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, fac)}
+                      title="Drag and drop onto any timetable cell"
+                    >
+                      <div className="ft-fac-avatar" style={{ background: fac.color || '#0284c7' }}>
+                        {fac.name
+                          .split(' ')
+                          .filter((p) => !['Dr.', 'Prof.', 'Mr.', 'Mrs.', 'Ms.'].includes(p))
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase() || 'F'}
                       </div>
+
+                      <div className="ft-fac-info">
+                        <div className="ft-fac-name">{fac.name}</div>
+                        <div className="ft-fac-sub">
+                          <span className="ft-fac-badge">{fac.department}</span>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                            {fac.specialization?.slice(0, 16) || 'Placement'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className="ft-fac-periods-badge" title="Total periods assigned this week">
+                        {weekPeriods}P/wk
+                      </span>
                     </div>
+                  );
+                })}
+              </div>
 
-                    <span className="ft-fac-periods-badge" title="Total periods assigned this week">
-                      {weekPeriods}P/wk
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-color)', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-              💡 <strong>Tip:</strong> Click on any timetable slot to directly edit or add topics.
+              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-color)', fontSize: '0.74rem', color: 'var(--text-muted)', flexShrink: 0 }}>
+                💡 <strong>Tip:</strong> Click on any timetable slot to directly edit or add topics.
+              </div>
             </div>
           </div>
 

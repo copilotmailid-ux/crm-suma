@@ -124,9 +124,9 @@
 /* Timetable Layout with Draggable Faculty Sidebar */
 .ft-timetable-workspace {
   display: grid;
-  grid-template-columns: 290px 1fr;
+  grid-template-columns: 290px minmax(0, 1fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (max-width: 1100px) {
@@ -135,22 +135,46 @@
   }
 }
 
+/* Drag Tray Wrapper ensures the Faculty Palette never exceeds the timetable height */
+.ft-drag-tray-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 /* Drag Tray */
 .ft-drag-tray {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 18px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  position: sticky;
-  top: 90px;
-  max-height: calc(100vh - 120px);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .ft-drag-tray-wrapper {
+    position: static;
+    height: auto;
+  }
+  .ft-drag-tray {
+    position: static;
+    height: 480px;
+    max-height: 480px;
+  }
 }
 
 .ft-drag-tray-header {
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .ft-drag-tray-title {
@@ -176,6 +200,7 @@
   gap: 10px;
   padding-right: 4px;
   flex: 1;
+  min-height: 0;
 }
 
 .ft-draggable-faculty-card {

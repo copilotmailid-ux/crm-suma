@@ -4,7 +4,7 @@
   display: flex;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Sidebar */
@@ -85,12 +85,13 @@
 
 .sidebar-nav .nav-label {
   font-size: 0.65rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--text-muted);
   padding: var(--space-md) var(--space-md) var(--space-xs);
-  white-space: nowrap;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 .sidebar.collapsed .nav-label {
@@ -170,14 +171,15 @@
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 100;
   width: 100%;
   box-sizing: border-box;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .topbar-container {

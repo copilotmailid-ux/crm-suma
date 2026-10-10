@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   HiOutlineUserGroup,
   HiOutlineCheckCircle,
@@ -9,11 +10,14 @@ import {
   HiOutlineCalendar,
   HiOutlineFilter,
   HiOutlineAcademicCap,
+  HiOutlineClipboardCheck,
+  HiOutlineSparkles,
 } from 'react-icons/hi';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { getStats, getDeptWise, getCompanyWise, getBatchWise, getRecent } from '../api/dashboardApi';
 import { getBatches } from '../api/studentApi';
 import Loader from '../components/common/Loader';
+import FacultyTimetablePage from './FacultyTimetablePage';
 import '../styles/dashboard.css';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#ec4899'];
@@ -31,6 +35,10 @@ const StatCard = ({ icon, label, value, colorClass }) => (
 );
 
 const DashboardPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const [dashboardMode, setDashboardMode] = useState(urlTab === 'training' ? 'training' : 'drives');
+
   const [stats, setStats] = useState(null);
   const [deptData, setDeptData] = useState([]);
   const [companyData, setCompanyData] = useState([]);
@@ -40,6 +48,20 @@ const DashboardPage = () => {
   const [batches, setBatches] = useState(DEFAULT_BATCHES);
   const [loading, setLoading] = useState(true);
   const [filterLoading, setFilterLoading] = useState(false);
+
+  // Sync mode with URL search params
+  useEffect(() => {
+    if (urlTab === 'training' && dashboardMode !== 'training') {
+      setDashboardMode('training');
+    } else if ((!urlTab || urlTab === 'drives') && dashboardMode !== 'drives') {
+      setDashboardMode('drives');
+    }
+  }, [urlTab]);
+
+  const handleModeChange = (mode) => {
+    setDashboardMode(mode);
+    setSearchParams(mode === 'training' ? { tab: 'training' } : {});
+  };
 
   useEffect(() => {
     // Fetch available batches
@@ -107,7 +129,107 @@ const DashboardPage = () => {
 
   return (
     <>
-      {/* College Placement Banner with Top Year / Batch Filter */}
+      {/* Dashboard Mode Selector: Placement Drive vs Placement Event & Training */}
+      <div
+        className="dashboard-module-toggle"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'var(--bg-card, #ffffff)',
+          padding: '8px 12px',
+          borderRadius: '16px',
+          border: '1px solid var(--border-color, #e2e8f0)',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          marginBottom: '20px',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => handleModeChange('drives')}
+            style={{
+              padding: '10px 22px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              background:
+                dashboardMode === 'drives'
+                  ? 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)'
+                  : 'transparent',
+              color: dashboardMode === 'drives' ? '#ffffff' : 'var(--text-secondary, #64748b)',
+              boxShadow:
+                dashboardMode === 'drives'
+                  ? '0 4px 12px rgba(11, 29, 55, 0.25)'
+                  : 'none',
+            }}
+          >
+            <HiOutlineBriefcase style={{ fontSize: '1.15rem' }} />
+            Placement Drive Dashboard
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleModeChange('training')}
+            style={{
+              padding: '10px 22px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              background:
+                dashboardMode === 'training'
+                  ? 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)'
+                  : 'transparent',
+              color: dashboardMode === 'training' ? '#ffffff' : 'var(--text-secondary, #64748b)',
+              boxShadow:
+                dashboardMode === 'training'
+                  ? '0 4px 12px rgba(11, 29, 55, 0.25)'
+                  : 'none',
+            }}
+          >
+            <HiOutlineCalendar style={{ fontSize: '1.15rem' }} />
+            Placement Event & Training Dashboard
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '6px' }}>
+          <span
+            style={{
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              padding: '4px 12px',
+              borderRadius: '20px',
+              background: dashboardMode === 'drives' ? '#eff6ff' : '#f0fdf4',
+              color: dashboardMode === 'drives' ? '#1d4ed8' : '#15803d',
+              border: `1px solid ${dashboardMode === 'drives' ? '#bfdbfe' : '#bbf7d0'}`,
+            }}
+          >
+            {dashboardMode === 'drives' ? '📊 Placement Drive Modules' : '🎓 Placement Event & Training Modules'}
+          </span>
+        </div>
+      </div>
+
+      {dashboardMode === 'training' ? (
+        <div style={{ animation: 'fadeIn 0.25s ease' }}>
+          <FacultyTimetablePage />
+        </div>
+      ) : (
+        <>
+          {/* College Placement Banner with Top Year / Batch Filter */}
       <div className="dashboard-banner">
         <div className="dashboard-banner-left">
           <div className="banner-logo-wrapper">
@@ -346,6 +468,8 @@ const DashboardPage = () => {
           </div>
         )}
       </div>
+        </>
+      )}
     </>
   );
 };
