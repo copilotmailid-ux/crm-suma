@@ -568,7 +568,7 @@ exports.advanceRoundCandidates = async (req, res, next) => {
 exports.eliminateRoundCandidates = async (req, res, next) => {
   try {
     const { id, roundNumber } = req.params;
-    const { selectedStudentIds } = req.body;
+    const { selectedStudentIds, reason, remarks } = req.body;
 
     if (!selectedStudentIds || !Array.isArray(selectedStudentIds) || selectedStudentIds.length === 0) {
       return res.status(400).json({ message: 'Please select at least one student to eliminate' });
@@ -589,6 +589,9 @@ exports.eliminateRoundCandidates = async (req, res, next) => {
     currentRound.candidates.forEach((cand) => {
       if (selectedSet.has(cand.studentId.toString())) {
         cand.status = 'eliminated';
+        if (reason) cand.eliminationReason = reason;
+        if (remarks !== undefined) cand.eliminationRemarks = remarks;
+        if (reason || remarks) cand.feedback = [reason, remarks].filter(Boolean).join(': ');
         count++;
       }
     });

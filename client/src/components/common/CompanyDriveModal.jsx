@@ -67,6 +67,26 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   const [resendingId, setResendingId] = useState(null);
   const [eliminating, setEliminating] = useState(false);
 
+  // Modal: Eliminate with Reason & Feedback
+  const [showEliminateModal, setShowEliminateModal] = useState(false);
+  const [eliminateTargetIds, setEliminateTargetIds] = useState([]);
+  const [eliminateForm, setEliminateForm] = useState({
+    reason: 'Technical Lag',
+    customReason: '',
+    remarks: '',
+  });
+
+  const ELIMINATION_REASON_OPTIONS = [
+    'Technical Lag',
+    'Communication Lag',
+    'Aptitude / Problem Solving',
+    'Coding / Algorithm Weakness',
+    'Domain Knowledge Gap',
+    'Behavioral / Cultural Fit',
+    'Absent / Did Not Attend',
+    'Other',
+  ];
+
   // Modal: Advance to Next Round ("When is 2nd round" + Mail)
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
   const [advancing, setAdvancing] = useState(false);
@@ -316,21 +336,41 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     }
   };
 
-  // Mark candidate(s) as eliminated in current round
-  const handleEliminateSelected = async (targetStudentIds = null) => {
+  // Open Eliminate Modal with pre-selected IDs
+  const handleOpenEliminateModal = (targetStudentIds = null) => {
     const idsToEliminate = targetStudentIds || selectedStudentIds;
     if (!idsToEliminate || idsToEliminate.length === 0) {
       toast.error('Please select at least one candidate to eliminate');
       return;
     }
+    setEliminateTargetIds(idsToEliminate);
+    setEliminateForm({
+      reason: 'Technical Lag',
+      customReason: '',
+      remarks: '',
+    });
+    setShowEliminateModal(true);
+  };
+
+  // Confirm and persist elimination with reason & remarks
+  const handleConfirmElimination = async (e) => {
+    e?.preventDefault();
+    if (!eliminateTargetIds || eliminateTargetIds.length === 0) return;
+
+    const finalReason =
+      eliminateForm.reason === 'Other' && eliminateForm.customReason.trim()
+        ? eliminateForm.customReason.trim()
+        : eliminateForm.reason;
 
     try {
       setEliminating(true);
       const res = await eliminateRoundCandidates(driveData._id, selectedRoundNumber, {
-        selectedStudentIds: idsToEliminate,
+        selectedStudentIds: eliminateTargetIds,
+        reason: finalReason,
+        remarks: eliminateForm.remarks.trim(),
       });
 
-      toast.success(res.data.message || `Marked candidate(s) as eliminated in Round ${selectedRoundNumber}`);
+      toast.success(res.data.message || `Marked ${eliminateTargetIds.length} candidate(s) as eliminated in Round ${selectedRoundNumber}`);
 
       if (res.data.drive) {
         setDriveData(res.data.drive);
@@ -339,13 +379,19 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         setRounds((prevRounds) =>
           prevRounds.map((r) => {
             if (r.roundNumber === selectedRoundNumber) {
-              const selSet = new Set(idsToEliminate.map(String));
+              const selSet = new Set(eliminateTargetIds.map(String));
               return {
                 ...r,
                 candidates: (r.candidates || []).map((c) => {
                   const sId = c.studentId?._id || c.studentId;
                   if (selSet.has(String(sId))) {
-                    return { ...c, status: 'eliminated' };
+                    return {
+                      ...c,
+                      status: 'eliminated',
+                      eliminationReason: finalReason,
+                      eliminationRemarks: eliminateForm.remarks.trim(),
+                      feedback: [finalReason, eliminateForm.remarks.trim()].filter(Boolean).join(': '),
+                    };
                   }
                   return c;
                 }),
@@ -356,7 +402,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         );
       }
 
+      setShowEliminateModal(false);
       setSelectedStudentIds([]);
+      setEliminateTargetIds([]);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || 'Failed to eliminate candidate(s)');
@@ -669,9 +717,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   };
 
   const modalContent = (
-    <div
-      className="form-overlay"
-      onClick={onClose}
+    <>
+      <div
+        className="form-overlay"
+        onClick={onClose}
       style={{
         position: 'fixed',
         top: 0,
@@ -1602,7 +1651,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                       {/* Eliminated Button on each round */}
                       <button
                         type="button"
-                        onClick={() => handleEliminateSelected()}
+                        onClick={() => handleOpenEliminateModal()}
                         disabled={eliminating}
                         style={{
                           padding: '8px 16px',
@@ -1760,22 +1809,42 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                               </td>
                               <td>
                                 {cand.status === 'shortlisted' ? (
-                                  <span
-                                    style={{
-                                      background: '#dcfce7',
-                                      color: '#15803d',
-                                      border: '1px solid #86efac',
-                                      padding: '3px 8px',
-                                      borderRadius: '12px',
-                                      fontSize: '0.74rem',
-                                      fontWeight: 700,
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    ✓ Qualified Round {selectedRoundNumber}
-                                  </span>
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                    <span
+                                      style={{
+                                        background: '#dcfce7',
+                                        color: '#15803d',
+                                        border: '1px solid #86efac',
+                                        padding: '3px 8px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: 700,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                      }}
+                                    >
+                                      ✓ Qualified Round {selectedRoundNumber}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEliminateModal([sIdStr])}
+                                      disabled={eliminating}
+                                      style={{
+                                        padding: '2px 6px',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600,
+                                        borderRadius: '6px',
+                                        border: '1px solid #fecaca',
+                                        background: '#fff1f2',
+                                        color: '#e11d48',
+                                        cursor: 'pointer',
+                                      }}
+                                      title="Eliminate candidate with reason"
+                                    >
+                                      ✕ Eliminate
+                                    </button>
+                                  </div>
                                 ) : cand.status === 'selected' ? (
                                   <span
                                     style={{
@@ -1794,22 +1863,69 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                     🏆 Placed / Offered
                                   </span>
                                 ) : cand.status === 'eliminated' ? (
-                                  <span
-                                    style={{
-                                      background: '#fee2e2',
-                                      color: '#dc2626',
-                                      border: '1px solid #fecaca',
-                                      padding: '3px 8px',
-                                      borderRadius: '12px',
-                                      fontSize: '0.74rem',
-                                      fontWeight: 700,
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    ✕ Eliminated
-                                  </span>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                      <span
+                                        style={{
+                                          background: '#fee2e2',
+                                          color: '#dc2626',
+                                          border: '1px solid #fecaca',
+                                          padding: '3px 8px',
+                                          borderRadius: '12px',
+                                          fontSize: '0.74rem',
+                                          fontWeight: 700,
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '4px',
+                                          width: 'fit-content',
+                                        }}
+                                      >
+                                        ✕ Eliminated
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenEliminateModal([sIdStr])}
+                                        style={{
+                                          padding: '1px 6px',
+                                          fontSize: '0.68rem',
+                                          fontWeight: 600,
+                                          borderRadius: '4px',
+                                          border: '1px solid #fecaca',
+                                          background: '#ffffff',
+                                          color: '#dc2626',
+                                          cursor: 'pointer',
+                                        }}
+                                        title="Change or update elimination reason"
+                                      >
+                                        Edit Reason
+                                      </button>
+                                    </div>
+                                    {(cand.eliminationReason || cand.feedback) && (
+                                      <span
+                                        style={{
+                                          fontSize: '0.72rem',
+                                          color: '#b91c1c',
+                                          background: '#fff1f2',
+                                          border: '1px dashed #fecdd3',
+                                          padding: '2px 6px',
+                                          borderRadius: '6px',
+                                          display: 'inline-block',
+                                          maxWidth: '190px',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          fontWeight: 600,
+                                        }}
+                                        title={
+                                          cand.eliminationRemarks
+                                            ? `${cand.eliminationReason || cand.feedback}: ${cand.eliminationRemarks}`
+                                            : cand.eliminationReason || cand.feedback
+                                        }
+                                      >
+                                        💬 {cand.eliminationReason || cand.feedback}
+                                      </span>
+                                    )}
+                                  </div>
                                 ) : (
                                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                     <span
@@ -1826,7 +1942,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                     </span>
                                     <button
                                       type="button"
-                                      onClick={() => handleEliminateSelected([sIdStr])}
+                                      onClick={() => handleOpenEliminateModal([sIdStr])}
                                       disabled={eliminating}
                                       style={{
                                         padding: '2px 6px',
@@ -1838,7 +1954,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                         color: '#e11d48',
                                         cursor: 'pointer',
                                       }}
-                                      title="Quick Eliminate"
+                                      title="Quick Eliminate with Reason"
                                     >
                                       ✕ Eliminate
                                     </button>
@@ -2547,8 +2663,228 @@ const CompanyDriveModal = ({ drive, onClose }) => {
           </button>
         </div>
       </div>
+    </div>
 
 
+
+      {/* ============================================================
+          POPUP MODAL: ELIMINATE CANDIDATES & SPECIFY REASON
+          ============================================================ */}
+      {showEliminateModal && (
+        <div
+          className="form-overlay"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 100050,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            boxSizing: 'border-box',
+          }}
+          onClick={() => setShowEliminateModal(false)}
+        >
+          <div
+            className="form-modal"
+            style={{
+              maxWidth: '560px',
+              width: '94%',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              background: '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              border: '1px solid #fecaca',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: '18px 22px 14px',
+                background: '#ffffff',
+                color: '#0f172a',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid #fee2e2',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: '#fee2e2',
+                    color: '#dc2626',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  ✕
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                    Elimination Reason & Feedback
+                  </h3>
+                  <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                    Eliminating <strong style={{ color: '#dc2626' }}>{eliminateTargetIds.length} candidate(s)</strong> in Round {selectedRoundNumber}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEliminateModal(false)}
+                style={{
+                  background: '#fee2e2',
+                  border: 'none',
+                  color: '#ef4444',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <HiOutlineX />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmElimination} style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Select Elimination Category / Tag */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ fontWeight: 700, color: '#1e293b', marginBottom: '8px', display: 'block' }}>
+                  Select Primary Reason for Elimination <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                  }}
+                >
+                  {ELIMINATION_REASON_OPTIONS.map((opt) => {
+                    const isSelected = eliminateForm.reason === opt;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setEliminateForm({ ...eliminateForm, reason: opt })}
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: '20px',
+                          border: isSelected ? '1.5px solid #dc2626' : '1px solid #cbd5e1',
+                          background: isSelected ? '#fee2e2' : '#f8fafc',
+                          color: isSelected ? '#991b1b' : '#334155',
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: '0.82rem',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          transition: 'all 0.15s ease',
+                          boxShadow: isSelected ? '0 2px 4px rgba(220, 38, 38, 0.15)' : 'none',
+                        }}
+                      >
+                        {isSelected && <span style={{ fontSize: '0.9rem' }}>✓</span>}
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Reason Text Box if "Other" or specified */}
+              {eliminateForm.reason === 'Other' && (
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700, color: '#1e293b' }}>
+                    Specify Custom Reason <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Incomplete documentation / System requirements not met"
+                    required
+                    value={eliminateForm.customReason}
+                    onChange={(e) => setEliminateForm({ ...eliminateForm, customReason: e.target.value })}
+                    style={{ background: '#ffffff', borderColor: '#cbd5e1' }}
+                  />
+                </div>
+              )}
+
+              {/* Detailed Feedback & Remarks Textarea */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ fontWeight: 700, color: '#1e293b' }}>
+                  Detailed Remarks & Improvement Feedback (Optional)
+                </label>
+                <textarea
+                  className="form-input"
+                  rows={3}
+                  placeholder="e.g. Candidate needs to work on SQL complex joins and live coding confidence. Good attitude otherwise."
+                  value={eliminateForm.remarks}
+                  onChange={(e) => setEliminateForm({ ...eliminateForm, remarks: e.target.value })}
+                  style={{
+                    resize: 'vertical',
+                    background: '#ffffff',
+                    borderColor: '#cbd5e1',
+                    fontSize: '0.85rem',
+                    lineHeight: 1.4,
+                  }}
+                />
+                <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                  💡 This reason & feedback will be recorded and displayed on the student's status badge.
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowEliminateModal(false)}
+                  disabled={eliminating}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={eliminating}
+                  style={{
+                    padding: '10px 22px',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                    color: '#ffffff',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.25)',
+                  }}
+                >
+                  {eliminating ? 'Eliminating...' : `Confirm Elimination (${eliminateTargetIds.length} Students)`}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================
           POPUP MODAL: ADVANCE CANDIDATES TO NEXT ROUND & SEND MAIL
@@ -2564,9 +2900,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             bottom: 0,
             width: '100vw',
             height: '100vh',
-            zIndex: 10001,
+            zIndex: 100050,
             background: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -2775,9 +3112,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             bottom: 0,
             width: '100vw',
             height: '100vh',
-            zIndex: 10001,
+            zIndex: 100050,
             background: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -2954,9 +3292,10 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             bottom: 0,
             width: '100vw',
             height: '100vh',
-            zIndex: 10001,
+            zIndex: 100050,
             background: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -3061,7 +3400,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 
   return typeof document !== 'undefined'

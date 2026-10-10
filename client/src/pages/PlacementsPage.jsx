@@ -382,7 +382,7 @@ const PlacementsPage = () => {
                 <div className="detail-field"><span className="detail-label">Role</span><span className="detail-value">{viewPlacement.role}</span></div>
                 <div className="detail-field"><span className="detail-label">Package</span><span className="detail-value" style={{ color: 'var(--color-success)', fontWeight: 600 }}>₹{viewPlacement.package} LPA</span></div>
                 <div className="detail-field"><span className="detail-label">Offer Type</span><span className="detail-value">{viewPlacement.offerType === 'on_campus' ? 'On Campus' : 'Off Campus'}</span></div>
-                <div className="detail-field"><span className="detail-label">Status</span>{statusBadge(viewPlacement.status)}</div>
+                <div className="detail-field"><span className="detail-label">Status</span><span className="detail-value">{statusBadge(viewPlacement.status)}</span></div>
                 <div className="detail-field"><span className="detail-label">Date</span><span className="detail-value">{new Date(viewPlacement.placementDate).toLocaleDateString('en-IN')}</span></div>
               </div>
             </div>

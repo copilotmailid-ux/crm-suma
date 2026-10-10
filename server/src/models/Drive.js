@@ -149,6 +149,14 @@ const driveSchema = new mongoose.Schema(
               type: String,
               default: '',
             },
+            eliminationReason: {
+              type: String,
+              default: '',
+            },
+            eliminationRemarks: {
+              type: String,
+              default: '',
+            },
             emailSent: {
               type: Boolean,
               default: false,

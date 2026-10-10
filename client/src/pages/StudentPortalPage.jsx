@@ -230,14 +230,24 @@ const StudentPortalPage = () => {
             };
           }
           if (cand.status === 'eliminated') {
+            const reasonText = cand.eliminationReason || cand.feedback;
+            const remarksText = cand.eliminationRemarks;
+            let msg = 'Selection rounds concluded for this drive.';
+            if (reasonText && remarksText) {
+              msg = `Reason: ${reasonText} • Feedback: ${remarksText}`;
+            } else if (reasonText) {
+              msg = `Reason for elimination: ${reasonText}`;
+            }
             return {
               type: 'eliminated',
-              title: 'Completed ' + r.name,
-              badge: 'Completed',
-              message: 'Selection rounds concluded for this drive.',
-              bg: '#f8fafc',
-              border: '#e2e8f0',
-              color: '#64748b',
+              title: 'Eliminated in ' + r.name,
+              badge: 'Eliminated (Round ' + r.roundNumber + ')',
+              reason: reasonText,
+              remarks: remarksText,
+              message: msg,
+              bg: '#fef2f2',
+              border: '#fecaca',
+              color: '#dc2626',
             };
           }
         }

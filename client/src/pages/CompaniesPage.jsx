@@ -327,9 +327,9 @@ const CompaniesPage = () => {
                 <div className="detail-field"><span className="detail-label">Contact Person</span><span className="detail-value">{viewCompany.contactPerson || '-'}</span></div>
                 <div className="detail-field"><span className="detail-label">Contact Email</span><span className="detail-value">{viewCompany.contactEmail || '-'}</span></div>
                 <div className="detail-field"><span className="detail-label">Contact Phone</span><span className="detail-value">{viewCompany.contactPhone || '-'}</span></div>
-                <div className="detail-field"><span className="detail-label">Students Placed</span><span className="badge badge-success">{viewCompany.studentsPlaced || 0}</span></div>
+                <div className="detail-field"><span className="detail-label">Students Placed</span><span className="detail-value"><span className="badge badge-success">{viewCompany.studentsPlaced || 0}</span></span></div>
                 <div className="detail-field"><span className="detail-label">Website</span><span className="detail-value">{viewCompany.website ? <a href={viewCompany.website} target="_blank" rel="noreferrer">{viewCompany.website}</a> : '-'}</span></div>
-                <div className="detail-field" style={{ gridColumn: '1 / -1' }}><span className="detail-label">Description</span><span className="detail-value">{viewCompany.description || '-'}</span></div>
+                <div className="detail-field full-width" style={{ gridColumn: '1 / -1' }}><span className="detail-label">Description</span><span className="detail-value">{viewCompany.description || '-'}</span></div>
               </div>
             </div>
           </div>
