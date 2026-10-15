@@ -8,3 +8,8 @@ export const deleteStudent = (id) => api.delete(`/students/${id}`);
 export const getBatches = () => api.get('/students/batches/list');
 export const bulkCreateStudents = (students) => api.post('/students/bulk', { students });
 
+// Student attended drives history & offer letters
+export const getStudentDrives = (id) => api.get(`/students/${id}/drives`);
+export const uploadStudentOfferLetter = (id, data) => api.post(`/students/${id}/offer-letter`, data);
+export const deleteStudentOfferLetter = (id, data) => api.delete(`/students/${id}/offer-letter`, { data });
+

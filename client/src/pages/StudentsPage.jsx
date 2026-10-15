@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import ExportButtons from '../components/common/ExportButtons';
 import ConfirmModal from '../components/common/ConfirmModal';
 import Loader from '../components/common/Loader';
+import StudentDetailModal from '../components/common/StudentDetailModal';
 import { useDebounce } from '../hooks/useDebounce';
 import toast from 'react-hot-toast';
 
@@ -444,7 +445,33 @@ const StudentsPage = () => {
                   </tr>
                 ) : students.map((s) => (
                   <tr key={s._id}>
-                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{s.name}</td>
+                    <td
+                      style={{ fontWeight: 700, cursor: 'pointer' }}
+                      onClick={() => setViewStudent(s)}
+                      title="Click student to view attended drives, rounds progress & offer letters"
+                    >
+                      <span
+                        className="student-name-link"
+                        style={{
+                          color: '#0f172a',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          transition: 'color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#c59e51';
+                          e.currentTarget.style.textDecoration = 'underline';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#0f172a';
+                          e.currentTarget.style.textDecoration = 'none';
+                        }}
+                      >
+                        {s.name}
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'inherit' }}>↗</span>
+                      </span>
+                    </td>
                     <td>{s.rollNumber}</td>
                     <td><span className="badge badge-info">{s.department}</span></td>
                     <td>{s.batch}</td>
@@ -583,178 +610,13 @@ const StudentsPage = () => {
         </div>
       )}
 
-      {/* View Detail Modal */}
+      {/* View Student Detail & Attended Drives Progression Modal */}
       {viewStudent && (
-        <div className="form-overlay" onClick={() => setViewStudent(null)}>
-          <div className="form-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="form-header">
-              <h3 className="form-title">Student Details</h3>
-              <button className="form-close" onClick={() => setViewStudent(null)}>×</button>
-            </div>
-            <div className="form-body">
-              <div className="detail-grid">
-                <div className="detail-field"><span className="detail-label">Name</span><span className="detail-value">{viewStudent.name}</span></div>
-                <div className="detail-field"><span className="detail-label">Roll Number</span><span className="detail-value">{viewStudent.rollNumber}</span></div>
-                <div className="detail-field">
-                  <span className="detail-label">Email</span>
-                  <span className="detail-value">
-                    {viewStudent.email ? (
-                      <a 
-                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${viewStudent.email}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        style={{ textDecoration: 'underline' }}
-                      >
-                        {viewStudent.email}
-                      </a>
-                    ) : '-'}
-                  </span>
-                </div>
-                <div className="detail-field"><span className="detail-label">Phone</span><span className="detail-value">{viewStudent.phone || '-'}</span></div>
-                <div className="detail-field"><span className="detail-label">Department</span><span className="detail-value">{viewStudent.department}</span></div>
-                <div className="detail-field"><span className="detail-label">Batch</span><span className="detail-value">{viewStudent.batch}</span></div>
-                <div className="detail-field"><span className="detail-label">CGPA</span><span className="detail-value">{viewStudent.cgpa}</span></div>
-                <div className="detail-field">
-                  <span className="detail-label">Live Standing Arrears</span>
-                  <span className="detail-value">
-                    <span className={`badge ${Number(viewStudent.currentArrears) > 0 ? 'badge-warning' : 'badge-neutral'}`}>
-                      {viewStudent.currentArrears !== undefined ? viewStudent.currentArrears : 0}
-                    </span>
-                  </span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">History of Arrears</span>
-                  <span className="detail-value">{viewStudent.historyOfArrears !== undefined ? viewStudent.historyOfArrears : 0}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">10th Board %</span>
-                  <span className="detail-value">{viewStudent.tenthPercentage ? `${viewStudent.tenthPercentage}%` : '-'}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">12th / Diploma %</span>
-                  <span className="detail-value">{viewStudent.twelfthPercentage ? `${viewStudent.twelfthPercentage}%` : '-'}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Gender</span>
-                  <span className="detail-value">{viewStudent.gender || '-'}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Date of Birth</span>
-                  <span className="detail-value">{viewStudent.dob || '-'}</span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Career Goal / Track</span>
-                  <span className="detail-value">
-                    <strong
-                      style={{
-                        color:
-                          viewStudent.careerPreference === 'Entrepreneurship'
-                            ? '#2563eb'
-                            : viewStudent.careerPreference === 'Higher Studies'
-                            ? '#7c3aed'
-                            : viewStudent.careerPreference === 'Government Job'
-                            ? '#0891b2'
-                            : viewStudent.careerPreference === 'Other'
-                            ? '#4b5563'
-                            : '#10b981',
-                      }}
-                    >
-                      {viewStudent.careerPreference === 'Entrepreneurship'
-                        ? '🚀 Entrepreneurship / Startup Founder'
-                        : viewStudent.careerPreference === 'Higher Studies'
-                        ? '🎓 Higher Studies (PG - MS / M.Tech / MBA)'
-                        : viewStudent.careerPreference === 'Government Job'
-                        ? '🏛️ Government Exams & Civil Services'
-                        : viewStudent.careerPreference === 'Other'
-                        ? '🌐 Other / Family Business'
-                        : '💼 Campus Placement'}
-                    </strong>
-                  </span>
-                </div>
-                {viewStudent.careerDetails && (
-                  <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
-                    <span className="detail-label">Startup / Higher Studies / Exam Details</span>
-                    <span
-                      className="detail-value"
-                      style={{
-                        background: 'rgba(0,0,0,0.03)',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        display: 'block',
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {viewStudent.careerDetails}
-                    </span>
-                  </div>
-                )}
-                <div className="detail-field">
-                  <span className="detail-label">Placement Status</span>
-                  <span className={`badge ${viewStudent.status === 'placed' ? 'badge-success' : 'badge-warning'}`}>
-                    {viewStudent.status === 'placed' ? 'Placed' : 'Not Placed'}
-                  </span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">Resume Link</span>
-                  <span className="detail-value">
-                    {viewStudent.resumeUrl ? (
-                      <a
-                        href={viewStudent.resumeUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-secondary"
-                        style={{ padding: '2px 8px', fontSize: '0.75rem', textDecoration: 'none' }}
-                      >
-                        Open Resume ↗
-                      </a>
-                    ) : '-'}
-                  </span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">LinkedIn</span>
-                  <span className="detail-value">
-                    {viewStudent.linkedinUrl ? (
-                      <a href={viewStudent.linkedinUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
-                        View LinkedIn ↗
-                      </a>
-                    ) : '-'}
-                  </span>
-                </div>
-                <div className="detail-field">
-                  <span className="detail-label">GitHub / Portfolio</span>
-                  <span className="detail-value">
-                    {viewStudent.githubUrl ? (
-                      <a href={viewStudent.githubUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
-                        GitHub ↗
-                      </a>
-                    ) : viewStudent.portfolioUrl ? (
-                      <a href={viewStudent.portfolioUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
-                        Portfolio ↗
-                      </a>
-                    ) : '-'}
-                  </span>
-                </div>
-                <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
-                  <span className="detail-label">Address</span>
-                  <span className="detail-value">{viewStudent.address || '-'}</span>
-                </div>
-                <div className="detail-field" style={{ gridColumn: '1 / -1' }}>
-                  <span className="detail-label">Skills</span>
-                  <span className="detail-value">
-                    {(viewStudent.skills || []).length > 0
-                      ? viewStudent.skills.map((s, i) => <span key={i} className="badge badge-neutral" style={{ marginRight: 6, marginBottom: 4 }}>{s}</span>)
-                      : '-'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="form-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setViewStudent(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <StudentDetailModal
+          student={viewStudent}
+          onClose={() => setViewStudent(null)}
+          onStudentUpdated={fetchStudents}
+        />
       )}
 
       {/* Delete Confirm */}

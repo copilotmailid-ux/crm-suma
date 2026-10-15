@@ -17,6 +17,7 @@ const {
   resendOfferEmail,
   getEmailConfig,
   saveEmailConfig,
+  uploadDriveOfferLetter,
 } = require('../controllers/driveController');
 const authMiddleware = require('../middleware/authMiddleware');
 const studentAuthMiddleware = require('../middleware/studentAuthMiddleware');
@@ -43,6 +44,7 @@ router.post('/:id/rounds/:roundNumber/send-email', authMiddleware, sendCustomRou
 router.post('/:id/rounds/:roundNumber/resend-email', authMiddleware, resendRoundEmail);
 router.post('/:id/select-final', authMiddleware, selectFinalCandidates);
 router.post('/:id/resend-offer-email', authMiddleware, resendOfferEmail);
+router.post('/:id/offer-letter', authMiddleware, uploadDriveOfferLetter);
 
 // Student registration/application
 router.post('/:id/apply', studentAuthMiddleware, applyForDrive);

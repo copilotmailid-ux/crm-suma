@@ -133,6 +133,19 @@ const studentSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    offerLetterUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    offerLetterName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    offerLetterUploadedAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

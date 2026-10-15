@@ -23,3 +23,5 @@ export const resendOfferEmail = (id, data) =>
   api.post(`/drives/${id}/resend-offer-email`, data);
 export const getEmailConfig = () => api.get('/drives/email-config');
 export const saveEmailConfig = (data) => api.post('/drives/email-config', data);
+export const uploadDriveOfferLetter = (id, data) =>
+  api.post(`/drives/${id}/offer-letter`, data);

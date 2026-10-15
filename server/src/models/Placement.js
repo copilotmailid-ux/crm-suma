@@ -36,6 +36,19 @@ const placementSchema = new mongoose.Schema(
       enum: ['offered', 'accepted', 'joined', 'rejected'],
       default: 'offered',
     },
+    offerLetterUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    offerLetterName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    offerLetterUploadedAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

@@ -6,6 +6,7 @@ import { getAllCompanies } from '../api/companyApi';
 import ExportButtons from '../components/common/ExportButtons';
 import ConfirmModal from '../components/common/ConfirmModal';
 import Loader from '../components/common/Loader';
+import StudentDetailModal from '../components/common/StudentDetailModal';
 import { useDebounce } from '../hooks/useDebounce';
 import toast from 'react-hot-toast';
 
@@ -30,6 +31,7 @@ const PlacementsPage = () => {
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState(null);
   const [viewPlacement, setViewPlacement] = useState(null);
+  const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
   const [allStudents, setAllStudents] = useState([]);
   const [allCompanies, setAllCompanies] = useState([]);
   const [studentSearch, setStudentSearch] = useState('');
@@ -250,7 +252,20 @@ const PlacementsPage = () => {
                   </tr>
                 ) : placements.map((p) => (
                   <tr key={p._id}>
-                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{p.studentId?.name || '-'}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      {p.studentId ? (
+                        <span
+                          className="student-name-link"
+                          onClick={() => setSelectedStudentForModal(p.studentId)}
+                          title="Click to view student attended drives, rounds progress & offer letters"
+                        >
+                          {p.studentId.name || '-'}
+                          <span className="sd-link-arrow">↗</span>
+                        </span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
                     <td>{p.studentId?.rollNumber || '-'}</td>
                     <td><span className="badge badge-info">{p.studentId?.department || '-'}</span></td>
                     <td style={{ color: 'var(--text-primary)' }}>{p.companyId?.name || '-'}</td>
@@ -392,6 +407,15 @@ const PlacementsPage = () => {
 
       {deleteId && (
         <ConfirmModal title="Delete Placement" message="Deleting this placement will revert the student's status to 'Not Placed' and remove the alumni record." onConfirm={handleDelete} onCancel={() => setDeleteId(null)} />
+      )}
+
+      {selectedStudentForModal && (
+        <StudentDetailModal
+          student={selectedStudentForModal}
+          onClose={() => setSelectedStudentForModal(null)}
+          onStudentUpdated={fetchPlacements}
+          initialTab="offers"
+        />
       )}
     </>
   );

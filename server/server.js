@@ -3,7 +3,7 @@ const connectDB = require('./src/config/db');
 const seedAdmin = require('./src/utils/seedAdmin');
 const app = require('./src/app');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
@@ -36,7 +36,7 @@ const startServer = async () => {
     });
 
     // Prevent proxy ECONNRESET by extending keep-alive timeouts beyond client/proxy timeout
-    server.keepAliveTimeout = 65000;
+    server.keepAliveTimeout = 65001;
     server.headersTimeout = 66000;
   } catch (error) {
     console.error('Failed to start server:', error.message);

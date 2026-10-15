@@ -1153,3 +1153,81 @@ exports.saveEmailConfig = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Upload or import offer letter directly for a student on a drive
+// @route   POST /api/drives/:id/offer-letter
+exports.uploadDriveOfferLetter = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { studentId, offerLetterUrl, offerLetterName } = req.body;
+
+    if (!studentId || !offerLetterUrl) {
+      return res.status(400).json({ message: 'studentId and offerLetterUrl are required' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const now = new Date();
+    const fileName = offerLetterName || `${drive.companyName}_Offer_Letter_${student.rollNumber}.pdf`;
+
+    // 1. Update in drive.finalSelectedStudents
+    let finalItem = (drive.finalSelectedStudents || []).find(
+      (f) => f.studentId && f.studentId.toString() === student._id.toString()
+    );
+
+    if (finalItem) {
+      finalItem.offerLetterUrl = offerLetterUrl;
+      finalItem.offerLetterName = fileName;
+      finalItem.offerLetterUploadedAt = now;
+    } else {
+      drive.finalSelectedStudents.push({
+        studentId: student._id,
+        role: drive.role,
+        package: drive.package,
+        placementDate: now,
+        placementId: student.placementId || null,
+        emailSent: false,
+        offerLetterUrl,
+        offerLetterName: fileName,
+        offerLetterUploadedAt: now,
+      });
+    }
+
+    await drive.save();
+
+    // 2. Also update Student record
+    student.offerLetterUrl = offerLetterUrl;
+    student.offerLetterName = fileName;
+    student.offerLetterUploadedAt = now;
+    await student.save();
+
+    // 3. Also update Placement record if exists
+    if (student.placementId) {
+      await Placement.findByIdAndUpdate(student.placementId, {
+        offerLetterUrl,
+        offerLetterName: fileName,
+        offerLetterUploadedAt: now,
+      });
+    }
+
+    res.json({
+      message: `Offer letter imported successfully for ${student.name}!`,
+      offerLetter: {
+        url: offerLetterUrl,
+        name: fileName,
+        uploadedAt: now,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -1,4 +1,6 @@
 const Student = require('../models/Student');
+const Drive = require('../models/Drive');
+const Placement = require('../models/Placement');
 
 // @desc    Get all students with search, filter, pagination
 // @route   GET /api/students
@@ -214,3 +216,295 @@ exports.bulkCreateStudents = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get all drives attended by student with rounds progression & placement status
+// @route   GET /api/students/:id/drives
+exports.getStudentDrives = async (req, res, next) => {
+  try {
+    const student = await Student.findById(req.params.id).populate({
+      path: 'placementId',
+      populate: { path: 'companyId', select: 'name industry logo website' },
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Find all placement records for this student
+    const placements = await Placement.find({ studentId: student._id })
+      .populate('companyId', 'name industry logo website')
+      .sort({ placementDate: -1 });
+
+    // Find all drives where student is registered, candidate in any round, or final selected
+    const drives = await Drive.find({
+      $or: [
+        { registeredStudents: student._id },
+        { 'rounds.candidates.studentId': student._id },
+        { 'finalSelectedStudents.studentId': student._id },
+      ],
+    })
+      .populate('companyId', 'name industry logo website')
+      .sort({ driveDate: -1 });
+
+    // Map each drive to compute full round progression, status, and offer letter info
+    const driveHistory = drives.map((d) => {
+      const isRegistered = (d.registeredStudents || []).some(
+        (sId) => sId.toString() === student._id.toString()
+      );
+
+      const finalSelected = (d.finalSelectedStudents || []).find(
+        (f) => f.studentId && f.studentId.toString() === student._id.toString()
+      );
+
+      const isPlaced = Boolean(finalSelected);
+
+      let highestRoundNumber = 0;
+      let highestRoundName = '';
+      let isEliminated = false;
+      let eliminatedRound = null;
+      let latestStatus = isRegistered ? 'registered' : 'not_registered';
+
+      const roundDetails = (d.rounds || []).map((r) => {
+        const cand = (r.candidates || []).find(
+          (c) => c.studentId && c.studentId.toString() === student._id.toString()
+        );
+
+        let candStatus = 'not_reached';
+        let feedback = '';
+        let eliminationReason = '';
+        let eliminationRemarks = '';
+
+        if (cand) {
+          candStatus = cand.status || 'pending';
+          feedback = cand.feedback || '';
+          eliminationReason = cand.eliminationReason || '';
+          eliminationRemarks = cand.eliminationRemarks || '';
+
+          if (r.roundNumber > highestRoundNumber) {
+            highestRoundNumber = r.roundNumber;
+            highestRoundName = r.name;
+            latestStatus = candStatus;
+          }
+
+          if (cand.status === 'eliminated') {
+            isEliminated = true;
+            eliminatedRound = {
+              roundNumber: r.roundNumber,
+              roundName: r.name,
+              reason: cand.eliminationReason || 'Eliminated',
+              remarks: cand.eliminationRemarks || cand.feedback || '',
+              feedback: cand.feedback || '',
+            };
+          }
+        }
+
+        return {
+          roundNumber: r.roundNumber,
+          name: r.name,
+          type: r.type,
+          status: r.status,
+          candidateStatus: candStatus,
+          feedback,
+          eliminationReason,
+          eliminationRemarks,
+        };
+      });
+
+      // Overall outcome calculation
+      let overallStatus = 'Registered';
+      if (isPlaced) {
+        overallStatus = 'Placed';
+      } else if (isEliminated) {
+        overallStatus = `Eliminated in Round ${eliminatedRound?.roundNumber || ''}`;
+      } else if (highestRoundNumber > 0) {
+        if (latestStatus === 'selected' || latestStatus === 'shortlisted') {
+          overallStatus = `Cleared Round ${highestRoundNumber}`;
+        } else {
+          overallStatus = `In Round ${highestRoundNumber}`;
+        }
+      }
+
+      // Check offer letter for this drive
+      let offerLetter = null;
+      if (finalSelected && finalSelected.offerLetterUrl) {
+        offerLetter = {
+          url: finalSelected.offerLetterUrl,
+          name: finalSelected.offerLetterName || `${d.companyName}_Offer_Letter.pdf`,
+          uploadedAt: finalSelected.offerLetterUploadedAt || finalSelected.placementDate,
+        };
+      } else {
+        const matchingPlacement = placements.find(
+          (p) =>
+            p.companyId?._id?.toString() === d.companyId?._id?.toString() ||
+            p.companyId?.toString() === d.companyId?._id?.toString()
+        );
+        if (matchingPlacement && matchingPlacement.offerLetterUrl) {
+          offerLetter = {
+            url: matchingPlacement.offerLetterUrl,
+            name: matchingPlacement.offerLetterName || `${d.companyName}_Offer_Letter.pdf`,
+            uploadedAt: matchingPlacement.offerLetterUploadedAt || matchingPlacement.placementDate,
+          };
+        } else if (isPlaced && student.offerLetterUrl) {
+          offerLetter = {
+            url: student.offerLetterUrl,
+            name: student.offerLetterName || `${d.companyName}_Offer_Letter.pdf`,
+            uploadedAt: student.offerLetterUploadedAt,
+          };
+        }
+      }
+
+      return {
+        _id: d._id,
+        companyName: d.companyName,
+        company: d.companyId,
+        title: d.title,
+        role: d.role,
+        package: d.package,
+        driveDate: d.driveDate,
+        jobLocation: d.jobLocation,
+        status: d.status,
+        currentRound: d.currentRound,
+        isRegistered,
+        isPlaced,
+        finalSelectedInfo: finalSelected
+          ? {
+              role: finalSelected.role || d.role,
+              package: finalSelected.package || d.package,
+              placementDate: finalSelected.placementDate,
+              placementId: finalSelected.placementId,
+              emailSent: finalSelected.emailSent,
+            }
+          : null,
+        isEliminated,
+        eliminatedRound,
+        highestRoundNumber,
+        highestRoundName,
+        latestStatus,
+        overallStatus,
+        rounds: roundDetails,
+        offerLetter,
+      };
+    });
+
+    res.json({
+      student,
+      placements,
+      drives: driveHistory,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upload or import offer letter for student
+// @route   POST /api/students/:id/offer-letter
+exports.uploadStudentOfferLetter = async (req, res, next) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const { offerLetterUrl, offerLetterName, driveId, placementId } = req.body;
+    if (!offerLetterUrl) {
+      return res.status(400).json({ message: 'Offer letter URL or document is required' });
+    }
+
+    const now = new Date();
+    const fileName = offerLetterName || `Offer_Letter_${student.rollNumber}.pdf`;
+
+    // 1. Update Student model
+    student.offerLetterUrl = offerLetterUrl;
+    student.offerLetterName = fileName;
+    student.offerLetterUploadedAt = now;
+    await student.save();
+
+    // 2. Update Placement model
+    if (placementId) {
+      await Placement.findByIdAndUpdate(placementId, {
+        offerLetterUrl,
+        offerLetterName: fileName,
+        offerLetterUploadedAt: now,
+      });
+    } else if (student.placementId) {
+      await Placement.findByIdAndUpdate(student.placementId, {
+        offerLetterUrl,
+        offerLetterName: fileName,
+        offerLetterUploadedAt: now,
+      });
+    }
+
+    // 3. Update Drive model if driveId provided
+    if (driveId) {
+      const drive = await Drive.findById(driveId);
+      if (drive) {
+        const finalItem = (drive.finalSelectedStudents || []).find(
+          (f) => f.studentId && f.studentId.toString() === student._id.toString()
+        );
+        if (finalItem) {
+          finalItem.offerLetterUrl = offerLetterUrl;
+          finalItem.offerLetterName = fileName;
+          finalItem.offerLetterUploadedAt = now;
+          await drive.save();
+        }
+      }
+    }
+
+    res.json({
+      message: 'Offer letter imported successfully!',
+      offerLetter: {
+        url: offerLetterUrl,
+        name: fileName,
+        uploadedAt: now,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete or remove offer letter for student
+// @route   DELETE /api/students/:id/offer-letter
+exports.deleteStudentOfferLetter = async (req, res, next) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const { driveId, placementId } = req.body || {};
+
+    student.offerLetterUrl = '';
+    student.offerLetterName = '';
+    student.offerLetterUploadedAt = null;
+    await student.save();
+
+    if (placementId || student.placementId) {
+      await Placement.findByIdAndUpdate(placementId || student.placementId, {
+        offerLetterUrl: '',
+        offerLetterName: '',
+        offerLetterUploadedAt: null,
+      });
+    }
+
+    if (driveId) {
+      const drive = await Drive.findById(driveId);
+      if (drive) {
+        const finalItem = (drive.finalSelectedStudents || []).find(
+          (f) => f.studentId && f.studentId.toString() === student._id.toString()
+        );
+        if (finalItem) {
+          finalItem.offerLetterUrl = '';
+          finalItem.offerLetterName = '';
+          finalItem.offerLetterUploadedAt = null;
+          await drive.save();
+        }
+      }
+    }
+
+    res.json({ message: 'Offer letter removed successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+

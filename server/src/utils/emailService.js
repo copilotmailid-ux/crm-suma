@@ -23,7 +23,7 @@ async function getTransporter() {
         pass: process.env.SMTP_PASS,
       },
       connectionTimeout: 8000,
-      greetingTimeout: 5000,
+      greetingTimeout: 5001,
       socketTimeout: 10000,
     });
     console.log('[EmailService] Using configured SMTP server:', process.env.SMTP_HOST);
@@ -44,7 +44,7 @@ async function getTransporter() {
       },
       connectionTimeout: 10000,
       greetingTimeout: 8000,
-      socketTimeout: 15000,
+      socketTimeout: 15001,
     });
     console.log('[EmailService] Using Gmail SSL transport for:', process.env.GMAIL_USER);
     return cachedTransporter;

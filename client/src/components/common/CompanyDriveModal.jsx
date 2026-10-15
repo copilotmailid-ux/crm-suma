@@ -20,6 +20,7 @@ import {
   HiOutlineRefresh,
   HiOutlineExclamation,
   HiOutlineXCircle,
+  HiOutlineUpload,
 } from 'react-icons/hi';
 import * as XLSX from 'xlsx';
 import {
@@ -32,6 +33,7 @@ import {
   resendOfferEmail,
 } from '../../api/driveApi';
 import Loader from './Loader';
+import StudentDetailModal from './StudentDetailModal';
 import toast from 'react-hot-toast';
 
 const CompanyDriveModal = ({ drive, onClose }) => {
@@ -43,6 +45,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       document.body.style.overflow = orig;
     };
   }, []);
+
+  // Active student detail modal state
+  const [activeStudentDetail, setActiveStudentDetail] = useState(null);
 
   // Tabs: 'pipeline' (Rounds) | 'placed' | 'registered' | 'eligible' | 'info'
   const [activeTab, setActiveTab] = useState('pipeline');
@@ -1784,8 +1789,15 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                 />
                               </td>
                               <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{idx + 1}</td>
-                              <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                                {student.name || 'Unknown Student'}
+                              <td
+                                style={{ fontWeight: 700, cursor: 'pointer' }}
+                                onClick={() => setActiveStudentDetail(student)}
+                                title="Click to view student attended drives, rounds progress & offer letters"
+                              >
+                                <span className="student-name-link">
+                                  {student.name || 'Unknown Student'}
+                                  <span className="sd-link-arrow">↗</span>
+                                </span>
                               </td>
                               <td>
                                 <code style={{ fontSize: '0.8rem', fontWeight: 600 }}>
@@ -2146,6 +2158,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           <th>Offered Role</th>
                           <th>Package</th>
                           <th>Placed Date</th>
+                          <th>Offer Letter</th>
                           <th>Offer Mail Status</th>
                           <th>Contact</th>
                         </tr>
@@ -2157,7 +2170,16 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           return (
                             <tr key={s._id || idx}>
                               <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{idx + 1}</td>
-                              <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{s.name || '-'}</td>
+                              <td
+                                style={{ fontWeight: 700, cursor: 'pointer' }}
+                                onClick={() => setActiveStudentDetail(s)}
+                                title="Click to view student attended drives, rounds progress & offer letters"
+                              >
+                                <span className="student-name-link">
+                                  {s.name || '-'}
+                                  <span className="sd-link-arrow">↗</span>
+                                </span>
+                              </td>
                               <td>
                                 <code style={{ fontSize: '0.8rem', fontWeight: 600 }}>{s.rollNumber || '-'}</code>
                               </td>
@@ -2184,6 +2206,61 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                 {item.placementDate
                                   ? new Date(item.placementDate).toLocaleDateString('en-IN')
                                   : '-'}
+                              </td>
+                              <td>
+                                {item.offerLetterUrl ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span
+                                      style={{
+                                        background: '#ecfdf5',
+                                        color: '#065f46',
+                                        border: '1px solid #a7f3d0',
+                                        padding: '2px 8px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: 700,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                      }}
+                                    >
+                                      <HiOutlineCheckCircle /> Imported
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary"
+                                      style={{ padding: '2px 6px', fontSize: '0.72rem' }}
+                                      onClick={() =>
+                                        setActiveStudentDetail({ ...s, initialTab: 'offers' })
+                                      }
+                                      title="View / Download / Replace Offer Letter"
+                                    >
+                                      View ↗
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    style={{
+                                      padding: '3px 10px',
+                                      fontSize: '0.74rem',
+                                      color: '#b45309',
+                                      borderColor: '#fde68a',
+                                      background: '#fffbeb',
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                    onClick={() =>
+                                      setActiveStudentDetail({ ...s, initialTab: 'drives' })
+                                    }
+                                    title="Import Offer Letter for this student on this drive"
+                                  >
+                                    <HiOutlineUpload /> Import Offer Letter
+                                  </button>
+                                )}
                               </td>
                               <td>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2308,7 +2385,16 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                       {filteredRegistered.map((student, idx) => (
                         <tr key={student._id || idx}>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{idx + 1}</td>
-                          <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{student.name}</td>
+                          <td
+                            style={{ fontWeight: 700, cursor: 'pointer' }}
+                            onClick={() => setActiveStudentDetail(student)}
+                            title="Click to view student attended drives, rounds progress & offer letters"
+                          >
+                            <span className="student-name-link">
+                              {student.name}
+                              <span className="sd-link-arrow">↗</span>
+                            </span>
+                          </td>
                           <td>
                             <code style={{ fontSize: '0.8rem', fontWeight: 600 }}>{student.rollNumber}</code>
                           </td>
@@ -2443,7 +2529,16 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         return (
                           <tr key={student._id || idx}>
                             <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{idx + 1}</td>
-                            <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{student.name}</td>
+                            <td
+                              style={{ fontWeight: 700, cursor: 'pointer' }}
+                              onClick={() => setActiveStudentDetail(student)}
+                              title="Click to view student attended drives, rounds progress & offer letters"
+                            >
+                              <span className="student-name-link">
+                                {student.name}
+                                <span className="sd-link-arrow">↗</span>
+                              </span>
+                            </td>
                             <td>
                               <code style={{ fontSize: '0.8rem', fontWeight: 600 }}>{student.rollNumber}</code>
                             </td>
@@ -3399,6 +3494,16 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Student Detail Modal: Attended drives, round progression & offer letters */}
+      {activeStudentDetail && (
+        <StudentDetailModal
+          student={activeStudentDetail}
+          onClose={() => setActiveStudentDetail(null)}
+          initialTab={activeStudentDetail.initialTab || 'drives'}
+          onStudentUpdated={loadDriveDetails}
+        />
       )}
     </>
   );
