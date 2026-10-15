@@ -1,7 +1,7 @@
 import { HiOutlineMenu, HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 
-const Topbar = ({ title, collapsed, onToggle }) => {
+const Topbar = ({ title, collapsed, mobileOpen, onToggle }) => {
   const { admin } = useAuth();
 
   const getInitials = (name) => {
@@ -13,8 +13,13 @@ const Topbar = ({ title, collapsed, onToggle }) => {
     <header className="topbar">
       <div className="topbar-container">
         <div className="topbar-left">
-          <button className="toggle-btn" onClick={onToggle} id="sidebar-toggle">
-            {collapsed ? <HiOutlineMenu /> : <HiOutlineMenuAlt2 />}
+          <button
+            className="toggle-btn"
+            onClick={onToggle}
+            id="sidebar-toggle"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileOpen || collapsed ? <HiOutlineMenu /> : <HiOutlineMenuAlt2 />}
           </button>
           <h1 className="page-title">{title}</h1>
         </div>

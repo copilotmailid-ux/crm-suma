@@ -1,7 +1,8 @@
+import { createPortal } from 'react-dom';
 import { HiOutlineExclamation } from 'react-icons/hi';
 
 const ConfirmModal = ({ title, message, onConfirm, onCancel }) => {
-  return (
+  const modalContent = (
     <div className="confirm-overlay" onClick={onCancel}>
       <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-icon">
@@ -22,6 +23,10 @@ const ConfirmModal = ({ title, message, onConfirm, onCancel }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
 
 export default ConfirmModal;

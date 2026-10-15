@@ -261,7 +261,7 @@ async function runSeed() {
       for (const dept of departments) {
         // Distribute: CSE, IT, AIDS, AIML have slightly higher intake
         const deptCount = ['CSE', 'IT', 'ECE'].includes(dept) ? 75 : ['AIDS', 'AIML'].includes(dept) ? 65 : 55;
-        
+
         for (let i = 1; i <= deptCount; i++) {
           if (studentsToInsert.length >= 2000) break;
 
@@ -271,17 +271,17 @@ async function runSeed() {
           const isFemale = femaleNames.has(fName);
           const gender = isFemale ? 'Female' : 'Male';
           const nameSlug = fullName.toLowerCase().replace(/[^a-z]/g, '');
-          
+
           // Roll Number format: e.g. 21CSE001, 22AIDS045
           const rollNumber = `${b.prefix}${dept}${String(i).padStart(3, '0')}`;
           const email = `${fName.toLowerCase()}.${lName.toLowerCase()}.${rollNumber.toLowerCase()}@skcet.ac.in`;
-          
+
           // Valid 10-digit phone
           const phone = `98${Math.floor(10000000 + Math.random() * 90000000)}`;
-          
+
           // Realistic CGPA bell curve between 6.2 and 9.9
           const cgpa = getRandomNumber(6.4, 9.8, 2);
-          
+
           // Select 3 to 5 realistic skills
           const skills = getRandomSubset(deptSkills[dept], Math.floor(Math.random() * 3) + 3);
 
@@ -462,7 +462,7 @@ async function runSeed() {
     const companyPlacedCount = new Map();
 
     const companyShiftRoles = [
-      'Senior Software Engineer', 'Lead Consultant', 'Product Manager', 
+      'Senior Software Engineer', 'Lead Consultant', 'Product Manager',
       'Senior Data Engineer', 'Technical Lead', 'Staff Software Engineer'
     ];
 

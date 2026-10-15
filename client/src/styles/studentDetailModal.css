@@ -7,14 +7,22 @@
 .sd-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.7);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050;
-  padding: 16px;
+  z-index: 99999;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
   animation: sdFadeIn 0.2s ease-out;
 }
 
@@ -31,14 +39,16 @@
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 18px;
-  width: 95vw;
-  max-width: 1240px;
-  max-height: 92vh;
+  width: min(1200px, 95vw);
+  height: 90vh;
+  max-height: 880px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
   overflow: hidden;
-  margin: 0 auto;
+  margin: auto;
+  position: relative;
+  box-sizing: border-box;
   animation: sdScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -779,13 +789,21 @@
 .sd-submodal-overlay {
   position: fixed;
   inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100;
+  z-index: 100001;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .sd-submodal {
@@ -891,3 +909,134 @@
   transform: translate(2px, -2px);
   opacity: 1;
 }
+
+/* ========================================================================= */
+/* RESPONSIVE DESIGN FOR MODAL (Tablets & Mobile)                            */
+/* ========================================================================= */
+@media (max-width: 992px) {
+  .sd-modal {
+    width: 96vw;
+    height: 94vh;
+    border-radius: 16px;
+  }
+
+  .sd-header {
+    padding: 14px 18px;
+  }
+
+  .sd-tabs-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 768px) {
+  .sd-overlay {
+    padding: 0;
+  }
+
+  .sd-modal {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .sd-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .sd-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .sd-name-wrap h2 {
+    font-size: 1.05rem;
+    gap: 6px;
+  }
+
+  .sd-header-subtitle {
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+
+  .sd-tabs-bar {
+    padding: 8px 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .sd-tabs-left {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 6px;
+  }
+
+  .sd-tab-btn {
+    padding: 7px 11px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .sd-body {
+    padding: 12px;
+  }
+
+  .sd-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .sd-stat-card {
+    padding: 12px !important;
+  }
+
+  .sd-stat-number {
+    font-size: 1.4rem !important;
+  }
+
+  .sd-footer {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    align-items: stretch;
+  }
+
+  .sd-footer-info {
+    justify-content: center;
+    font-size: 0.72rem;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  .sd-footer-actions {
+    width: 100%;
+  }
+
+  .sd-footer-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sd-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sd-name-wrap h2 {
+    font-size: 0.95rem;
+  }
+
+  .sd-badge-pill {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+  }
+}
+

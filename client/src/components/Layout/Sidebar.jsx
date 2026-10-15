@@ -10,6 +10,7 @@ import {
   HiOutlineTrendingUp,
   HiOutlineClipboardCheck,
   HiOutlineCalendar,
+  HiOutlineSparkles,
 } from 'react-icons/hi';
 import { useAuth } from '../../context/AuthContext';
 
@@ -25,16 +26,23 @@ const driveNavItems = [
 
 const trainingNavItems = [
   { label: 'Dashboard', path: '/training-dashboard', icon: <HiOutlineChartBar /> },
+  { label: 'Upcoming Events', path: '/placement-events', icon: <HiOutlineSparkles /> },
   { label: 'Placement Time Table', path: '/placement-timetable', icon: <HiOutlineCalendar /> },
   { label: 'Faculty Directory', path: '/faculty-directory', icon: <HiOutlineUserGroup /> },
   { label: 'Workload & Analytics', path: '/workload-analytics', icon: <HiOutlineTrendingUp /> },
 ];
 
-const Sidebar = ({ collapsed }) => {
+const Sidebar = ({ collapsed, mobileOpen, onCloseMobile }) => {
   const { logout } = useAuth();
 
+  const handleNavClick = () => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-brand">
         <img src="/logo.png" alt="NSCET Logo" className="brand-logo-img" />
         <span className="brand-text" style={{ fontSize: '0.95rem' }}>NSCET</span>
@@ -49,6 +57,7 @@ const Sidebar = ({ collapsed }) => {
             className={({ isActive }) =>
               `nav-item ${isActive ? 'active' : ''}`
             }
+            onClick={handleNavClick}
             end={item.path === '/'}
           >
             <span className="nav-icon">{item.icon}</span>
@@ -66,6 +75,7 @@ const Sidebar = ({ collapsed }) => {
             className={({ isActive }) =>
               `nav-item ${isActive ? 'active' : ''}`
             }
+            onClick={handleNavClick}
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-text">{item.label}</span>

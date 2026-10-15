@@ -38,6 +38,16 @@ const startServer = async () => {
     // Prevent proxy ECONNRESET by extending keep-alive timeouts beyond client/proxy timeout
     server.keepAliveTimeout = 65001;
     server.headersTimeout = 66000;
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`\n❌ Port ${PORT} is already in use by another process.`);
+        console.error(`💡 Tip: Terminate any existing Node processes using port ${PORT}.\n`);
+      } else {
+        console.error('Server error:', err);
+      }
+      process.exit(1);
+    });
   } catch (error) {
     console.error('Failed to start server:', error.message);
     process.exit(1);

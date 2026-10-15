@@ -18,7 +18,7 @@ export default defineConfig({
             if (res && !res.headersSent) {
               res.writeHead(502, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ message: 'Backend proxy error', error: err.message }));
-            } 
+            }
           });
         },
       },

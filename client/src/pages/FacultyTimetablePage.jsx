@@ -19,6 +19,7 @@ import {
   HiOutlineBookOpen,
   HiOutlineArrowRight,
   HiOutlineTrendingUp,
+  HiOutlineSparkles,
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import Loader from '../components/common/Loader';
@@ -1016,6 +1017,45 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
                 style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
               >
                 Open Workload Analytics <HiOutlineArrowRight />
+              </button>
+            </div>
+
+            {/* Card 4: Upcoming Events & Attendance */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid rgba(197, 158, 81, 0.4)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 4px 14px rgba(197, 158, 81, 0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                    <HiOutlineSparkles />
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#fef3c7', color: '#b45309', padding: '3px 10px', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                    Live Attendance & Sessions
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
+                  Upcoming Events & Attendance
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                  Schedule upcoming guest lectures, technical workshops, and masterclasses. Track live student attendance and chief guest sessions.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => navigate('/placement-events')}
+                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
+              >
+                Manage Events & Attendance <HiOutlineArrowRight />
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ import AnalysisPage from '../pages/AnalysisPage';
 import DrivesPage from '../pages/DrivesPage';
 import StudentPortalPage from '../pages/StudentPortalPage';
 import FacultyTimetablePage from '../pages/FacultyTimetablePage';
+import EventsPage from '../pages/EventsPage';
 
 const AppRoutes = () => {
   const { isAuthenticated, userRole, loading } = useAuth();
@@ -89,6 +90,8 @@ const AppRoutes = () => {
                 <Route path="/alumni" element={<AlumniPage />} />
                 <Route path="/analysis" element={<AnalysisPage />} />
                 <Route path="/training-dashboard" element={<FacultyTimetablePage initialTab="dashboard" />} />
+                <Route path="/placement-events" element={<EventsPage />} />
+                <Route path="/events" element={<EventsPage />} />
                 <Route path="/placement-timetable" element={<FacultyTimetablePage initialTab="timetable" />} />
                 <Route path="/faculty-directory" element={<FacultyTimetablePage initialTab="faculties" />} />
                 <Route path="/workload-analytics" element={<FacultyTimetablePage initialTab="workload" />} />

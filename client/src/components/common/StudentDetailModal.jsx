@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   HiOutlineX,
   HiOutlineBriefcase,
@@ -37,6 +38,15 @@ const StudentDetailModal = ({
   initialTab = 'drives',
   onStudentUpdated = null,
 }) => {
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = orig;
+    };
+  }, []);
+
   const [activeTab, setActiveTab] = useState(initialTab); // 'drives' | 'offers' | 'profile'
   const [loading, setLoading] = useState(true);
   const [studentData, setStudentData] = useState(student || {});
@@ -242,7 +252,7 @@ const StudentDetailModal = ({
     window.print();
   };
 
-  return (
+  const modalContent = (
     <div className="sd-overlay" onClick={onClose}>
       <div className="sd-modal" onClick={(e) => e.stopPropagation()}>
         {/* ========================================================================= */}
@@ -1448,6 +1458,10 @@ const StudentDetailModal = ({
       )}
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
 
 export default StudentDetailModal;

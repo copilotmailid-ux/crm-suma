@@ -7,7 +7,7 @@ const Alumni = require('../models/Alumni');
 // @route   GET /api/placements
 exports.getPlacements = async (req, res, next) => {
   try {
-    const { companyId, department, batch, offerType, status, page = 1, limit = 10 } = req.query;
+    const { search, companyId, department, batch, offerType, status, page = 1, limit = 10 } = req.query;
 
     const query = {};
 
@@ -16,9 +16,6 @@ exports.getPlacements = async (req, res, next) => {
     if (status) query.status = status;
 
     // Build pipeline for department/batch filter (requires join with Student)
-    let placements;
-    let total;
-
     if (department || batch) {
       const studentQuery = {};
       if (department) studentQuery.department = department;
@@ -28,8 +25,45 @@ exports.getPlacements = async (req, res, next) => {
       query.studentId = { $in: studentIds };
     }
 
-    total = await Placement.countDocuments(query);
-    placements = await Placement.find(query)
+    // Keyword search support (student name, rollNumber, company name, role, or package)
+    if (search && search.trim()) {
+      const s = search.trim();
+      const [matchingStudents, matchingCompanies] = await Promise.all([
+        Student.find({
+          $or: [
+            { name: { $regex: s, $options: 'i' } },
+            { rollNumber: { $regex: s, $options: 'i' } },
+          ],
+        }).distinct('_id'),
+        Company.find({
+          name: { $regex: s, $options: 'i' },
+        }).distinct('_id'),
+      ]);
+
+      const searchConditions = [
+        { role: { $regex: s, $options: 'i' } },
+        { studentId: { $in: matchingStudents } },
+        { companyId: { $in: matchingCompanies } },
+      ];
+
+      const numVal = parseFloat(s);
+      if (!isNaN(numVal)) {
+        searchConditions.push({ package: numVal });
+      }
+
+      if (query.studentId) {
+        query.$and = [
+          { studentId: query.studentId },
+          { $or: searchConditions },
+        ];
+        delete query.studentId;
+      } else {
+        query.$or = searchConditions;
+      }
+    }
+
+    const total = await Placement.countDocuments(query);
+    const placements = await Placement.find(query)
       .populate('studentId', 'name rollNumber department batch email')
       .populate('companyId', 'name industry')
       .sort({ placementDate: -1 })
