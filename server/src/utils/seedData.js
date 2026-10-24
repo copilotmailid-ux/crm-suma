@@ -111,11 +111,13 @@ const placementData = [
   { studentRoll: '23AIDS001', companyName: 'HDFC Bank', role: 'Data Analyst', package: 8.0, date: '2026-06-15', offerType: 'on_campus', status: 'offered' },
 ];
 
-async function seedData() {
+async function seedData(isStandalone = false) {
   try {
-    const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/placement-crm';
-    await mongoose.connect(uri);
-    console.log('MongoDB Connected for seeding...\n');
+    if (isStandalone && mongoose.connection.readyState === 0) {
+      const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/placement-crm';
+      await mongoose.connect(uri);
+      console.log('MongoDB Connected for seeding...\n');
+    }
 
     // 1. Seed Admin Account
     await seedAdmin();
@@ -383,13 +385,22 @@ async function seedData() {
     console.log(` 💼 Drives       : ${driveCount}`);
     console.log('======================================================\n');
 
-    await mongoose.disconnect();
-    process.exit(0);
+    if (isStandalone) {
+      await mongoose.disconnect();
+      process.exit(0);
+    }
   } catch (error) {
     console.error('❌ Seeding failed:', error.message);
-    await mongoose.disconnect();
-    process.exit(1);
+    if (isStandalone) {
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    throw error;
   }
 }
 
-seedData();
+if (require.main === module) {
+  seedData(true);
+}
+
+module.exports = seedData;

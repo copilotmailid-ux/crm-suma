@@ -34,7 +34,7 @@ const StatCard = ({ icon, label, value, colorClass }) => (
 const AnalysisSkeleton = () => (
   <div className="skeleton-container fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
     {/* Summary Row Skeleton */}
-    <div className="dashboard-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+    <div className="dashboard-stats">
       {[1, 2, 3, 4].map((i) => (
         <div key={i} className="stat-card skeleton-pulse" style={{ height: '110px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%' }}>
@@ -51,7 +51,7 @@ const AnalysisSkeleton = () => (
     {/* Salary Package Stats Skeleton */}
     <div className="recent-section skeleton-pulse" style={{ padding: '24px' }}>
       <div className="skeleton-block" style={{ width: '200px', height: '20px', marginBottom: '20px' }}></div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+      <div className="salary-stats-grid">
         {[1, 2, 3].map((i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
             <div className="skeleton-block" style={{ width: '100px', height: '12px' }}></div>
@@ -62,7 +62,7 @@ const AnalysisSkeleton = () => (
     </div>
 
     {/* Charts Row Skeleton */}
-    <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+    <div className="charts-grid">
       {[1, 2].map((i) => (
         <div key={i} className="chart-card skeleton-pulse" style={{ height: '350px', padding: '24px' }}>
           <div className="skeleton-block" style={{ width: '180px', height: '20px', marginBottom: '24px' }}></div>
@@ -98,11 +98,7 @@ const AnalysisPage = () => {
       .then((res) => {
         const batchList = res.data.sort().reverse(); // Show latest batch first
         setBatches(batchList);
-        if (batchList.length > 0) {
-          setSelectedBatch(batchList[0]);
-        } else {
-          setLoading(false);
-        }
+        setSelectedBatch('ALL');
       })
       .catch(() => {
         toast.error('Failed to load batches list');
@@ -223,29 +219,39 @@ const AnalysisPage = () => {
           <div>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0b1d37', margin: 0 }}>NADAR SARASWATHI COLLEGE OF ENGINEERING AND TECHNOLOGY</h1>
             <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '4px 0 0', fontWeight: 500 }}>Theni, Tamil Nadu, India | Training & Placement Cell</p>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#c59e51', margin: '8px 0 0' }}>Batch {selectedBatch} - Placement Analysis Report</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#c59e51', margin: '8px 0 0' }}>
+              {selectedBatch === 'ALL' ? 'Overall Campus Placement Analysis Report' : `Batch ${selectedBatch} - Placement Analysis Report`}
+            </h2>
           </div>
         </div>
       </div>
 
       <div className="page-header" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <h2 className="page-header-title">Batch Placement Analysis</h2>
+          <h2 className="page-header-title">
+            {selectedBatch === 'ALL' ? 'Overall Campus Placement Analysis' : `Batch ${selectedBatch} Placement Analysis`}
+          </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Detailed statistics and metrics for students placement cell
+            {selectedBatch === 'ALL'
+              ? 'Detailed statistics, salary distribution, and recruiter insights across all academic batches'
+              : `Detailed statistics and metrics for students placement cell • Batch ${selectedBatch}`}
           </p>
         </div>
         <div className="page-header-actions">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Batch:</label>
             <select 
               className="filter-select" 
               value={selectedBatch} 
               onChange={(e) => setSelectedBatch(e.target.value)}
-              style={{ padding: '8px 32px 8px 12px', minWidth: '130px' }}
+              style={{ padding: '8px 32px 8px 12px', minWidth: '160px', fontWeight: 600 }}
             >
-              {batches.map(b => <option key={b} value={b}>{b}</option>)}
+              <option value="ALL">All Batches (Overall)</option>
+              {batches.map(b => <option key={b} value={b}>Batch {b}</option>)}
             </select>
+            <button className="btn btn-outline btn-sm" onClick={handleExportReport} disabled={!data} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <DownloadIcon /> Export Excel
+            </button>
             <button className="btn btn-primary btn-sm" onClick={() => window.print()} disabled={!data} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <PrintIcon /> Export PDF Report (With Charts)
             </button>
@@ -256,10 +262,10 @@ const AnalysisPage = () => {
       {loading ? <AnalysisSkeleton /> : data && (
         <>
           {/* Summary Row */}
-          <div className="dashboard-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="dashboard-stats">
             <StatCard
               icon={<UsersIcon />}
-              label="Total Batch Students"
+              label={selectedBatch === 'ALL' ? 'Total Enrolled Students' : 'Total Batch Students'}
               value={data.summary.totalStudents}
               colorClass="blue"
             />
@@ -284,12 +290,7 @@ const AnalysisPage = () => {
           </div>
 
           {/* Salary Stats Card Grid */}
-          <div className="salary-stats-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
-            gap: 'var(--space-lg)',
-            marginBottom: 'var(--space-xl)'
-          }}>
+          <div className="salary-stats-grid">
             <div className="stat-card" style={{ background: 'var(--bg-card)' }}>
               <div className="stat-icon green" style={{ background: 'rgba(5, 150, 105, 0.1)', color: '#059669' }}>
                 <RupeeIcon />
@@ -320,7 +321,7 @@ const AnalysisPage = () => {
           </div>
 
           {/* Detailed Charts */}
-          <div className="charts-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div className="charts-grid">
             {/* Department Wise Chart */}
             <div className="chart-card">
               <div className="chart-card-header">
@@ -362,111 +363,205 @@ const AnalysisPage = () => {
             </div>
           </div>
 
-          {/* Department breakdown and recruiters */}
-          <div className="charts-grid" style={{ gridTemplateColumns: '1.2fr 0.8fr' }}>
-            {/* Department Wise BreakDown Table */}
-            <div className="chart-card" style={{ padding: '20px' }}>
-              <div className="chart-card-header" style={{ marginBottom: '16px' }}>
+          {/* 1. Department Wise BreakDown Table (Full Width) */}
+          <div className="chart-card" style={{ padding: '24px', marginBottom: 'var(--space-xl)' }}>
+            <div className="chart-card-header" style={{ marginBottom: '16px' }}>
+              <div>
                 <h3 className="chart-card-title">Department Wise Placements Details</h3>
-              </div>
-              <div className="table-scroll">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Department</th>
-                      <th>Total Students</th>
-                      <th>Placed Students</th>
-                      <th>Unplaced Students</th>
-                      <th>Placement %</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.deptStats.map((d, index) => (
-                      <tr key={index}>
-                        <td style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{d.department}</td>
-                        <td>{d.total}</td>
-                        <td style={{ color: 'var(--color-success)', fontWeight: 600 }}>{d.placed}</td>
-                        <td style={{ color: 'var(--color-warning)', fontWeight: 600 }}>{d.unplaced}</td>
-                        <td>
-                          <span className="badge badge-success" style={{ fontWeight: 700 }}>
-                            {d.percentage}%
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  Branch-wise student enrolment, placed count, unplaced count, and placement percentage
+                </p>
               </div>
             </div>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Department</th>
+                    <th style={{ textAlign: 'center' }}>Total Students</th>
+                    <th style={{ textAlign: 'center' }}>Placed Students</th>
+                    <th style={{ textAlign: 'center' }}>Unplaced Students</th>
+                    <th style={{ textAlign: 'center' }}>Placement Ratio</th>
+                    <th style={{ textAlign: 'right' }}>Placement %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.deptStats.map((d, index) => (
+                    <tr key={index}>
+                      <td style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            background: COLORS[index % COLORS.length],
+                            marginRight: '8px',
+                          }}
+                        ></span>
+                        {d.department}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 600 }}>{d.total}</td>
+                      <td style={{ textAlign: 'center', color: '#16a34a', fontWeight: 700 }}>{d.placed}</td>
+                      <td style={{ textAlign: 'center', color: d.unplaced > 0 ? '#ea580c' : '#64748b', fontWeight: 600 }}>
+                        {d.unplaced}
+                      </td>
+                      <td style={{ textAlign: 'center', width: '25%' }}>
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '8px',
+                            background: '#f1f5f9',
+                            borderRadius: '4px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${Math.min(d.percentage, 100)}%`,
+                              background: COLORS[index % COLORS.length],
+                              borderRadius: '4px',
+                              transition: 'width 0.4s ease',
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span className="badge badge-success" style={{ fontWeight: 800, padding: '4px 10px' }}>
+                          {d.percentage}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-            {/* Top recruiting companies list */}
-            <div className="chart-card">
-              <div className="chart-card-header" style={{ marginBottom: '16px' }}>
+          {/* 2. Top Recruiting Companies List (Below Department Table) */}
+          <div className="chart-card" style={{ padding: '24px', marginBottom: 'var(--space-xl)' }}>
+            <div
+              className="chart-card-header"
+              style={{
+                marginBottom: '20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
                 <h3 className="chart-card-title">Top Recruiter Companies</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  Leading hiring partners and candidates selected across roles and departments
+                </p>
               </div>
-              {data.companyStats.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {data.companyStats.map((c, index) => (
-                    <div key={index} style={{
-                      padding: '12px 16px',
+              <span className="badge badge-neutral" style={{ fontWeight: 700 }}>
+                {data.companyStats.length} Hiring Partners
+              </span>
+            </div>
+
+            {data.companyStats.length > 0 ? (
+              <div className="recruiter-companies-grid" style={{ gap: '16px' }}>
+                {data.companyStats.map((c, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      padding: '16px 18px',
                       background: 'var(--bg-primary)',
-                      borderRadius: 'var(--radius-sm)',
-                      borderLeft: `4px solid ${COLORS[index % COLORS.length]}`,
+                      borderRadius: '12px',
+                      border: '1px solid var(--border-color)',
+                      borderLeft: `5px solid ${COLORS[index % COLORS.length]}`,
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '8px'
-                    }}>
-                      <div style={{
+                      gap: '10px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <div
+                      style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                      }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                          {index + 1}. {c.companyName}
-                        </span>
-                        <span className="badge badge-info" style={{ fontWeight: 700 }}>
-                          {c.count} Selected
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            background: `${COLORS[index % COLORS.length]}18`,
+                            color: COLORS[index % COLORS.length],
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 800,
+                            fontSize: '0.8rem',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {index + 1}
+                        </div>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {c.companyName}
                         </span>
                       </div>
-                      
-                      {/* Placed Students List */}
-                      {c.students && c.students.length > 0 && (
-                        <div style={{
+                      <span className="badge badge-info" style={{ fontWeight: 800, padding: '3px 10px', fontSize: '0.76rem' }}>
+                        {c.count} Selected
+                      </span>
+                    </div>
+
+                    {/* Placed Students List */}
+                    {c.students && c.students.length > 0 && (
+                      <div
+                        style={{
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '6px',
-                          paddingLeft: '14px',
+                          paddingLeft: '12px',
                           borderLeft: '1px dashed var(--border-color)',
-                          marginTop: '4px'
-                        }}>
-                          {c.students.map((student, sIdx) => (
-                            <div key={sIdx} style={{
+                          marginTop: '2px',
+                          maxHeight: '220px',
+                          overflowY: 'auto',
+                        }}
+                      >
+                        {c.students.map((student, sIdx) => (
+                          <div
+                            key={sIdx}
+                            style={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              fontSize: '0.8rem',
-                              color: 'var(--text-secondary)'
-                            }}>
-                              <span style={{ fontWeight: 500 }}>
-                                • {student.name} <span style={{ color: 'var(--text-muted)' }}>({student.rollNumber})</span>
+                              fontSize: '0.82rem',
+                              color: 'var(--text-secondary)',
+                              padding: '2px 0',
+                            }}
+                          >
+                            <span style={{ fontWeight: 600 }}>
+                              • {student.name}{' '}
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontFamily: 'monospace' }}>
+                                ({student.rollNumber})
                               </span>
-                              <span className="badge badge-neutral" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>
-                                {student.department}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <p className="empty-text">No company placement statistics yet</p>
-                </div>
-              )}
-            </div>
-
+                            </span>
+                            <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '2px 8px', fontWeight: 700 }}>
+                              {student.department}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <p className="empty-text">No company placement statistics yet</p>
+              </div>
+            )}
           </div>
         </>
       )}

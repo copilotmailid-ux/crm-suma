@@ -399,6 +399,53 @@
   }
 }
 
+/* Salary and Recruiter Grids */
+.salary-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.recruiter-companies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+@media (max-width: 900px) {
+  .salary-stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .recruiter-companies-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stat-card {
+    padding: 14px 16px;
+  }
+
+  .stat-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.35rem;
+  }
+}
+
+
+
 
 
 

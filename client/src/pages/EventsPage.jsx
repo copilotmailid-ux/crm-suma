@@ -42,6 +42,10 @@ import '../styles/events.css';
 const ALL_DEPARTMENTS = ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'];
 const ALL_BATCHES = ['2021-2025', '2022-2026', '2023-2027', '2024-2028'];
 const EVENT_TYPES = [
+  'Training',
+  'Technical Training',
+  'Aptitude Training',
+  'Soft Skills Training',
   'Workshop',
   'Guest Lecture',
   'Bootcamp',
@@ -57,13 +61,24 @@ const initialFormState = {
   chiefGuest: '',
   chiefGuestDesignation: '',
   chiefGuestCompany: '',
+  chiefGuestEmail: '',
+  chiefGuestPhone: '',
+  chiefGuestBio: '',
+  chiefGuestLinkedin: '',
+  prerequisites: '',
+  registrationDeadline: '',
   eventDate: '',
+  isMultiDay: false,
+  endDate: '',
+  durationDays: 1,
+  scheduleType: 'Single Day',
+  dailyTimingNote: '',
   startTime: '10:00 AM',
   endTime: '01:00 PM',
   venue: '',
   departments: ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'],
   eligibleBatches: ['2022-2026'],
-  eventType: 'Guest Lecture',
+  eventType: 'Training',
   status: 'Upcoming',
   description: '',
   maxParticipants: 150,
@@ -169,13 +184,24 @@ const EventsPage = () => {
       chiefGuest: evt.chiefGuest || '',
       chiefGuestDesignation: evt.chiefGuestDesignation || '',
       chiefGuestCompany: evt.chiefGuestCompany || '',
+      chiefGuestEmail: evt.chiefGuestEmail || '',
+      chiefGuestPhone: evt.chiefGuestPhone || '',
+      chiefGuestBio: evt.chiefGuestBio || '',
+      chiefGuestLinkedin: evt.chiefGuestLinkedin || '',
+      prerequisites: evt.prerequisites || '',
+      registrationDeadline: evt.registrationDeadline ? evt.registrationDeadline.split('T')[0] : '',
       eventDate: evt.eventDate ? evt.eventDate.split('T')[0] : '',
+      isMultiDay: !!evt.isMultiDay,
+      endDate: evt.endDate ? evt.endDate.split('T')[0] : '',
+      durationDays: evt.durationDays || 1,
+      scheduleType: evt.scheduleType || (evt.isMultiDay ? 'Multi-Day Training' : 'Single Day'),
+      dailyTimingNote: evt.dailyTimingNote || '',
       startTime: evt.startTime || '10:00 AM',
       endTime: evt.endTime || '01:00 PM',
       venue: evt.venue || '',
       departments: evt.departments || ALL_DEPARTMENTS,
       eligibleBatches: evt.eligibleBatches || ['2022-2026'],
-      eventType: evt.eventType || 'Guest Lecture',
+      eventType: evt.eventType || 'Training',
       status: evt.status || 'Upcoming',
       description: evt.description || '',
       maxParticipants: evt.maxParticipants || 150,
@@ -217,6 +243,10 @@ const EventsPage = () => {
     if (!form.title.trim()) return toast.error('Event name is required');
     if (!form.chiefGuest.trim()) return toast.error('Chief guest name is required');
     if (!form.eventDate) return toast.error('Event date is required');
+    if (form.isMultiDay) {
+      if (!form.endDate) return toast.error('Please select an end date for multi-day training');
+      if (form.endDate < form.eventDate) return toast.error('End date cannot be earlier than start date');
+    }
     if (!form.venue.trim()) return toast.error('Venue is required');
     if (!form.departments.length) return toast.error('Select at least one department');
 
@@ -395,7 +425,9 @@ const EventsPage = () => {
     // Event Details Subhead
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    const dateStr = activeEvent.eventDate ? new Date(activeEvent.eventDate).toLocaleDateString('en-IN') : '';
+    const dateStr = activeEvent.isMultiDay && activeEvent.endDate
+      ? `${new Date(activeEvent.eventDate).toLocaleDateString('en-IN')} - ${new Date(activeEvent.endDate).toLocaleDateString('en-IN')} (${activeEvent.durationDays || 'Multi'} Days)`
+      : activeEvent.eventDate ? new Date(activeEvent.eventDate).toLocaleDateString('en-IN') : '';
     doc.text(`Chief Guest: ${activeEvent.chiefGuest} | Venue: ${activeEvent.venue} | Date: ${dateStr}`, 14, 29);
     doc.text(
       `Total Registered: ${activeEvent.attendance.length} | Present: ${
@@ -431,6 +463,13 @@ const EventsPage = () => {
   // Color helper for Event Type
   const getTypePillStyle = (type) => {
     switch (type) {
+      case 'Training':
+      case 'Technical Training':
+        return { background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' };
+      case 'Aptitude Training':
+        return { background: '#fefce8', color: '#ca8a04', border: '1px solid #fef08a' };
+      case 'Soft Skills Training':
+        return { background: '#faf5ff', color: '#a855f7', border: '1px solid #e9d5ff' };
       case 'Workshop':
         return { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' };
       case 'Guest Lecture':
@@ -441,6 +480,12 @@ const EventsPage = () => {
         return { background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' };
       case 'Mock Interview Drive':
         return { background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3' };
+      case 'Hackathon':
+        return { background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' };
+      case 'Webinar':
+        return { background: '#f0f9ff', color: '#0284c7', border: '1px solid #bae6fd' };
+      case 'Orientation':
+        return { background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5' };
       default:
         return { background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' };
     }
@@ -468,7 +513,7 @@ const EventsPage = () => {
         <div>
           <h1 className="page-header-title">Placement Events & Training Modules</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '4px 0 0' }}>
-            Schedule and manage upcoming guest lectures, technical workshops, seminars, and live student attendance.
+            Schedule and manage upcoming guest lectures, technical workshops, training modules, and live student attendance.
           </p>
         </div>
         <div className="page-header-actions">
@@ -476,7 +521,7 @@ const EventsPage = () => {
             <HiOutlineRefresh /> Refresh
           </button>
           <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-            <HiOutlinePlus /> Add New Event
+            <HiOutlinePlus /> Add Event / Training
           </button>
         </div>
       </div>
@@ -607,10 +652,10 @@ const EventsPage = () => {
             No Placement Events Found
           </h3>
           <p className="empty-state-text" style={{ color: '#64748b', maxWidth: '440px', margin: '6px auto 18px' }}>
-            No upcoming events match the current search filters. Click "Add New Event" to schedule a lecture or training session.
+            No upcoming events match the current search filters. Click "Add Event / Training" to schedule a lecture or training session.
           </p>
           <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-            <HiOutlinePlus /> Create First Event
+            <HiOutlinePlus /> Create First Event / Training
           </button>
         </div>
       ) : (
@@ -621,17 +666,29 @@ const EventsPage = () => {
             const dayStr = dateObj.getDate();
             const yearStr = dateObj.getFullYear();
 
+            const isMultiDay = evt.isMultiDay && evt.endDate;
+            const endDateObj = isMultiDay ? new Date(evt.endDate) : null;
+            const endMonthStr = endDateObj ? endDateObj.toLocaleString('en-US', { month: 'short' }) : '';
+            const endDayStr = endDateObj ? endDateObj.getDate() : '';
+            const dateRangeLabel = isMultiDay
+              ? (monthStr === endMonthStr ? `${monthStr} ${dayStr} – ${endDayStr}, ${yearStr}` : `${monthStr} ${dayStr} – ${endMonthStr} ${endDayStr}, ${yearStr}`)
+              : `${monthStr} ${dayStr}, ${yearStr}`;
+
             const total = evt.attendance ? evt.attendance.length : 0;
             const present = evt.attendance ? evt.attendance.filter((a) => a.status === 'Present').length : 0;
             const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+
+            const isTrainingType = evt.eventType?.toLowerCase().includes('training') || evt.eventType === 'Bootcamp' || evt.eventType === 'Workshop';
 
             return (
               <div key={evt._id} className="event-card">
                 {/* Card Header with Date Badge & Title */}
                 <div className="event-card-header">
-                  <div className="event-date-badge">
+                  <div className="event-date-badge" style={{ minWidth: isMultiDay ? '64px' : '56px' }}>
                     <span className="month">{monthStr}</span>
-                    <span className="day">{dayStr}</span>
+                    <span className="day" style={{ fontSize: isMultiDay ? '1.05rem' : '1.35rem', lineHeight: 1.1 }}>
+                      {isMultiDay ? `${dayStr}–${endDayStr}` : dayStr}
+                    </span>
                     <span className="year">{yearStr}</span>
                   </div>
 
@@ -643,6 +700,24 @@ const EventsPage = () => {
                       <span className="event-type-pill" style={getStatusBadgeStyle(evt.status)}>
                         {evt.status}
                       </span>
+                      {isMultiDay && (
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            background: '#fef3c7',
+                            color: '#b45309',
+                            border: '1px solid #fde68a',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          🗓️ {evt.durationDays ? `${evt.durationDays} Days / ${evt.durationDays >= 6 ? Math.round(evt.durationDays / 6) + ' Wk' : evt.durationDays + 'D'}` : 'Multi-Day'}
+                        </span>
+                      )}
                     </div>
                     <h3 className="event-card-title">{evt.title}</h3>
                   </div>
@@ -650,39 +725,83 @@ const EventsPage = () => {
 
                 {/* Card Body */}
                 <div className="event-card-body">
-                  {/* Chief Guest Spotlight */}
+                  {/* Chief Guest / Resource Person Spotlight */}
                   <div className="chief-guest-box">
                     <div className="chief-guest-avatar">
                       {evt.chiefGuest
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
+                        ? evt.chiefGuest
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase()
+                        : 'RP'}
                     </div>
-                    <div className="chief-guest-details">
-                      <span className="chief-guest-label">⭐ Chief Guest / Speaker</span>
+                    <div className="chief-guest-details" style={{ flex: 1, minWidth: 0 }}>
+                      <span className="chief-guest-label">
+                        {isTrainingType ? '⭐ Resource Person / Trainer' : '⭐ Chief Guest / Keynote Speaker'}
+                      </span>
                       <span className="chief-guest-name">{evt.chiefGuest}</span>
                       <span className="chief-guest-sub">
-                        {evt.chiefGuestDesignation || 'Invited Resource Person'}
+                        {evt.chiefGuestDesignation || 'Invited Industry Expert'}
                         {evt.chiefGuestCompany ? ` • ${evt.chiefGuestCompany}` : ''}
                       </span>
+                      {evt.chiefGuestBio && (
+                        <p style={{ margin: '4px 0 0', fontSize: '0.74rem', color: '#64748b', lineHeight: 1.3 }}>
+                          {evt.chiefGuestBio}
+                        </p>
+                      )}
+                      {(evt.chiefGuestEmail || evt.chiefGuestPhone || evt.chiefGuestLinkedin) && (
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px', fontSize: '0.72rem', color: '#475569' }}>
+                          {evt.chiefGuestEmail && <span>✉️ {evt.chiefGuestEmail}</span>}
+                          {evt.chiefGuestPhone && <span>📞 {evt.chiefGuestPhone}</span>}
+                          {evt.chiefGuestLinkedin && (
+                            <a
+                              href={evt.chiefGuestLinkedin}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}
+                            >
+                              🔗 LinkedIn
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Date, Time & Venue */}
                   <div className="event-info-list">
+                    {isMultiDay && (
+                      <div className="event-info-item" style={{ color: '#b45309', fontWeight: 600 }}>
+                        <HiOutlineCalendar style={{ color: '#d97706' }} />
+                        <span><strong>Duration:</strong> {dateRangeLabel} ({evt.durationDays || 'Multi'} Days Program)</span>
+                      </div>
+                    )}
                     <div className="event-info-item">
                       <HiOutlineClock />
                       <span>
+                        {isMultiDay ? <strong>Daily Sessions: </strong> : null}
                         {evt.startTime} – {evt.endTime || 'Wrap up'}
                       </span>
                     </div>
+                    {isMultiDay && evt.dailyTimingNote && (
+                      <div style={{ fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic', paddingLeft: '20px', marginTop: '-4px' }}>
+                        ℹ️ {evt.dailyTimingNote}
+                      </div>
+                    )}
                     <div className="event-info-item">
                       <HiOutlineLocationMarker />
                       <span><strong>Venue:</strong> {evt.venue}</span>
                     </div>
                   </div>
+
+                  {/* Prerequisites if any */}
+                  {evt.prerequisites && (
+                    <div style={{ fontSize: '0.75rem', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#475569' }}>
+                      <strong>📌 Pre-requisites:</strong> {evt.prerequisites}
+                    </div>
+                  )}
 
                   {/* Target Departments */}
                   <div>
@@ -752,10 +871,14 @@ const EventsPage = () => {
       {showEventModal &&
         createPortal(
           <div className="form-overlay" onClick={() => setShowEventModal(false)}>
-            <div className="form-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px' }}>
+            <div
+              className="form-modal form-modal-lg"
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: 'min(760px, 95vw)', maxWidth: '760px' }}
+            >
               <div className="form-header">
                 <h3 className="form-title">
-                  {editingEventId ? 'Edit Placement Event' : 'Add Upcoming Placement Event'}
+                  {editingEventId ? 'Edit Event / Training Module' : 'Add New Event or Training Session'}
                 </h3>
                 <button
                   type="button"
@@ -766,229 +889,544 @@ const EventsPage = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitEvent}>
-                <div className="form-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '20px 24px' }}>
-                  {/* Event Name */}
-                  <div className="form-group">
-                    <label className="form-label required">Event Name / Topic</label>
-                    <input
-                      className="form-input"
-                      required
-                      placeholder="e.g. AI & Cloud Architecture Masterclass"
-                      value={form.title}
-                      onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    />
-                  </div>
+              <form onSubmit={handleSubmitEvent} style={{ width: '100%', overflow: 'hidden' }}>
+                <div
+                  className="form-body"
+                  style={{
+                    maxHeight: '74vh',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '22px 26px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '18px',
+                  }}
+                >
+                  
+                  {/* --- Section 1: Overview & Schedule --- */}
+                  <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', width: '100%' }}>
+                    <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--accent-start, #0b1d37)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🎯</span> Event & Training Overview
+                    </h4>
 
-                  {/* Chief Guest Name */}
-                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div className="form-group">
-                      <label className="form-label required">Chief Guest / Speaker Name</label>
+                    {/* Event Name */}
+                    <div className="form-group" style={{ marginBottom: '14px', width: '100%' }}>
+                      <label className="form-label required">Event / Training Title</label>
                       <input
                         className="form-input"
                         required
-                        placeholder="e.g. Mr. K. Senthil Nathan"
-                        value={form.chiefGuest}
-                        onChange={(e) => setForm({ ...form, chiefGuest: e.target.value })}
+                        placeholder="e.g. Masterclass on System Design & Full-Stack Deployment"
+                        value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })}
                       />
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">Speaker Designation</label>
-                      <input
-                        className="form-input"
-                        placeholder="e.g. Principal Cloud Architect"
-                        value={form.chiefGuestDesignation}
-                        onChange={(e) => setForm({ ...form, chiefGuestDesignation: e.target.value })}
-                      />
-                    </div>
-                  </div>
 
-                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div className="form-group">
-                      <label className="form-label">Company / Organization</label>
-                      <input
-                        className="form-input"
-                        placeholder="e.g. Amazon Web Services (AWS)"
-                        value={form.chiefGuestCompany}
-                        onChange={(e) => setForm({ ...form, chiefGuestCompany: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label required">Venue</label>
-                      <input
-                        className="form-input"
-                        required
-                        placeholder="e.g. Main Auditorium / Lab 4"
-                        value={form.venue}
-                        onChange={(e) => setForm({ ...form, venue: e.target.value })}
-                      />
-                    </div>
-                  </div>
+                    {/* Event Type & Status */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px', width: '100%' }}>
+                      <div className="form-group">
+                        <label className="form-label required">Category / Type</label>
+                        <select
+                          className="form-select"
+                          value={form.eventType}
+                          onChange={(e) => setForm({ ...form, eventType: e.target.value })}
+                        >
+                          {EVENT_TYPES.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  {/* Date & Time */}
-                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                    <div className="form-group">
-                      <label className="form-label required">Event Date</label>
-                      <input
-                        type="date"
-                        className="form-input"
-                        required
-                        value={form.eventDate}
-                        onChange={(e) => setForm({ ...form, eventDate: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label required">Start Time</label>
-                      <input
-                        className="form-input"
-                        required
-                        placeholder="10:00 AM"
-                        value={form.startTime}
-                        onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">End Time</label>
-                      <input
-                        className="form-input"
-                        placeholder="01:00 PM"
-                        value={form.endTime}
-                        onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Event Type & Status */}
-                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <div className="form-group">
-                      <label className="form-label">Event Type</label>
-                      <select
-                        className="form-select"
-                        value={form.eventType}
-                        onChange={(e) => setForm({ ...form, eventType: e.target.value })}
-                      >
-                        {EVENT_TYPES.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="form-group">
+                        <label className="form-label">Status</label>
+                        <select
+                          className="form-select"
+                          value={form.status}
+                          onChange={(e) => setForm({ ...form, status: e.target.value })}
+                        >
+                          <option value="Upcoming">Upcoming</option>
+                          <option value="Ongoing">Ongoing</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      </div>
                     </div>
 
-                    <div className="form-group">
-                      <label className="form-label">Status</label>
-                      <select
-                        className="form-select"
-                        value={form.status}
-                        onChange={(e) => setForm({ ...form, status: e.target.value })}
-                      >
-                        <option value="Upcoming">Upcoming</option>
-                        <option value="Ongoing">Ongoing</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Eligible Departments */}
-                  <div className="form-group">
-                    <label className="form-label required">
-                      Eligible / Participating Departments ({form.departments.length} selected)
-                    </label>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
-                      {ALL_DEPARTMENTS.map((dept) => {
-                        const active = form.departments.includes(dept);
-                        return (
-                          <button
-                            key={dept}
-                            type="button"
-                            onClick={() => handleDepartmentToggle(dept)}
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '20px',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              border: active ? '1px solid #0b1d37' : '1px solid #cbd5e1',
-                              background: active ? '#0b1d37' : '#f8fafc',
-                              color: active ? '#ffffff' : '#475569',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            {active ? '✓ ' : ''}
-                            {dept}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Eligible Batches */}
-                  <div className="form-group">
-                    <label className="form-label">Target Batches</label>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
-                      {ALL_BATCHES.map((b) => {
-                        const active = form.eligibleBatches.includes(b);
-                        return (
-                          <button
-                            key={b}
-                            type="button"
-                            onClick={() => handleBatchToggle(b)}
-                            style={{
-                              padding: '5px 12px',
-                              borderRadius: '16px',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              border: active ? '1px solid #c59e51' : '1px solid #cbd5e1',
-                              background: active ? 'rgba(197, 158, 81, 0.15)' : '#f8fafc',
-                              color: active ? '#b45309' : '#475569',
-                            }}
-                          >
-                            {b}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="form-group">
-                    <label className="form-label">Event Description & Agenda</label>
-                    <textarea
-                      className="form-textarea"
-                      rows="3"
-                      placeholder="Outline topics covered, key takeaways, and requirements for attending students..."
-                      value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Auto-register option for new event */}
-                  {!editingEventId && (
+                    {/* Schedule / Duration Mode Toggle */}
                     <div
                       style={{
+                        marginBottom: '14px',
                         background: '#f8fafc',
+                        padding: '14px 16px',
+                        borderRadius: '12px',
                         border: '1px solid #e2e8f0',
-                        borderRadius: '10px',
-                        padding: '12px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
+                        width: '100%',
+                        boxSizing: 'border-box',
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        id="autoReg"
-                        checked={form.autoRegisterEligible}
-                        onChange={(e) => setForm({ ...form, autoRegisterEligible: e.target.checked })}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                      <label htmlFor="autoReg" style={{ fontSize: '0.85rem', color: '#1e293b', cursor: 'pointer', fontWeight: 500 }}>
-                        Auto-populate attendance roster with eligible students from selected departments
-                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0b1d37' }}>
+                          🗓️ Event Schedule & Duration Mode
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                          Select single session or multi-day program
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', width: '100%' }}>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, isMultiDay: false, scheduleType: 'Single Day' })}
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: '10px',
+                            border: !form.isMultiDay ? '2px solid #0b1d37' : '1px solid #cbd5e1',
+                            background: !form.isMultiDay ? '#ffffff' : '#f8fafc',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            boxShadow: !form.isMultiDay ? '0 2px 8px rgba(11,29,55,0.08)' : 'none',
+                          }}
+                        >
+                          <div style={{ fontWeight: 800, fontSize: '0.86rem', color: !form.isMultiDay ? '#0b1d37' : '#475569' }}>
+                            📅 Single Day Event
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '3px' }}>
+                            Conducted on a specific date & time slot
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            let end = form.endDate;
+                            if (!end && form.eventDate) {
+                              const d = new Date(form.eventDate);
+                              d.setDate(d.getDate() + 5);
+                              end = d.toISOString().split('T')[0];
+                            }
+                            setForm({
+                              ...form,
+                              isMultiDay: true,
+                              scheduleType: 'Multi-Day Training',
+                              endDate: end || '',
+                              durationDays: form.durationDays && form.durationDays > 1 ? form.durationDays : 6,
+                            });
+                          }}
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: '10px',
+                            border: form.isMultiDay ? '2px solid #c59e51' : '1px solid #cbd5e1',
+                            background: form.isMultiDay ? '#fffdfa' : '#f8fafc',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            boxShadow: form.isMultiDay ? '0 2px 8px rgba(197,158,81,0.18)' : 'none',
+                          }}
+                        >
+                          <div style={{ fontWeight: 800, fontSize: '0.86rem', color: form.isMultiDay ? '#b45309' : '#475569' }}>
+                            🗓️ Multi-Day / 1-Week Training Program
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '3px' }}>
+                            Spans multiple days with recurring daily timing
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* If Multi-Day, show quick preset buttons */}
+                      {form.isMultiDay && (
+                        <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569' }}>
+                              ⚡ Quick Duration Presets:
+                            </span>
+                            {form.durationDays && (
+                              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '6px' }}>
+                                Duration: {form.durationDays} Days ({form.durationDays >= 6 ? Math.round(form.durationDays / 6) + ' Wk' : form.durationDays + ' D'})
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {[
+                              { label: '⚡ 1 Week (6 Days Mon–Sat)', days: 6 },
+                              { label: '⚡ 5 Days (Mon–Fri)', days: 5 },
+                              { label: '⚡ 3 Days Workshop', days: 3 },
+                              { label: '⚡ 2 Weeks (12 Days)', days: 12 },
+                            ].map((preset) => (
+                              <button
+                                key={preset.days}
+                                type="button"
+                                onClick={() => {
+                                  const start = form.eventDate ? new Date(form.eventDate) : new Date();
+                                  const end = new Date(start);
+                                  end.setDate(end.getDate() + (preset.days - 1));
+                                  setForm({
+                                    ...form,
+                                    isMultiDay: true,
+                                    eventDate: form.eventDate || start.toISOString().split('T')[0],
+                                    endDate: end.toISOString().split('T')[0],
+                                    durationDays: preset.days,
+                                    scheduleType: preset.label.replace('⚡ ', ''),
+                                  });
+                                }}
+                                style={{
+                                  fontSize: '0.72rem',
+                                  padding: '5px 12px',
+                                  borderRadius: '6px',
+                                  border: form.durationDays === preset.days ? '1.5px solid #b45309' : '1px solid #cbd5e1',
+                                  background: form.durationDays === preset.days ? '#fef3c7' : '#ffffff',
+                                  color: form.durationDays === preset.days ? '#92400e' : '#334155',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Date Row (2 columns if multi-day, 1 column if single-day) */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: form.isMultiDay ? '1fr 1fr' : '1fr',
+                        gap: '14px',
+                        marginBottom: '14px',
+                        width: '100%',
+                      }}
+                    >
+                      <div className="form-group">
+                        <label className="form-label required">
+                          {form.isMultiDay ? 'Training Start Date' : 'Event Date'}
+                        </label>
+                        <input
+                          type="date"
+                          className="form-input"
+                          required
+                          value={form.eventDate}
+                          onChange={(e) => {
+                            const newStart = e.target.value;
+                            let newEnd = form.endDate;
+                            let dur = form.durationDays;
+                            if (form.isMultiDay && newStart) {
+                              if (dur && dur > 1) {
+                                const d = new Date(newStart);
+                                d.setDate(d.getDate() + (dur - 1));
+                                newEnd = d.toISOString().split('T')[0];
+                              } else if (newEnd && newEnd < newStart) {
+                                newEnd = newStart;
+                              }
+                            }
+                            setForm({ ...form, eventDate: newStart, endDate: newEnd });
+                          }}
+                        />
+                      </div>
+
+                      {form.isMultiDay && (
+                        <div className="form-group">
+                          <label className="form-label required">Training End Date</label>
+                          <input
+                            type="date"
+                            className="form-input"
+                            required={form.isMultiDay}
+                            value={form.endDate}
+                            min={form.eventDate}
+                            onChange={(e) => {
+                              const newEnd = e.target.value;
+                              let dur = form.durationDays;
+                              if (form.eventDate && newEnd) {
+                                const s = new Date(form.eventDate);
+                                const en = new Date(newEnd);
+                                dur = Math.max(1, Math.round((en - s) / (1000 * 60 * 60 * 24)) + 1);
+                              }
+                              setForm({ ...form, endDate: newEnd, durationDays: dur });
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Time Row (2 columns: Start Time & End Time) */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '14px',
+                        marginBottom: '14px',
+                        width: '100%',
+                      }}
+                    >
+                      <div className="form-group">
+                        <label className="form-label required">
+                          {form.isMultiDay ? 'Daily Session Start Time' : 'Start Time'}
+                        </label>
+                        <input
+                          className="form-input"
+                          required
+                          placeholder="09:30 AM"
+                          value={form.startTime}
+                          onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          {form.isMultiDay ? 'Daily Session End Time' : 'End Time'}
+                        </label>
+                        <input
+                          className="form-input"
+                          placeholder="04:30 PM"
+                          value={form.endTime}
+                          onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    {form.isMultiDay && (
+                      <div className="form-group" style={{ marginBottom: '14px', width: '100%' }}>
+                        <label className="form-label">Daily Timing / Routine Note</label>
+                        <input
+                          className="form-input"
+                          placeholder="e.g. Daily Sessions: 09:30 AM – 04:30 PM (Lunch break: 12:45 – 01:45 PM)"
+                          value={form.dailyTimingNote}
+                          onChange={(e) => setForm({ ...form, dailyTimingNote: e.target.value })}
+                        />
+                      </div>
+                    )}
+
+                    {/* Venue & Capacity Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '14px', width: '100%' }}>
+                      <div className="form-group">
+                        <label className="form-label required">Venue / Room / Platform</label>
+                        <input
+                          className="form-input"
+                          required
+                          placeholder="e.g. Main Auditorium / CSE Lab 3 / Online Google Meet"
+                          value={form.venue}
+                          onChange={(e) => setForm({ ...form, venue: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Max Seat Capacity</label>
+                        <input
+                          type="number"
+                          className="form-input"
+                          placeholder="150"
+                          value={form.maxParticipants}
+                          onChange={(e) => setForm({ ...form, maxParticipants: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* --- Section 2: Resource Person Details --- */}
+                  <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '14px' }}>
+                    <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--accent-start, #0b1d37)', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>👤</span> Resource Person / Trainer / Chief Guest Details
+                    </h4>
+
+                    {/* Name & Designation */}
+                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                      <div className="form-group">
+                        <label className="form-label required">Resource Person Name</label>
+                        <input
+                          className="form-input"
+                          required
+                          placeholder="e.g. Dr. K. Senthil Nathan / Mr. Rajesh Kumar"
+                          value={form.chiefGuest}
+                          onChange={(e) => setForm({ ...form, chiefGuest: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Designation / Role</label>
+                        <input
+                          className="form-input"
+                          placeholder="e.g. Principal Cloud Architect / Master Placement Trainer"
+                          value={form.chiefGuestDesignation}
+                          onChange={(e) => setForm({ ...form, chiefGuestDesignation: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Organization & LinkedIn */}
+                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                      <div className="form-group">
+                        <label className="form-label">Company / Organization</label>
+                        <input
+                          className="form-input"
+                          placeholder="e.g. Amazon Web Services / Zoho Corp / Cognizant"
+                          value={form.chiefGuestCompany}
+                          onChange={(e) => setForm({ ...form, chiefGuestCompany: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">LinkedIn Profile URL</label>
+                        <input
+                          className="form-input"
+                          placeholder="https://linkedin.com/in/username"
+                          value={form.chiefGuestLinkedin}
+                          onChange={(e) => setForm({ ...form, chiefGuestLinkedin: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Email & Phone */}
+                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                      <div className="form-group">
+                        <label className="form-label">Contact Email</label>
+                        <input
+                          type="email"
+                          className="form-input"
+                          placeholder="e.g. trainer@organization.com"
+                          value={form.chiefGuestEmail}
+                          onChange={(e) => setForm({ ...form, chiefGuestEmail: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Contact Phone / WhatsApp</label>
+                        <input
+                          className="form-input"
+                          placeholder="+91 98765 43210"
+                          value={form.chiefGuestPhone}
+                          onChange={(e) => setForm({ ...form, chiefGuestPhone: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bio / Expertise */}
+                    <div className="form-group">
+                      <label className="form-label">Resource Person Profile & Key Credentials</label>
+                      <textarea
+                        className="form-textarea"
+                        rows="2"
+                        placeholder="Brief summary of experience, notable achievements, company background..."
+                        value={form.chiefGuestBio}
+                        onChange={(e) => setForm({ ...form, chiefGuestBio: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* --- Section 3: Eligibility & Requirements --- */}
+                  <div>
+                    <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--accent-start, #0b1d37)', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🎓</span> Eligibility & Training Syllabus
+                    </h4>
+
+                    {/* Eligible Departments */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label required">
+                        Eligible Departments ({form.departments.length} selected)
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        {ALL_DEPARTMENTS.map((dept) => {
+                          const active = form.departments.includes(dept);
+                          return (
+                            <button
+                              key={dept}
+                              type="button"
+                              onClick={() => handleDepartmentToggle(dept)}
+                              style={{
+                                padding: '5px 12px',
+                                borderRadius: '18px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                border: active ? '1px solid #0b1d37' : '1px solid #cbd5e1',
+                                background: active ? '#0b1d37' : '#f8fafc',
+                                color: active ? '#ffffff' : '#475569',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              {active ? '✓ ' : ''}
+                              {dept}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Eligible Batches */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label">Target Batches</label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        {ALL_BATCHES.map((b) => {
+                          const active = form.eligibleBatches.includes(b);
+                          return (
+                            <button
+                              key={b}
+                              type="button"
+                              onClick={() => handleBatchToggle(b)}
+                              style={{
+                                padding: '5px 12px',
+                                borderRadius: '16px',
+                                fontSize: '0.78rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                border: active ? '1px solid #c59e51' : '1px solid #cbd5e1',
+                                background: active ? 'rgba(197, 158, 81, 0.15)' : '#f8fafc',
+                                color: active ? '#b45309' : '#475569',
+                              }}
+                            >
+                              {b}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Pre-requisites */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label">Pre-requisites / Student Requirements</label>
+                      <input
+                        className="form-input"
+                        placeholder="e.g. Bring personal laptop with Node.js and VS Code installed, basic SQL knowledge"
+                        value={form.prerequisites}
+                        onChange={(e) => setForm({ ...form, prerequisites: e.target.value })}
+                      />
+                    </div>
+
+                    {/* Description / Agenda */}
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label className="form-label">Detailed Agenda & Takeaways</label>
+                      <textarea
+                        className="form-textarea"
+                        rows="3"
+                        placeholder="Outline modules covered, hands-on activities, interview preparation topics..."
+                        value={form.description}
+                        onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      />
+                    </div>
+
+                    {/* Auto-register option for new event */}
+                    {!editingEventId && (
+                      <div
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '10px',
+                          padding: '12px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          id="autoReg"
+                          checked={form.autoRegisterEligible}
+                          onChange={(e) => setForm({ ...form, autoRegisterEligible: e.target.checked })}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <label htmlFor="autoReg" style={{ fontSize: '0.85rem', color: '#1e293b', cursor: 'pointer', fontWeight: 500 }}>
+                          Auto-populate attendance roster with eligible students from selected departments
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-footer">
@@ -996,7 +1434,7 @@ const EventsPage = () => {
                     Cancel
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={savingEvent}>
-                    {savingEvent ? 'Saving...' : editingEventId ? 'Update Event' : 'Create Event'}
+                    {savingEvent ? 'Saving...' : editingEventId ? 'Update Event / Training' : 'Create Event / Training'}
                   </button>
                 </div>
               </form>
@@ -1026,8 +1464,10 @@ const EventsPage = () => {
                       <span><strong>Venue:</strong> {activeEvent.venue}</span>
                       <span>•</span>
                       <span>
-                        <strong>Date:</strong>{' '}
-                        {activeEvent.eventDate ? new Date(activeEvent.eventDate).toLocaleDateString('en-IN') : '-'}
+                        <strong>Date / Schedule:</strong>{' '}
+                        {activeEvent.isMultiDay && activeEvent.endDate
+                          ? `${new Date(activeEvent.eventDate).toLocaleDateString('en-IN')} – ${new Date(activeEvent.endDate).toLocaleDateString('en-IN')} (${activeEvent.durationDays || 'Multi'} Days Program • Daily: ${activeEvent.startTime})`
+                          : `${activeEvent.eventDate ? new Date(activeEvent.eventDate).toLocaleDateString('en-IN') : '-'} (${activeEvent.startTime})`}
                       </span>
                     </div>
                   </div>

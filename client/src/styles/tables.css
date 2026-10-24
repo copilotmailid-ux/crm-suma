@@ -410,18 +410,46 @@
 }
 
 @media (max-width: 768px) {
-  .table-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-box {
-    min-width: 100%;
-  }
-
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+  }
+
+  .page-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .page-header-actions button,
+  .page-header-actions .btn {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toolbar-left select,
+  .toolbar-right select {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .search-box {
+    width: 100%;
+    min-width: 100%;
   }
 
   .pagination {
@@ -430,3 +458,4 @@
     text-align: center;
   }
 }
+

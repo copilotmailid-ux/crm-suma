@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import {
   HiOutlineX,
   HiOutlineBriefcase,
-  HiOutlineCheckCircle,
   HiOutlineXCircle,
   HiOutlineClock,
   HiOutlineUpload,
@@ -11,17 +10,13 @@ import {
   HiOutlineDownload,
   HiOutlineTrash,
   HiOutlineSearch,
-  HiOutlineFilter,
   HiOutlineDocumentText,
   HiOutlineOfficeBuilding,
   HiOutlineAcademicCap,
   HiOutlineSparkles,
-  HiOutlineMail,
-  HiOutlinePhone,
   HiOutlineArrowRight,
   HiOutlineExternalLink,
   HiOutlinePrinter,
-  HiOutlineCheck,
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import {
@@ -106,12 +101,76 @@ const StudentDetailModal = ({
   // Derived counts & stats
   const totalDrives = drives.length;
   const placedDrives = useMemo(() => drives.filter((d) => d.isPlaced), [drives]);
-  const isStudentPlaced = studentData.status === 'placed' || placedDrives.length > 0;
   const eliminatedDrives = useMemo(() => drives.filter((d) => d.isEliminated), [drives]);
   const inProgressDrives = useMemo(
     () => drives.filter((d) => !d.isPlaced && !d.isEliminated && d.highestRoundNumber > 0),
     [drives]
   );
+
+  const allOffers = useMemo(() => {
+    const list = [...placedDrives];
+    (placements || []).forEach((p) => {
+      const compId = p.companyId?._id?.toString() || p.companyId?.toString();
+      const compName = p.companyId?.name || (typeof p.companyId === 'string' ? p.companyId : 'Company Offer');
+      const alreadyIncluded = list.some(
+        (d) =>
+          d._id?.toString() === p._id?.toString() ||
+          d.finalSelectedInfo?.placementId?.toString() === p._id?.toString() ||
+          (compId && (d.company?._id?.toString() === compId || d.companyId?.toString() === compId)) ||
+          d.companyName?.toLowerCase() === compName.toLowerCase()
+      );
+      if (!alreadyIncluded) {
+        list.push({
+          _id: p._id,
+          companyName: compName,
+          company: p.companyId,
+          role: p.role || 'Software Engineer',
+          package: p.package || 12,
+          isPlaced: true,
+          finalSelectedInfo: {
+            role: p.role,
+            package: p.package,
+            placementDate: p.placementDate,
+            placementId: p._id,
+          },
+          offerType: (p.driveType === 'external_off_campus' || p.offerType === 'off_campus')
+            ? 'External Drive'
+            : 'On-Campus Drive',
+          driveDetails: (p.driveType === 'external_off_campus' || p.offerType === 'off_campus') ? '' : (p.driveDetails || ''),
+          offerLetter: p.offerLetterUrl
+            ? {
+                url: p.offerLetterUrl,
+                name: p.offerLetterName || `${compName}_Offer_Letter.pdf`,
+                uploadedAt: p.offerLetterUploadedAt || p.placementDate,
+              }
+            : studentData.offerLetterUrl
+            ? {
+                url: studentData.offerLetterUrl,
+                name: studentData.offerLetterName || `${compName}_Offer_Letter.pdf`,
+                uploadedAt: studentData.offerLetterUploadedAt,
+              }
+            : null,
+        });
+      }
+    });
+    return list;
+  }, [placedDrives, placements, studentData]);
+
+  const isStudentPlaced = useMemo(() => {
+    return allOffers.length > 0 || (studentData.status === 'placed' && studentData.placementId);
+  }, [allOffers, studentData]);
+
+  const placedOffersCount = useMemo(() => {
+    return allOffers.length;
+  }, [allOffers]);
+
+  const displayAttendedCount = useMemo(() => {
+    // Total attended = campus drives + any external placements not already in drives
+    const offCampusPlacements = (placements || []).filter(
+      (p) => !drives.some((d) => d._id?.toString() === p.driveId?.toString() || (p.companyId?._id && d.companyId?._id?.toString() === p.companyId._id.toString()))
+    );
+    return totalDrives + offCampusPlacements.length;
+  }, [totalDrives, placements, drives]);
 
   const highestPackage = useMemo(() => {
     if (placements && placements.length > 0) {
@@ -353,7 +412,7 @@ const StudentDetailModal = ({
             >
               <HiOutlineBriefcase style={{ fontSize: '1.15rem' }} />
               <span>Attended Drives</span>
-              <span className="sd-tab-badge">{totalDrives} Drives</span>
+              <span className="sd-tab-badge">{displayAttendedCount} Drives</span>
             </button>
 
             <button
@@ -363,7 +422,7 @@ const StudentDetailModal = ({
             >
               <HiOutlineSparkles style={{ fontSize: '1.15rem' }} />
               <span>Final Placed & Offers</span>
-              <span className="sd-tab-badge">{placedDrives.length}</span>
+              <span className="sd-tab-badge">{placedOffersCount}</span>
             </button>
 
             <button
@@ -419,7 +478,7 @@ const StudentDetailModal = ({
               {/* Quick Stat Badges Row (matching CompanyDriveModal lines 1475-1520) */}
               <div className="sd-stats-strip">
                 <div className="sd-stat-card">
-                  <div className="sd-stat-number">{totalDrives}</div>
+                  <div className="sd-stat-number">{displayAttendedCount}</div>
                   <div className="sd-stat-title">ATTENDED DRIVES</div>
                 </div>
                 <div className="sd-stat-card blue">
@@ -427,7 +486,7 @@ const StudentDetailModal = ({
                   <div className="sd-stat-title">ACTIVE ROUNDS</div>
                 </div>
                 <div className="sd-stat-card green">
-                  <div className="sd-stat-number">{placedDrives.length}</div>
+                  <div className="sd-stat-number">{placedOffersCount}</div>
                   <div className="sd-stat-title">PLACEMENT OFFERS</div>
                 </div>
                 <div className="sd-stat-card red">
@@ -450,7 +509,7 @@ const StudentDetailModal = ({
 
                 <div className="sd-filter-group">
                   {[
-                    { id: 'all', label: `All (${totalDrives})` },
+                    { id: 'all', label: `All (${drives.length})` },
                     { id: 'placed', label: `Placed (${placedDrives.length})` },
                     { id: 'in_progress', label: `In Progress (${inProgressDrives.length})` },
                     { id: 'eliminated', label: `Eliminated (${eliminatedDrives.length})` },
@@ -646,8 +705,8 @@ const StudentDetailModal = ({
 
                         {/* Drive Rounds */}
                         {(d.rounds || []).map((round, rIdx) => {
-                          const isCleared = round.candidateStatus === 'selected';
-                          const isInProg = round.candidateStatus === 'pending' || round.candidateStatus === 'shortlisted';
+                          const isCleared = round.candidateStatus === 'selected' || round.candidateStatus === 'shortlisted';
+                          const isInProg = round.candidateStatus === 'pending';
                           const isElim = round.candidateStatus === 'eliminated';
 
                           const cardClass = isCleared
@@ -979,7 +1038,7 @@ const StudentDetailModal = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {placedDrives.length === 0 && placements.length === 0 ? (
+                      {allOffers.length === 0 ? (
                         <tr>
                           <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
                             No offer records available.
@@ -987,7 +1046,7 @@ const StudentDetailModal = ({
                         </tr>
                       ) : (
                         // Combine drive placed records & placement documents
-                        placedDrives.map((d, idx) => {
+                        allOffers.map((d, idx) => {
                           const ol = d.offerLetter;
                           return (
                             <tr key={d._id || idx}>
@@ -1012,7 +1071,24 @@ const StudentDetailModal = ({
                                 </span>
                               </td>
                               <td>
-                                <span className="badge badge-info">On-Campus Drive</span>
+                                <span
+                                  className={`badge ${
+                                    (d.offerType || '').includes('External') || (d.offerType || '').includes('Off-Campus')
+                                      ? 'badge-warning'
+                                      : (d.offerType || '').includes('Pool') || (d.offerType || '').includes('Inter-College')
+                                      ? 'badge-purple'
+                                      : (d.offerType || '').includes('Walk-in') || (d.offerType || '').includes('Fair')
+                                      ? 'badge-primary'
+                                      : 'badge-info'
+                                  }`}
+                                >
+                                  {d.offerType || 'On-Campus Drive'}
+                                </span>
+                                {d.driveDetails && (
+                                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                                    {d.driveDetails}
+                                  </div>
+                                )}
                               </td>
                               <td>
                                 {d.finalSelectedInfo?.placementDate

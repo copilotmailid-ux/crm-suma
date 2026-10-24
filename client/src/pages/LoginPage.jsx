@@ -67,38 +67,7 @@ const LoginPage = () => {
   return (
     <div className="auth-page">
       {/* Back to Home Button */}
-      <Link
-        to="/"
-        style={{
-          position: 'absolute',
-          top: '24px',
-          left: '24px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '10px 18px',
-          borderRadius: '12px',
-          background: 'rgba(11, 29, 55, 0.65)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          color: '#ffffff',
-          fontSize: '0.85rem',
-          fontWeight: 700,
-          textDecoration: 'none',
-          zIndex: 10,
-          transition: 'all 0.2s ease',
-          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.25)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(11, 29, 55, 0.9)';
-          e.currentTarget.style.transform = 'translateX(-3px)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(11, 29, 55, 0.65)';
-          e.currentTarget.style.transform = 'translateX(0)';
-        }}
-      >
+      <Link to="/" className="auth-back-btn">
         <HiOutlineArrowLeft style={{ fontSize: '1.1rem' }} />
         <span>Back to Portal Home</span>
       </Link>

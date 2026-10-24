@@ -72,7 +72,18 @@ const createEvent = async (req, res, next) => {
       chiefGuest,
       chiefGuestDesignation,
       chiefGuestCompany,
+      chiefGuestEmail,
+      chiefGuestPhone,
+      chiefGuestBio,
+      chiefGuestLinkedin,
+      prerequisites,
+      registrationDeadline,
       eventDate,
+      endDate,
+      isMultiDay,
+      durationDays,
+      scheduleType,
+      dailyTimingNote,
       startTime,
       endTime,
       venue,
@@ -85,18 +96,36 @@ const createEvent = async (req, res, next) => {
       autoRegisterEligible,
     } = req.body;
 
+    const parsedEventDate = eventDate ? new Date(eventDate) : new Date();
+    const parsedEndDate = endDate ? new Date(endDate) : null;
+    const computedIsMultiDay = Boolean(isMultiDay || (parsedEndDate && parsedEndDate > parsedEventDate));
+    const computedDurationDays = computedIsMultiDay && parsedEndDate
+      ? Math.max(1, Math.round((parsedEndDate - parsedEventDate) / (1000 * 60 * 60 * 24)) + 1)
+      : (durationDays ? Number(durationDays) : 1);
+
     const newEvent = new PlacementEvent({
       title,
       chiefGuest,
       chiefGuestDesignation,
       chiefGuestCompany,
-      eventDate,
+      chiefGuestEmail: chiefGuestEmail || '',
+      chiefGuestPhone: chiefGuestPhone || '',
+      chiefGuestBio: chiefGuestBio || '',
+      chiefGuestLinkedin: chiefGuestLinkedin || '',
+      prerequisites: prerequisites || '',
+      registrationDeadline: registrationDeadline || null,
+      eventDate: parsedEventDate,
+      endDate: parsedEndDate,
+      isMultiDay: computedIsMultiDay,
+      durationDays: computedDurationDays,
+      scheduleType: scheduleType || (computedIsMultiDay ? 'Multi-Day' : 'Single Day'),
+      dailyTimingNote: dailyTimingNote || '',
       startTime: startTime || '10:00 AM',
       endTime: endTime || '01:00 PM',
       venue,
       departments: departments && departments.length ? departments : ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'],
       eligibleBatches: eligibleBatches && eligibleBatches.length ? eligibleBatches : ['2022-2026', '2023-2027'],
-      eventType: eventType || 'Guest Lecture',
+      eventType: eventType || 'Training',
       status: status || 'Upcoming',
       description: description || '',
       maxParticipants: maxParticipants ? Number(maxParticipants) : 200,
@@ -147,7 +176,18 @@ const updateEvent = async (req, res, next) => {
       chiefGuest,
       chiefGuestDesignation,
       chiefGuestCompany,
+      chiefGuestEmail,
+      chiefGuestPhone,
+      chiefGuestBio,
+      chiefGuestLinkedin,
+      prerequisites,
+      registrationDeadline,
       eventDate,
+      endDate,
+      isMultiDay,
+      durationDays,
+      scheduleType,
+      dailyTimingNote,
       startTime,
       endTime,
       venue,
@@ -163,7 +203,26 @@ const updateEvent = async (req, res, next) => {
     if (chiefGuest !== undefined) event.chiefGuest = chiefGuest;
     if (chiefGuestDesignation !== undefined) event.chiefGuestDesignation = chiefGuestDesignation;
     if (chiefGuestCompany !== undefined) event.chiefGuestCompany = chiefGuestCompany;
+    if (chiefGuestEmail !== undefined) event.chiefGuestEmail = chiefGuestEmail;
+    if (chiefGuestPhone !== undefined) event.chiefGuestPhone = chiefGuestPhone;
+    if (chiefGuestBio !== undefined) event.chiefGuestBio = chiefGuestBio;
+    if (chiefGuestLinkedin !== undefined) event.chiefGuestLinkedin = chiefGuestLinkedin;
+    if (prerequisites !== undefined) event.prerequisites = prerequisites;
+    if (registrationDeadline !== undefined) event.registrationDeadline = registrationDeadline;
     if (eventDate !== undefined) event.eventDate = eventDate;
+    if (endDate !== undefined) event.endDate = endDate || null;
+    if (isMultiDay !== undefined) {
+      event.isMultiDay = isMultiDay;
+    } else if (endDate !== undefined) {
+      event.isMultiDay = Boolean(endDate && new Date(endDate) > new Date(event.eventDate));
+    }
+    if (durationDays !== undefined) {
+      event.durationDays = Number(durationDays);
+    } else if (event.endDate && event.eventDate) {
+      event.durationDays = Math.max(1, Math.round((new Date(event.endDate) - new Date(event.eventDate)) / (1000 * 60 * 60 * 24)) + 1);
+    }
+    if (scheduleType !== undefined) event.scheduleType = scheduleType;
+    if (dailyTimingNote !== undefined) event.dailyTimingNote = dailyTimingNote;
     if (startTime !== undefined) event.startTime = startTime;
     if (endTime !== undefined) event.endTime = endTime;
     if (venue !== undefined) event.venue = venue;
@@ -404,6 +463,113 @@ const removeStudentFromAttendance = async (req, res, next) => {
   }
 };
 
+// @desc    Register current student for an event/training
+// @route   POST /api/events/:id/register
+// @access  Private (Student)
+const registerForEvent = async (req, res, next) => {
+  try {
+    const student = req.student || req.user;
+    if (!student) {
+      return res.status(401).json({ success: false, message: 'Please log in as a student to register' });
+    }
+
+    const event = await PlacementEvent.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    if (event.status === 'Cancelled') {
+      return res.status(400).json({ success: false, message: 'This event has been cancelled' });
+    }
+
+    if (event.registrationDeadline && new Date() > new Date(event.registrationDeadline)) {
+      return res.status(400).json({ success: false, message: 'Registration deadline for this training has passed' });
+    }
+
+    const existingIndex = event.attendance.findIndex(
+      (a) =>
+        (a.studentId && a.studentId.toString() === student._id.toString()) ||
+        a.rollNumber.toUpperCase() === student.rollNumber.toUpperCase()
+    );
+
+    if (existingIndex !== -1) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already registered for this event',
+        data: event,
+      });
+    }
+
+    if (event.maxParticipants && event.attendance.length >= event.maxParticipants) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration full. Maximum participants reached.',
+      });
+    }
+
+    event.attendance.push({
+      studentId: student._id,
+      studentName: student.name,
+      rollNumber: student.rollNumber.toUpperCase(),
+      department: (student.department || 'CSE').toUpperCase(),
+      batch: student.batch || '2022-2026',
+      status: 'Registered',
+      markedAt: null,
+      remarks: 'Self-registered via Student Portal',
+    });
+
+    await event.save();
+
+    res.json({
+      success: true,
+      message: `Successfully registered for ${event.title}`,
+      data: event,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Unregister current student from an event/training
+// @route   DELETE /api/events/:id/register
+// @access  Private (Student)
+const unregisterFromEvent = async (req, res, next) => {
+  try {
+    const student = req.student || req.user;
+    if (!student) {
+      return res.status(401).json({ success: false, message: 'Please log in as a student' });
+    }
+
+    const event = await PlacementEvent.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    const initialLen = event.attendance.length;
+    event.attendance = event.attendance.filter(
+      (a) =>
+        !(
+          (a.studentId && a.studentId.toString() === student._id.toString()) ||
+          a.rollNumber.toUpperCase() === student.rollNumber.toUpperCase()
+        )
+    );
+
+    if (event.attendance.length === initialLen) {
+      return res.status(400).json({ success: false, message: 'You are not registered for this event' });
+    }
+
+    await event.save();
+
+    res.json({
+      success: true,
+      message: `Successfully unregistered from ${event.title}`,
+      data: event,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getEvents,
   getEventById,
@@ -415,4 +581,6 @@ module.exports = {
   bulkUpdateAttendance,
   autoRegisterStudents,
   removeStudentFromAttendance,
+  registerForEvent,
+  unregisterFromEvent,
 };

@@ -335,10 +335,21 @@
 
   .topbar-container {
     padding: 0 var(--space-sm);
+    gap: 8px;
+  }
+
+  .topbar-left {
+    min-width: 0;
+    flex: 1;
+    gap: 8px;
+    overflow: hidden;
   }
 
   .page-title {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

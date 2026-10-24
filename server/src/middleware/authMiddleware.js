@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
+const Student = require('../models/Student');
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -20,9 +21,17 @@ const authMiddleware = async (req, res, next) => {
     req.admin = await Admin.findById(decoded.id);
 
     if (!req.admin) {
-      return res.status(401).json({ message: 'Not authorized, admin not found' });
+      req.student = await Student.findById(decoded.id);
+      if (req.student) {
+        req.user = req.student;
+        req.userRole = 'student';
+        return next();
+      }
+      return res.status(401).json({ message: 'Not authorized, user not found' });
     }
 
+    req.user = req.admin;
+    req.userRole = 'admin';
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized, token invalid' });

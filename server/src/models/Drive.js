@@ -22,6 +22,10 @@ const driveSchema = new mongoose.Schema(
       required: [true, 'Job role is required'],
       trim: true,
     },
+    roles: {
+      type: [String],
+      default: [],
+    },
     package: {
       type: Number,
       required: [true, 'Salary package (LPA) is required'],
@@ -31,6 +35,11 @@ const driveSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: 'Pan India / Hybrid',
+    },
+    visitNumber: {
+      type: Number,
+      default: 1,
+      min: 1,
     },
     eligibleDepartments: {
       type: [String],
@@ -94,6 +103,18 @@ const driveSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Student',
+      },
+    ],
+    registeredRolePreferences: [
+      {
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Student',
+        },
+        preferredRole: {
+          type: String,
+          default: '',
+        },
       },
     ],
     currentRound: {

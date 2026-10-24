@@ -69,9 +69,59 @@ const eventSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    chiefGuestEmail: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    chiefGuestPhone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    chiefGuestBio: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    chiefGuestLinkedin: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    prerequisites: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    registrationDeadline: {
+      type: Date,
+      default: null,
+    },
     eventDate: {
       type: Date,
       required: [true, 'Event date is required'],
+    },
+    endDate: {
+      type: Date,
+      default: null,
+    },
+    isMultiDay: {
+      type: Boolean,
+      default: false,
+    },
+    durationDays: {
+      type: Number,
+      default: 1,
+    },
+    scheduleType: {
+      type: String,
+      default: 'Single Day', // 'Single Day' | '1 Week (6 Days)' | 'Multi-Day' | '2 Weeks'
+    },
+    dailyTimingNote: {
+      type: String,
+      trim: true,
+      default: '', // e.g. "Daily Sessions: 09:30 AM – 04:30 PM"
     },
     startTime: {
       type: String,
@@ -100,8 +150,21 @@ const eventSchema = new mongoose.Schema(
     },
     eventType: {
       type: String,
-      enum: ['Workshop', 'Guest Lecture', 'Bootcamp', 'Seminar', 'Mock Interview Drive', 'Hackathon', 'Webinar', 'Orientation'],
-      default: 'Guest Lecture',
+      enum: [
+        'Training',
+        'Technical Training',
+        'Aptitude Training',
+        'Soft Skills Training',
+        'Workshop',
+        'Guest Lecture',
+        'Bootcamp',
+        'Seminar',
+        'Mock Interview Drive',
+        'Hackathon',
+        'Webinar',
+        'Orientation',
+      ],
+      default: 'Training',
     },
     status: {
       type: String,

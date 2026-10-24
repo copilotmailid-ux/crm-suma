@@ -18,8 +18,10 @@ import {
   HiOutlineOfficeBuilding,
   HiOutlineBookOpen,
   HiOutlineArrowRight,
-  HiOutlineTrendingUp,
   HiOutlineSparkles,
+  HiOutlineSwitchHorizontal,
+  HiOutlineArrowDown,
+  HiOutlineLocationMarker,
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import Loader from '../components/common/Loader';
@@ -34,6 +36,7 @@ import {
   resetDefaultTimeTable,
   getWorkloadAnalytics,
 } from '../api/facultyApi';
+import { getEvents } from '../api/eventApi';
 import '../styles/facultyTimetable.css';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -113,7 +116,7 @@ const QUICK_TOPICS = [
 const FacultyTimetablePage = ({ initialTab = null }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
 
   const getResolvedTab = useCallback(() => {
@@ -136,6 +139,11 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
   const [faculties, setFaculties] = useState([]);
   const [workloads, setWorkloads] = useState([]);
   const [dayTotals, setDayTotals] = useState({});
+  const [events, setEvents] = useState([]);
+
+  // Dashboard Events Filters
+  const [dashboardEventCategory, setDashboardEventCategory] = useState('all');
+  const [dashboardEventSearch, setDashboardEventSearch] = useState('');
 
   // Filters
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('ALL');
@@ -180,19 +188,36 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
     color: '#0284c7',
   });
 
+  // Interactive Reassign / Change Staff Modal State
+  const [reassignModal, setReassignModal] = useState({
+    isOpen: false,
+    mode: 'REASSIGN_FROM_OTHER_CLASS', // 'REASSIGN_FROM_OTHER_CLASS' | 'REPLACE_CLASS_STAFF'
+    faculty: null,
+    conflictSlot: null,
+    day: '',
+    period: null,
+    targetClass: '',
+    targetDept: '',
+    targetYear: '',
+    existingStaffName: '',
+    pendingPayload: null,
+  });
+
   // Fetch data (isInitial = true only on initial component mount)
   const fetchData = useCallback(async (isInitial = false) => {
     if (isInitial) setInitialLoading(true);
     try {
-      const [facRes, ttRes, wlRes] = await Promise.all([
+      const [facRes, ttRes, wlRes, evRes] = await Promise.all([
         getFaculties(),
         getTimeTable(),
         getWorkloadAnalytics(),
+        getEvents().catch(() => ({ data: [] })),
       ]);
       setFaculties(facRes.data || []);
       setSlots(ttRes.data || []);
       setWorkloads(wlRes.data?.workloads || []);
       setDayTotals(wlRes.data?.totalDayPeriods || {});
+      setEvents(evRes.data || []);
     } catch {
       toast.error('Failed to load Faculty & Time Table data');
     } finally {
@@ -204,10 +229,75 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
     fetchData(true);
   }, [fetchData]);
 
-  // Lookup helper for slot at [day, period]
-  const getSlotAt = useCallback(
+  // Overall event & training statistics for dashboard
+  const eventStats = useMemo(() => {
+    const total = events.length;
+    const upcoming = events.filter((e) => e.status === 'Upcoming' || e.status === 'Ongoing').length;
+    let totalRegistered = 0;
+    let totalPresent = 0;
+    events.forEach((e) => {
+      if (e.attendance) {
+        totalRegistered += e.attendance.length;
+        totalPresent += e.attendance.filter((a) => a.status === 'Present').length;
+      }
+    });
+    const attendanceRate = totalRegistered > 0 ? Math.round((totalPresent / totalRegistered) * 100) : 0;
+    return { total, upcoming, totalRegistered, totalPresent, attendanceRate };
+  }, [events]);
+
+  // Helper color style for event types
+  const getDashboardEventTypeStyle = (type) => {
+    switch (type) {
+      case 'Training':
+      case 'Technical Training':
+        return { background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' };
+      case 'Aptitude Training':
+        return { background: '#fefce8', color: '#ca8a04', border: '1px solid #fef08a' };
+      case 'Soft Skills Training':
+        return { background: '#faf5ff', color: '#a855f7', border: '1px solid #e9d5ff' };
+      case 'Workshop':
+        return { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' };
+      case 'Guest Lecture':
+        return { background: '#fdf4ff', color: '#9333ea', border: '1px solid #f0abfc' };
+      case 'Bootcamp':
+        return { background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' };
+      case 'Seminar':
+        return { background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' };
+      case 'Mock Interview Drive':
+        return { background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3' };
+      default:
+        return { background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' };
+    }
+  };
+
+  // Filtered Events for Dashboard
+  const filteredDashboardEvents = useMemo(() => {
+    return events.filter((evt) => {
+      const matchSearch =
+        !dashboardEventSearch ||
+        evt.title?.toLowerCase().includes(dashboardEventSearch.toLowerCase()) ||
+        evt.chiefGuest?.toLowerCase().includes(dashboardEventSearch.toLowerCase()) ||
+        evt.chiefGuestCompany?.toLowerCase().includes(dashboardEventSearch.toLowerCase()) ||
+        evt.venue?.toLowerCase().includes(dashboardEventSearch.toLowerCase());
+
+      const matchCat =
+        dashboardEventCategory === 'all' ||
+        evt.eventType === dashboardEventCategory ||
+        (dashboardEventCategory === 'Training' && evt.eventType?.toLowerCase().includes('training'));
+
+      return matchSearch && matchCat;
+    });
+  }, [events, dashboardEventSearch, dashboardEventCategory]);
+
+  // Display only 1 row on the dashboard (top 3 events), use "View Full Roster" for full data
+  const oneRowDashboardEvents = useMemo(() => {
+    return filteredDashboardEvents.slice(0, 3);
+  }, [filteredDashboardEvents]);
+
+  // Return ALL slots for a given [day, period]
+  const getSlotsAt = useCallback(
     (day, period) => {
-      return slots.find((s) => s.day === day && s.period === period);
+      return slots.filter((s) => s.day === day && s.period === period && s.className);
     },
     [slots]
   );
@@ -235,47 +325,21 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
     [selectedYearFilter, selectedDeptFilter, selectedFacultyFilter]
   );
 
-  // Return the slot only if it matches current filter; otherwise null (so other years are completely hidden, not low opacity!)
-  const getVisibleSlotAt = useCallback(
+  // Return ALL matching visible slots at [day, period] (for ALL departments or filtered department)
+  const getVisibleSlotsAt = useCallback(
     (day, period) => {
-      const slot = getSlotAt(day, period);
-      if (!slot || !slot.className) return null;
-      if (isSlotMatchingFilter(slot)) {
-        return slot;
-      }
-      return null;
+      const cellSlots = getSlotsAt(day, period);
+      return cellSlots.filter((slot) => isSlotMatchingFilter(slot));
     },
-    [getSlotAt, isSlotMatchingFilter]
+    [getSlotsAt, isSlotMatchingFilter]
   );
 
-  // Helper: check if this period is the start of a continuous block with the same faculty
-  const getContinuousBlockSpan = useCallback(
+  // Lookup first slot at [day, period]
+  const getSlotAt = useCallback(
     (day, period) => {
-      const slot = getVisibleSlotAt(day, period);
-      // Empty slot is always single period
-      if (!slot || !slot.className || !slot.facultyName) return 1;
-
-      // If preceded by a visible slot with the exact same class and faculty on the same day, this period is covered
-      if (period > 1) {
-        const prev = getVisibleSlotAt(day, period - 1);
-        if (prev && prev.className === slot.className && prev.facultyName === slot.facultyName) {
-          return 0; // Covered by earlier starting period!
-        }
-      }
-
-      // This is the start of a continuous block! Count how many consecutive periods share the same class & faculty
-      let count = 1;
-      for (let p = period + 1; p <= 7; p++) {
-        const next = getVisibleSlotAt(day, p);
-        if (next && next.className === slot.className && next.facultyName === slot.facultyName) {
-          count++;
-        } else {
-          break;
-        }
-      }
-      return count;
+      return slots.find((s) => s.day === day && s.period === period);
     },
-    [getVisibleSlotAt]
+    [slots]
   );
 
   // Dynamic Sheet Title based on selected Year & Dept filters
@@ -294,158 +358,209 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
     return `Placement Class Time Table – ${yearText}${deptText}`;
   }, [selectedYearFilter, selectedDeptFilter]);
 
-  // Cell Click / Touch to Edit
-  const handleCellClick = (day, period) => {
-    // In filtered view, if there is a visible slot for this year/dept, edit it; otherwise create new slot for selected year/dept
-    const existing = getVisibleSlotAt(day, period);
-
-    // Find adjacent periods on this day that share the exact same class and faculty
-    let activePeriods = [period];
-    if (existing && existing.className) {
-      for (let p = period - 1; p >= 1; p--) {
-        const s = getVisibleSlotAt(day, p);
-        if (s && s.className === existing.className && s.facultyName === existing.facultyName) {
-          activePeriods.unshift(p);
-        } else {
-          break;
-        }
-      }
-      for (let p = period + 1; p <= 7; p++) {
-        const s = getVisibleSlotAt(day, p);
-        if (s && s.className === existing.className && s.facultyName === existing.facultyName) {
-          activePeriods.push(p);
-        } else {
-          break;
-        }
-      }
-    }
-
-    const initialYear = existing
-      ? (existing.year || getSlotYear(existing) || '2')
-      : (selectedYearFilter !== 'ALL' ? selectedYearFilter : '2');
-
-    if (existing) {
-      setSlotForm({
-        day: existing.day,
-        period: existing.period,
-        selectedPeriods: activePeriods,
-        className: existing.className || '',
-        department: existing.department || getSlotDept(existing) || '',
-        year: initialYear,
-        facultyId: existing.facultyId?._id || existing.facultyId || '',
-        topic: existing.topic || '',
-        room: existing.room || '',
-      });
-    } else {
-      setSlotForm({
-        day,
-        period,
-        selectedPeriods: [period],
-        className: '',
-        department: selectedDeptFilter !== 'ALL' ? selectedDeptFilter : '',
-        year: initialYear,
-        facultyId: '',
-        topic: '',
-        room: '',
-      });
-    }
+  // Open modal to Add a new class on [day, period]
+  const handleOpenAddSlot = (day, period) => {
+    const dept = selectedDeptFilter !== 'ALL' ? selectedDeptFilter : 'IT';
+    const yr = selectedYearFilter !== 'ALL' ? selectedYearFilter : '1';
+    const roman = yr === '1' ? 'I' : yr === '2' ? 'II' : yr === '3' ? 'III' : 'IV';
+    setSlotForm({
+      _id: null,
+      day,
+      period,
+      selectedPeriods: [period],
+      span: 1,
+      className: `${roman}- ${dept}`,
+      department: dept,
+      year: yr,
+      facultyId: '',
+      topic: '',
+      room: '',
+    });
     setEditSlotModal(true);
   };
 
-  // Save Slot (supports single or multiple period assignment)
-  const handleSaveSlot = async (e) => {
-    e.preventDefault();
-    try {
-      const periodsToSave =
-        slotForm.selectedPeriods && slotForm.selectedPeriods.length > 0
-          ? slotForm.selectedPeriods
-          : [slotForm.period];
+  // Open modal to Edit an existing class slot
+  const handleEditSlot = (slot) => {
+    const yr = slot.year || getSlotYear(slot) || '1';
+    const dept = slot.department || getSlotDept(slot) || '';
+    setSlotForm({
+      _id: slot._id,
+      day: slot.day,
+      period: slot.period,
+      selectedPeriods: [slot.period],
+      span: 1,
+      className: slot.className || '',
+      department: dept,
+      year: yr,
+      facultyId: slot.facultyId?._id || slot.facultyId || '',
+      topic: slot.topic || '',
+      room: slot.room || '',
+    });
+    setEditSlotModal(true);
+  };
 
-      const facultyObj = faculties.find(
-        (f) => String(f._id) === String(slotForm.facultyId)
-      );
+  // Real-time Faculty Conflict Checker: Check if selected staff is ALREADY booked anywhere in that period!
+  const facultyConflictInfo = useMemo(() => {
+    if (!slotForm.facultyId || !slotForm.day) return null;
+    const periodsToCheck =
+      slotForm.selectedPeriods && slotForm.selectedPeriods.length > 0
+        ? slotForm.selectedPeriods
+        : [slotForm.period];
 
-      // Optimistic update so the grid updates instantly without waiting or jumping
-      setSlots((prev) => {
-        const next = [...prev];
-        for (const p of periodsToSave) {
-          const idx = next.findIndex((s) => s.day === slotForm.day && s.period === p);
-          const newSlotData = {
-            day: slotForm.day,
-            period: p,
-            span: 1,
-            className: slotForm.className,
-            department: slotForm.department,
-            year: slotForm.year,
-            facultyId: facultyObj || slotForm.facultyId,
-            facultyName: facultyObj?.name || '',
-            facultyColor: facultyObj?.color || '#0284c7',
-            topic: slotForm.topic,
-            room: slotForm.room,
-          };
-          if (idx >= 0) {
-            next[idx] = { ...next[idx], ...newSlotData };
-          } else {
-            next.push(newSlotData);
-          }
-        }
-        return next;
+    for (const p of periodsToCheck) {
+      const conflictSlot = slots.find((s) => {
+        const matchFaculty =
+          s.facultyId &&
+          String(s.facultyId._id || s.facultyId) === String(slotForm.facultyId);
+        const matchDay = s.day === slotForm.day;
+        const matchPeriod = s.period === p;
+        // If editing an existing slot with _id, ignore itself
+        const isSelf = slotForm._id && String(s._id) === String(slotForm._id);
+        // If same className on same day & period, it's updating this class
+        const isSameClass =
+          slotForm.className &&
+          s.className &&
+          s.className.trim().toUpperCase() === slotForm.className.trim().toUpperCase();
+        return matchFaculty && matchDay && matchPeriod && !isSelf && !isSameClass;
       });
 
+      if (conflictSlot) {
+        const fac = faculties.find((f) => String(f._id) === String(slotForm.facultyId));
+        return {
+          facultyName: fac?.name || conflictSlot.facultyName || 'This staff member',
+          assignedClass: conflictSlot.className,
+          department: conflictSlot.department,
+          year: conflictSlot.year,
+          day: slotForm.day,
+          period: p,
+        };
+      }
+    }
+    return null;
+  }, [slotForm, slots, faculties]);
+
+
+  // Save Slot (supports single or multiple period assignment with conflict validation)
+  const handleSaveSlot = async (e, overrideReassign = false) => {
+    if (e) e.preventDefault();
+
+    const periodsToSave =
+      slotForm.selectedPeriods && slotForm.selectedPeriods.length > 0
+        ? slotForm.selectedPeriods
+        : [slotForm.period];
+
+    if (facultyConflictInfo && !overrideReassign) {
+      // Prompt interactive Reassign / Change Staff modal instead of a blocking error toast!
+      const fac = faculties.find((f) => String(f._id) === String(slotForm.facultyId));
+      setReassignModal({
+        isOpen: true,
+        faculty: fac || { name: facultyConflictInfo.facultyName, _id: slotForm.facultyId },
+        conflictSlot: {
+          className: facultyConflictInfo.assignedClass,
+          department: facultyConflictInfo.department,
+          year: facultyConflictInfo.year,
+          day: facultyConflictInfo.day,
+          period: facultyConflictInfo.period,
+        },
+        day: slotForm.day,
+        period: facultyConflictInfo.period,
+        targetClass: slotForm.className,
+        targetDept: slotForm.department,
+        targetYear: slotForm.year,
+        pendingPayload: {
+          slotId: slotForm._id || undefined,
+          ...slotForm,
+          periods: periodsToSave,
+          reassignStaff: true,
+        },
+      });
+      return;
+    }
+
+    try {
       setEditSlotModal(false);
 
       await saveTimeTableSlot({
+        slotId: slotForm._id || undefined,
         ...slotForm,
         periods: periodsToSave,
+        reassignStaff: !!overrideReassign,
       });
 
       toast.success(
-        `Saved for ${slotForm.day} (${periodsToSave.map((p) => `P${p}`).join(', ')})!`
+        `Saved ${slotForm.className} for ${slotForm.day} (${periodsToSave.map((p) => `P${p}`).join(', ')})!`
       );
       fetchData(false);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save slot');
+      if (err.response?.status === 409 && err.response?.data?.details) {
+        const d = err.response.data.details;
+        setReassignModal({
+          isOpen: true,
+          faculty: { name: d.facultyName, _id: slotForm.facultyId },
+          conflictSlot: {
+            className: d.assignedClass,
+            department: d.department,
+            year: d.year,
+            day: d.day,
+            period: d.period,
+          },
+          day: d.day,
+          period: d.period,
+          targetClass: slotForm.className,
+          targetDept: slotForm.department,
+          targetYear: slotForm.year,
+          pendingPayload: {
+            slotId: slotForm._id || undefined,
+            ...slotForm,
+            periods: periodsToSave,
+            reassignStaff: true,
+          },
+        });
+      } else {
+        toast.error(err.response?.data?.message || 'Failed to save slot');
+      }
       fetchData(false);
     }
   };
 
-  // Clear Slot (clears selected periods)
+  // Confirm Reassign / Change Staff from Modal
+  const handleConfirmReassign = async () => {
+    if (!reassignModal.pendingPayload) return;
+    try {
+      const payload = reassignModal.pendingPayload;
+      const staffName = reassignModal.faculty?.name || 'Staff';
+      const targetClass = reassignModal.targetClass;
+      const day = reassignModal.day;
+      const period = reassignModal.period;
+
+      setReassignModal((prev) => ({ ...prev, isOpen: false }));
+      if (editSlotModal) setEditSlotModal(false);
+
+      await saveTimeTableSlot(payload);
+
+      toast.success(
+        `✓ Reassigned ${staffName} to "${targetClass}" on ${day} Period ${period}!`,
+        { duration: 5000 }
+      );
+      fetchData(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reassign staff');
+      fetchData(false);
+    }
+  };
+
+  // Clear Slot
   const handleClearSlot = async () => {
     try {
-      const periodsToClear =
-        slotForm.selectedPeriods && slotForm.selectedPeriods.length > 0
-          ? slotForm.selectedPeriods
-          : [slotForm.period];
-
-      // Optimistic clear
-      setSlots((prev) =>
-        prev.map((s) => {
-          if (s.day === slotForm.day && periodsToClear.includes(s.period)) {
-            return {
-              ...s,
-              className: '',
-              department: '',
-              year: '',
-              facultyId: null,
-              facultyName: '',
-              topic: '',
-              room: '',
-            };
-          }
-          return s;
-        })
-      );
-
-      setEditSlotModal(false);
-
-      for (const p of periodsToClear) {
-        const existing = getSlotAt(slotForm.day, p);
-        if (existing && existing._id) {
-          await clearTimeTableSlot(existing._id);
-        }
+      if (slotForm._id) {
+        setSlots((prev) => prev.filter((s) => s._id !== slotForm._id));
+        setEditSlotModal(false);
+        await clearTimeTableSlot(slotForm._id);
+        toast.success(`Cleared ${slotForm.className || 'slot'} from ${slotForm.day} Period ${slotForm.period}`);
+        fetchData(false);
+      } else {
+        setEditSlotModal(false);
       }
-      toast.success(`Cleared slot(s) for ${slotForm.day}`);
-      fetchData(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to clear slot');
       fetchData(false);
@@ -603,56 +718,127 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
 
     // CASE 2: Dragged from Faculty Tray (Assign faculty to slot)
     if (draggedFaculty) {
-      const existing = getSlotAt(day, period);
-      const updatedSlot = {
-        day,
-        period,
-        periods: [period],
-        className: existing?.className || '',
-        department: existing?.department || (selectedDeptFilter !== 'ALL' ? selectedDeptFilter : draggedFaculty.department),
-        year: existing?.year || (selectedYearFilter !== 'ALL' ? selectedYearFilter : '2'),
-        facultyId: draggedFaculty._id,
-        topic: existing?.topic || draggedFaculty.specialization || '',
-        room: existing?.room || '',
-      };
+      // Find visible slots at this cell
+      const visibleSlots = getVisibleSlotsAt(day, period);
+      const initialDept = selectedDeptFilter !== 'ALL' ? selectedDeptFilter : draggedFaculty.department;
+      const initialYear = selectedYearFilter !== 'ALL' ? selectedYearFilter : '1';
+      const roman = initialYear === '1' ? 'I' : initialYear === '2' ? 'II' : initialYear === '3' ? 'III' : 'IV';
+      const defaultTargetClass = `${roman}- ${initialDept}`;
 
-      // Optimistic update
-      setSlots((prev) => {
-        const next = [...prev];
-        const idx = next.findIndex((s) => s.day === day && s.period === period);
-        const slotData = {
-          ...existing,
-          ...updatedSlot,
-          facultyName: draggedFaculty.name,
-          facultyColor: draggedFaculty.color,
-        };
-        if (idx >= 0) {
-          next[idx] = slotData;
-        } else {
-          next.push(slotData);
-        }
-        return next;
+      const targetSlot = visibleSlots.length === 1 ? visibleSlots[0] : null;
+      const targetClass = targetSlot ? targetSlot.className : defaultTargetClass;
+      const targetDept = targetSlot?.department || initialDept;
+      const targetYear = targetSlot?.year || initialYear;
+
+      // 1. Check if newly assigning staff is ALREADY assigned to this exact slot
+      if (
+        targetSlot &&
+        targetSlot.facultyId &&
+        String(targetSlot.facultyId._id || targetSlot.facultyId) === String(draggedFaculty._id)
+      ) {
+        toast.success(
+          `${draggedFaculty.name} is already assigned to ${targetClass} on ${day} Period ${period}.`
+        );
+        setDraggedFaculty(null);
+        return;
+      }
+
+      // 2. CRITICAL VERIFICATION: Verify that newly assigning staff does NOT have an assigned class on that period on that day
+      const conflict = slots.find((s) => {
+        const matchFaculty =
+          s.facultyId &&
+          String(s.facultyId._id || s.facultyId) === String(draggedFaculty._id);
+        const matchDay = s.day === day;
+        const matchPeriod = s.period === period;
+        const isTargetSlot = targetSlot && String(s._id) === String(targetSlot._id);
+        const isSameClass =
+          s.className &&
+          targetClass &&
+          s.className.trim().toUpperCase() === targetClass.trim().toUpperCase();
+
+        return matchFaculty && matchDay && matchPeriod && !isTargetSlot && !isSameClass;
       });
 
-      try {
-        await saveTimeTableSlot(updatedSlot);
-        toast.success(`Assigned ${draggedFaculty.name} to ${day} Period ${period}!`);
-        fetchData(false);
-
-        // If slot didn't have a class name yet, open modal for convenience
-        if (!existing?.className) {
-          setSlotForm({
-            ...updatedSlot,
-            selectedPeriods: [period],
-          });
-          setEditSlotModal(true);
-        }
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to assign faculty');
-        fetchData(false);
-      } finally {
+      if (conflict) {
+        // Newly assigning staff ALREADY has an assigned class on that period on that day elsewhere!
+        setReassignModal({
+          isOpen: true,
+          mode: 'REASSIGN_FROM_OTHER_CLASS',
+          faculty: draggedFaculty,
+          conflictSlot: conflict,
+          day,
+          period,
+          targetClass,
+          targetDept,
+          targetYear,
+          existingStaffName: targetSlot?.facultyName || '',
+          pendingPayload: {
+            slotId: targetSlot?._id || undefined,
+            day,
+            period,
+            periods: [period],
+            className: targetClass,
+            department: targetDept,
+            year: targetYear,
+            facultyId: draggedFaculty._id,
+            topic: draggedFaculty.specialization || targetSlot?.topic || '',
+            room: targetSlot?.room || '',
+            reassignStaff: true,
+          },
+        });
         setDraggedFaculty(null);
+        return;
       }
+
+      // 3. Verified: Newly assigning staff has NO assigned class in this period.
+      // If target slot already has a DIFFERENT staff member assigned, ask if user wants to change staff:
+      if (targetSlot && targetSlot.facultyId && targetSlot.facultyName) {
+        setReassignModal({
+          isOpen: true,
+          mode: 'REPLACE_CLASS_STAFF',
+          faculty: draggedFaculty,
+          conflictSlot: null,
+          day,
+          period,
+          targetClass,
+          targetDept,
+          targetYear,
+          existingStaffName: targetSlot.facultyName,
+          pendingPayload: {
+            slotId: targetSlot._id,
+            day,
+            period,
+            periods: [period],
+            className: targetClass,
+            department: targetDept,
+            year: targetYear,
+            facultyId: draggedFaculty._id,
+            topic: draggedFaculty.specialization || targetSlot.topic || '',
+            room: targetSlot.room || '',
+            reassignStaff: true,
+          },
+        });
+        setDraggedFaculty(null);
+        return;
+      }
+
+      // 4. Staff is verified free and target slot has no staff or is empty: open modal to confirm
+      setSlotForm({
+        _id: targetSlot?._id || null,
+        day,
+        period,
+        selectedPeriods: [period],
+        span: 1,
+        className: targetClass,
+        department: targetDept,
+        year: targetYear,
+        facultyId: draggedFaculty._id,
+        topic: draggedFaculty.specialization || targetSlot?.topic || '',
+        room: targetSlot?.room || '',
+      });
+      setEditSlotModal(true);
+      setDraggedFaculty(null);
+      return;
     }
   };
 
@@ -774,16 +960,14 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
 
     DAYS.forEach((day) => {
       PERIODS.forEach((period) => {
-        const slot = getVisibleSlotAt(day, period);
-        if (slot && slot.className) {
-          dayCounts[day] = (dayCounts[day] || 0) + 1;
-          total += 1;
-        }
+        const matchingSlots = getVisibleSlotsAt(day, period);
+        dayCounts[day] += matchingSlots.length;
+        total += matchingSlots.length;
       });
     });
 
     return { visibleDayTotals: dayCounts, visibleTotalPeriods: total };
-  }, [getVisibleSlotAt]);
+  }, [getVisibleSlotsAt]);
 
   if (initialLoading) return <Loader />;
 
@@ -827,65 +1011,158 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary" onClick={handlePrint} title="Print official timetable notice">
-              <HiOutlinePrinter /> Print Official Sheet
-            </button>
-            {activeTab === 'timetable' && (
-              <button className="btn btn-secondary" onClick={handleResetDefault} title="Restore printed photo template">
-                <HiOutlineRefresh /> Reset to Template
-              </button>
+          <div className="ft-header-actions" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {activeTab === 'dashboard' ? (
+              <>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate('/placement-events')}
+                  title="Schedule a new placement event or training session"
+                >
+                  <HiOutlinePlus /> Schedule Training / Event
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => navigate('/placement-timetable')}
+                  title="Placement Time Table"
+                >
+                  <HiOutlineCalendar /> Placement Time Table
+                </button>
+                <button className="btn btn-secondary" onClick={handlePrint} title="Print official timetable notice">
+                  <HiOutlinePrinter /> Print Official Sheet
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="btn btn-secondary" onClick={handlePrint} title="Print official timetable notice">
+                  <HiOutlinePrinter /> Print Official Sheet
+                </button>
+                {activeTab === 'timetable' && (
+                  <button className="btn btn-secondary" onClick={handleResetDefault} title="Restore printed photo template">
+                    <HiOutlineRefresh /> Reset to Template
+                  </button>
+                )}
+                <button className="btn btn-primary" onClick={handleOpenAddFaculty}>
+                  <HiOutlinePlus /> Add New Faculty
+                </button>
+              </>
             )}
-            <button className="btn btn-primary" onClick={handleOpenAddFaculty}>
-              <HiOutlinePlus /> Add New Faculty
-            </button>
           </div>
         </div>
 
-        {/* Quick Statistics Overview - Hidden on Placement Time Table per user request */}
+        {/* Quick Statistics Overview - Enhanced with Event & Training metrics on Dashboard */}
         {activeTab !== 'timetable' && (
           <div className="ft-stats-row">
-            <div className="ft-stat-card">
-              <div className="ft-stat-icon" style={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
-                <HiOutlineClock />
-              </div>
-              <div>
-                <div className="ft-stat-num">{totalAssignedPeriods}</div>
-                <div className="ft-stat-label">Total Assigned Periods / Wk</div>
-              </div>
-            </div>
-
-            <div className="ft-stat-card">
-              <div className="ft-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                <HiOutlineUserGroup />
-              </div>
-              <div>
-                <div className="ft-stat-num">{faculties.length}</div>
-                <div className="ft-stat-label">Active Placement Faculties</div>
-              </div>
-            </div>
-
-            <div className="ft-stat-card">
-              <div className="ft-stat-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}>
-                <HiOutlineBookOpen />
-              </div>
-              <div>
-                <div className="ft-stat-num">
-                  {faculties.length > 0 ? (totalAssignedPeriods / faculties.length).toFixed(1) : 0}
+            {activeTab === 'dashboard' ? (
+              <>
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(217, 119, 6, 0.1)', color: '#d97706' }}>
+                    <HiOutlineSparkles />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">
+                      {eventStats.upcoming}{' '}
+                      <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>/ {eventStats.total}</span>
+                    </div>
+                    <div className="ft-stat-label">Upcoming Trainings & Events</div>
+                  </div>
                 </div>
-                <div className="ft-stat-label">Avg Periods / Faculty</div>
-              </div>
-            </div>
 
-            <div className="ft-stat-card">
-              <div className="ft-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-                <HiOutlineOfficeBuilding />
-              </div>
-              <div>
-                <div className="ft-stat-num">8</div>
-                <div className="ft-stat-label">Engineering Departments</div>
-              </div>
-            </div>
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                    <HiOutlineUserGroup />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">{eventStats.totalRegistered}</div>
+                    <div className="ft-stat-label">Enrolled Students</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(147, 51, 234, 0.1)', color: '#9333ea' }}>
+                    <HiOutlineCheck />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">{eventStats.attendanceRate}%</div>
+                    <div className="ft-stat-label">Overall Attendance</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
+                    <HiOutlineClock />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">{totalAssignedPeriods}</div>
+                    <div className="ft-stat-label">Weekly Training Periods</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                    <HiOutlineAcademicCap />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">{faculties.length}</div>
+                    <div className="ft-stat-label">Placement Faculty & Staff</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                    <HiOutlineOfficeBuilding />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">8</div>
+                    <div className="ft-stat-label">Engineering Departments</div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
+                    <HiOutlineClock />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">{totalAssignedPeriods}</div>
+                    <div className="ft-stat-label">Total Assigned Periods / Wk</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                    <HiOutlineUserGroup />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">{faculties.length}</div>
+                    <div className="ft-stat-label">Active Placement Faculties</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}>
+                    <HiOutlineBookOpen />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">
+                      {faculties.length > 0 ? (totalAssignedPeriods / faculties.length).toFixed(1) : 0}
+                    </div>
+                    <div className="ft-stat-label">Avg Periods / Faculty</div>
+                  </div>
+                </div>
+
+                <div className="ft-stat-card">
+                  <div className="ft-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                    <HiOutlineOfficeBuilding />
+                  </div>
+                  <div>
+                    <div className="ft-stat-num">8</div>
+                    <div className="ft-stat-label">Engineering Departments</div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -895,173 +1172,449 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
       {/* ========================================================================= */}
       {activeTab === 'dashboard' && (
         <div className="training-dashboard-view" style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.25s ease' }}>
-          {/* Quick Access Module Hub Cards */}
+          
+          {/* SECTION 1: LIVE TRAINING PROGRAMS & UPCOMING PLACEMENT EVENTS */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '16px',
+              background: 'var(--bg-card, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
             }}
           >
-            {/* Card 1: Time Table Grid */}
-            <div
-              style={{
-                background: 'var(--bg-card, #ffffff)',
-                border: '1px solid var(--border-color, #e2e8f0)',
-                borderRadius: '16px',
-                padding: '20px 24px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
+            {/* Header with Title, Search, and Action Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                    <HiOutlineCalendar />
-                  </div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#dbeafe', color: '#1e40af', padding: '3px 10px', borderRadius: '12px' }}>
-                    {totalAssignedPeriods} Periods Assigned
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
-                  Placement Time Table
-                </h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
-                  Interactive 7-period weekly placement class schedule for 1st, 2nd, 3rd, and 4th year engineering students.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => navigate('/placement-timetable')}
-                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
-              >
-                Open Time Table Grid <HiOutlineArrowRight />
-              </button>
-            </div>
-
-            {/* Card 2: Faculty Directory */}
-            <div
-              style={{
-                background: 'var(--bg-card, #ffffff)',
-                border: '1px solid var(--border-color, #e2e8f0)',
-                borderRadius: '16px',
-                padding: '20px 24px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                    <HiOutlineUserGroup />
-                  </div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#d1fae5', color: '#065f46', padding: '3px 10px', borderRadius: '12px' }}>
-                    {faculties.length} Faculty Members
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
-                  Faculty Directory
-                </h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
-                  Manage placement training faculty coordinators, specializations, contacts, and teaching departments.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => navigate('/faculty-directory')}
-                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
-              >
-                View Faculty Directory <HiOutlineArrowRight />
-              </button>
-            </div>
-
-            {/* Card 3: Workload & Analytics */}
-            <div
-              style={{
-                background: 'var(--bg-card, #ffffff)',
-                border: '1px solid var(--border-color, #e2e8f0)',
-                borderRadius: '16px',
-                padding: '20px 24px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                    <HiOutlineChartBar />
-                  </div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#ede9fe', color: '#5b21b6', padding: '3px 10px', borderRadius: '12px' }}>
-                    {(totalAssignedPeriods / (faculties.length || 1)).toFixed(1)} Avg / Faculty
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
-                  Workload & Periods Analytics
-                </h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
-                  Detailed workload distribution, overload detection, and departmental period quota analytics.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => navigate('/workload-analytics')}
-                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
-              >
-                Open Workload Analytics <HiOutlineArrowRight />
-              </button>
-            </div>
-
-            {/* Card 4: Upcoming Events & Attendance */}
-            <div
-              style={{
-                background: 'var(--bg-card, #ffffff)',
-                border: '1px solid rgba(197, 158, 81, 0.4)',
-                borderRadius: '16px',
-                padding: '20px 24px',
-                boxShadow: '0 4px 14px rgba(197, 158, 81, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(197, 158, 81, 0.15)', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
                     <HiOutlineSparkles />
                   </div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#fef3c7', color: '#b45309', padding: '3px 10px', borderRadius: '12px', border: '1px solid #fde68a' }}>
-                    Live Attendance & Sessions
-                  </span>
+                  <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                      Active Training Programs & Industry Masterclasses
+                    </h2>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                      Scheduled corporate trainer modules, technical workshops, and live student attendance rosters.
+                    </p>
+                  </div>
                 </div>
-                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>
-                  Upcoming Events & Attendance
-                </h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
-                  Schedule upcoming guest lectures, technical workshops, and masterclasses. Track live student attendance and chief guest sessions.
-                </p>
               </div>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => navigate('/placement-events')}
-                style={{ marginTop: '16px', width: '100%', justifyContent: 'center', gap: '8px' }}
-              >
-                Manage Events & Attendance <HiOutlineArrowRight />
-              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => navigate('/placement-events')}
+                  style={{ gap: '6px' }}
+                >
+                  <HiOutlineCalendar /> View Full Roster ({events.length})
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => navigate('/placement-events')}
+                  style={{ gap: '6px' }}
+                >
+                  <HiOutlinePlus /> Schedule Event / Training
+                </button>
+              </div>
             </div>
+
+            {/* Filter Pills and Search */}
+            <div className="ft-dashboard-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              {/* Category Filter Pills */}
+              <div className="ft-dashboard-cat-pills" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {[
+                  { id: 'all', label: `All (${events.length})` },
+                  { id: 'Training', label: `Trainings (${events.filter(e => e.eventType?.toLowerCase().includes('training')).length})` },
+                  { id: 'Workshop', label: `Workshops (${events.filter(e => e.eventType === 'Workshop').length})` },
+                  { id: 'Bootcamp', label: `Bootcamps (${events.filter(e => e.eventType === 'Bootcamp').length})` },
+                  { id: 'Guest Lecture', label: `Guest Lectures (${events.filter(e => e.eventType === 'Guest Lecture').length})` },
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setDashboardEventCategory(cat.id)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '16px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border: dashboardEventCategory === cat.id ? '1px solid #0b1d37' : '1px solid #cbd5e1',
+                      background: dashboardEventCategory === cat.id ? '#0b1d37' : '#ffffff',
+                      color: dashboardEventCategory === cat.id ? '#ffffff' : '#475569',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Box */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '240px', flex: 1, maxWidth: '360px' }}>
+                <div className="search-box" style={{ width: '100%', background: '#ffffff' }}>
+                  <HiOutlineSearch style={{ color: '#64748b' }} />
+                  <input
+                    type="text"
+                    placeholder="Search by topic, trainer, venue..."
+                    value={dashboardEventSearch}
+                    onChange={(e) => setDashboardEventSearch(e.target.value)}
+                    className="search-input"
+                    style={{ fontSize: '0.82rem' }}
+                  />
+                  {dashboardEventSearch && (
+                    <button
+                      onClick={() => setDashboardEventSearch('')}
+                      style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                    >
+                      <HiOutlineX />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Events Grid */}
+            {filteredDashboardEvents.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>📅</div>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  No Training Events Found
+                </h4>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 14px' }}>
+                  No training sessions or masterclasses match your current search filters.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setDashboardEventCategory('all');
+                    setDashboardEventSearch('');
+                  }}
+                >
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              <div className="ft-dashboard-events-grid" style={{ gap: '18px' }}>
+                {oneRowDashboardEvents.map((evt) => {
+                  const dateObj = evt.eventDate ? new Date(evt.eventDate) : new Date();
+                  const monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
+                  const dayStr = dateObj.getDate();
+                  const yearStr = dateObj.getFullYear();
+
+                  const isMultiDay = evt.isMultiDay && evt.endDate;
+                  const endDateObj = isMultiDay ? new Date(evt.endDate) : null;
+                  const endMonthStr = endDateObj ? endDateObj.toLocaleString('en-US', { month: 'short' }) : '';
+                  const endDayStr = endDateObj ? endDateObj.getDate() : '';
+                  const dateRangeLabel = isMultiDay
+                    ? (monthStr === endMonthStr ? `${monthStr} ${dayStr} – ${endDayStr}, ${yearStr}` : `${monthStr} ${dayStr} – ${endMonthStr} ${endDayStr}, ${yearStr}`)
+                    : `${monthStr} ${dayStr}, ${yearStr}`;
+
+                  const total = evt.attendance ? evt.attendance.length : 0;
+                  const present = evt.attendance ? evt.attendance.filter((a) => a.status === 'Present').length : 0;
+                  const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+
+                  const isTrainingType =
+                    evt.eventType?.toLowerCase().includes('training') ||
+                    evt.eventType === 'Bootcamp' ||
+                    evt.eventType === 'Workshop';
+
+                  return (
+                    <div
+                      key={evt._id}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '14px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                      }}
+                    >
+                      {/* Header with Date Badge & Title */}
+                      <div style={{ padding: '16px 18px 12px', display: 'flex', alignItems: 'flex-start', gap: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                        <div
+                          style={{
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '10px',
+                            padding: '6px 10px',
+                            textAlign: 'center',
+                            minWidth: isMultiDay ? '64px' : '54px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: '#0b1d37', letterSpacing: '0.5px' }}>
+                            {monthStr}
+                          </span>
+                          <span style={{ display: 'block', fontSize: isMultiDay ? '1.05rem' : '1.2rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
+                            {isMultiDay ? `${dayStr}–${endDayStr}` : dayStr}
+                          </span>
+                          <span style={{ display: 'block', fontSize: '0.62rem', fontWeight: 600, color: '#64748b' }}>
+                            {yearStr}
+                          </span>
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                            <span style={{ ...getDashboardEventTypeStyle(evt.eventType), fontSize: '0.66rem', fontWeight: 800, padding: '2px 8px', borderRadius: '6px', textTransform: 'uppercase' }}>
+                              {evt.eventType}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.66rem',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: '6px',
+                                background: evt.status === 'Completed' ? '#ecfdf5' : '#fef3c7',
+                                color: evt.status === 'Completed' ? '#059669' : '#b45309',
+                                border: evt.status === 'Completed' ? '1px solid #a7f3d0' : '1px solid #fde68a',
+                              }}
+                            >
+                              {evt.status}
+                            </span>
+                            {isMultiDay && (
+                              <span
+                                style={{
+                                  fontSize: '0.66rem',
+                                  fontWeight: 800,
+                                  padding: '2px 7px',
+                                  borderRadius: '6px',
+                                  background: '#fef3c7',
+                                  color: '#b45309',
+                                  border: '1px solid #fde68a',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                }}
+                              >
+                                🗓️ {evt.durationDays ? `${evt.durationDays} Days / ${evt.durationDays >= 6 ? Math.round(evt.durationDays / 6) + ' Wk' : evt.durationDays + 'D'}` : 'Multi-Day'}
+                              </span>
+                            )}
+                          </div>
+                          <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: 0, lineHeight: 1.3 }}>
+                            {evt.title}
+                          </h4>
+                        </div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                        {/* Resource Person Spotlight */}
+                        <div
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(11, 29, 55, 0.03), rgba(197, 158, 81, 0.08))',
+                            border: '1px solid rgba(197, 158, 81, 0.3)',
+                            borderRadius: '10px',
+                            padding: '10px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
+                              background: 'linear-gradient(135deg, #0b1d37, #c59e51)',
+                              color: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.9rem',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {evt.chiefGuest
+                              ? evt.chiefGuest
+                                  .split(' ')
+                                  .map((n) => n[0])
+                                  .join('')
+                                  .slice(0, 2)
+                                  .toUpperCase()
+                              : 'RP'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ display: 'block', fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                              {isTrainingType ? '⭐ Resource Person / Trainer' : '⭐ Chief Guest / Speaker'}
+                            </span>
+                            <span style={{ display: 'block', fontSize: '0.86rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {evt.chiefGuest}
+                            </span>
+                            <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {evt.chiefGuestDesignation || 'Invited Industry Expert'}
+                              {evt.chiefGuestCompany ? ` • ${evt.chiefGuestCompany}` : ''}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Date, Time & Venue */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.78rem', color: '#475569' }}>
+                          {isMultiDay && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#b45309', fontWeight: 600 }}>
+                              <HiOutlineCalendar style={{ color: '#d97706', fontSize: '0.95rem' }} />
+                              <span>{dateRangeLabel} ({evt.durationDays || 'Multi'} Days Program)</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <HiOutlineClock style={{ color: '#0284c7', fontSize: '0.95rem' }} />
+                            <span>{isMultiDay ? <strong>Daily: </strong> : null}{evt.startTime} – {evt.endTime || 'Wrap up'}</span>
+                          </div>
+                          {isMultiDay && evt.dailyTimingNote && (
+                            <div style={{ fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic', paddingLeft: '22px' }}>
+                              ℹ️ {evt.dailyTimingNote}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <HiOutlineLocationMarker style={{ color: '#0284c7', fontSize: '0.95rem' }} />
+                            <span><strong>Venue:</strong> {evt.venue}</span>
+                          </div>
+                        </div>
+
+                        {/* Eligible Departments */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {evt.departments?.slice(0, 6).map((dept) => (
+                            <span
+                              key={dept}
+                              style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                background: '#f1f5f9',
+                                color: '#475569',
+                              }}
+                            >
+                              {dept}
+                            </span>
+                          ))}
+                          {evt.departments?.length > 6 && (
+                            <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
+                              +{evt.departments.length - 6} more
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Attendance Tracker */}
+                        <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: 'auto' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                            <span>Live Attendance</span>
+                            <span>{present} / {total} Attended ({pct}%)</span>
+                          </div>
+                          <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', borderRadius: '3px' }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Footer */}
+                      <div style={{ padding: '10px 18px', background: '#fafafa', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => navigate('/placement-events')}
+                          style={{ fontSize: '0.76rem', padding: '5px 10px' }}
+                        >
+                          <HiOutlinePencilAlt /> Edit / Details
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={() => navigate('/placement-events')}
+                          style={{ fontSize: '0.76rem', padding: '5px 12px', gap: '5px' }}
+                        >
+                          <HiOutlineUserGroup /> Attendance ({total})
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 1-Row Preview Indicator with direct link to Full Roster */}
+            {filteredDashboardEvents.length > 3 && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'linear-gradient(135deg, rgba(11, 29, 55, 0.03), rgba(197, 158, 81, 0.08))',
+                  border: '1px solid rgba(197, 158, 81, 0.3)',
+                  borderRadius: '12px',
+                  padding: '12px 18px',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: 'rgba(197, 158, 81, 0.15)',
+                      color: '#b45309',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1rem',
+                      fontWeight: 800,
+                    }}
+                  >
+                    💡
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.86rem', color: '#0f172a', fontWeight: 700, display: 'block' }}>
+                      Showing 1 Row Preview ({oneRowDashboardEvents.length} of {filteredDashboardEvents.length} Sessions)
+                    </span>
+                    <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                      Access complete schedule, student attendance rosters, and trainer feedback in Full Roster.
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => navigate('/placement-events')}
+                  style={{
+                    gap: '6px',
+                    fontWeight: 700,
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    color: '#0b1d37',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <HiOutlineCalendar style={{ color: '#0284c7' }} /> View Full Roster ({events.length}) →
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Weekly Schedule Load Breakdown (Mon to Sat) & Department Training Periods */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+          {/* SECTION 2: WEEKLY SCHEDULE LOAD & DEPARTMENT BREAKDOWN */}
+          <div className="ft-dashboard-analytics-grid" style={{ gap: '20px' }}>
             {/* Weekly Daily Load Card */}
             <div
               style={{
@@ -1154,6 +1707,126 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
                   );
                 })}
               </div>
+            </div>
+          </div>
+
+          {/* SECTION 3: QUICK-LAUNCH OPERATIONAL MODULES */}
+          <div className="ft-dashboard-quick-launch-grid" style={{ gap: '16px' }}>
+            {/* Card 1: Time Table Grid */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                    <HiOutlineCalendar />
+                  </div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '10px' }}>
+                    {totalAssignedPeriods} Periods
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  Placement Time Table
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                  Interactive 7-period weekly placement matrix across I, II, III & IV Year engineering branches.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => navigate('/placement-timetable')}
+                style={{ marginTop: '14px', width: '100%', justifyContent: 'center', gap: '6px' }}
+              >
+                Open Time Table Grid <HiOutlineArrowRight />
+              </button>
+            </div>
+
+            {/* Card 2: Faculty Directory */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                    <HiOutlineUserGroup />
+                  </div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '10px' }}>
+                    {faculties.length} Faculty
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  Faculty Directory
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                  Placement training faculty coordinators, specializations, contacts, and departmental teaching assignments.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => navigate('/faculty-directory')}
+                style={{ marginTop: '14px', width: '100%', justifyContent: 'center', gap: '6px' }}
+              >
+                View Faculty Directory <HiOutlineArrowRight />
+              </button>
+            </div>
+
+            {/* Card 3: Workload & Analytics */}
+            <div
+              style={{
+                background: 'var(--bg-card, #ffffff)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                    <HiOutlineChartBar />
+                  </div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, background: '#ede9fe', color: '#5b21b6', padding: '2px 8px', borderRadius: '10px' }}>
+                    {(totalAssignedPeriods / (faculties.length || 1)).toFixed(1)} Avg / Staff
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  Workload & Periods Analytics
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                  Period distribution across engineering departments, load balancing, and overload detection.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => navigate('/workload-analytics')}
+                style={{ marginTop: '14px', width: '100%', justifyContent: 'center', gap: '6px' }}
+              >
+                Open Workload Analytics <HiOutlineArrowRight />
+              </button>
             </div>
           </div>
         </div>
@@ -1393,78 +2066,77 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
 
                       {/* Periods 1 to 7: Merged into unified block when same faculty takes continuous class, otherwise separate */}
                       {PERIODS.map((period) => {
-                        const span = getContinuousBlockSpan(day, period);
-                        // If span === 0, this period is part of a continuous block that started at an earlier period
-                        if (span === 0) {
-                          return null;
-                        }
-
-                        const slot = getVisibleSlotAt(day, period);
+                        const visibleSlots = getVisibleSlotsAt(day, period);
                         const isDragOver = dragOverCell === `${day}-${period}`;
-
-                        const slotYear = getSlotYear(slot);
-                        const yearRoman =
-                          slotYear === '1' ? 'I' : slotYear === '2' ? 'II' : slotYear === '3' ? 'III' : slotYear === '4' ? 'IV' : '';
 
                         return (
                           <td
                             key={period}
-                            colSpan={span}
-                            className={`ft-table-cell ${isDragOver ? 'drag-over' : ''} ${
-                              span > 1 ? 'continuous-block' : ''
-                            }`}
-                            onClick={() => handleCellClick(day, period)}
+                            className={`ft-table-cell ${isDragOver ? 'drag-over' : ''}`}
                             onDragOver={(e) => handleDragOver(e, day, period)}
                             onDragLeave={handleDragLeave}
                             onDrop={(e) => handleDrop(e, day, period)}
                           >
-                            {slot && slot.className ? (
-                              <div
-                                className="ft-cell-content"
-                                draggable
-                                onDragStart={(e) => {
-                                  e.stopPropagation();
-                                  handleCellDragStart(e, day, period, slot);
-                                }}
-                                style={{
-                                  cursor: 'grab',
-                                  opacity:
-                                    draggedCell?.day === day && draggedCell?.period === period
-                                      ? 0.35
-                                      : 1,
-                                }}
-                                title="Drag from this cell to shift/swap to another period, or click to edit"
-                              >
-                                <span className="ft-cell-drag-handle" title="Drag to shift period">
-                                  ⋮⋮
-                                </span>
+                            {visibleSlots.length > 0 ? (
+                              <div className="ft-period-slots-stack">
+                                {visibleSlots.map((slot) => {
+                                  const slotYear = getSlotYear(slot);
+                                  const yearRoman =
+                                    slotYear === '1' ? 'I' : slotYear === '2' ? 'II' : slotYear === '3' ? 'III' : slotYear === '4' ? 'IV' : (slot.year || '');
 
-                                {/* Year Pill Tag */}
-                                {slotYear && (
-                                  <span className={`ft-cell-year-badge yr-${slotYear}`}>
-                                    Yr {yearRoman} ({slotYear === '1' ? '1st' : slotYear === '2' ? '2nd' : slotYear === '3' ? '3rd' : '4th'})
-                                  </span>
-                                )}
+                                  return (
+                                    <div
+                                      key={slot._id || `${slot.day}-${slot.period}-${slot.className}`}
+                                      className="ft-period-slot-item"
+                                      draggable
+                                      onDragStart={(e) => {
+                                        e.stopPropagation();
+                                        handleCellDragStart(e, day, period, slot);
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditSlot(slot);
+                                      }}
+                                      title={`Click to edit ${slot.className} (${slot.facultyName || 'No Faculty Assigned'})`}
+                                    >
+                                      <div className="ft-slot-item-header">
+                                        <span className={`ft-cell-year-badge yr-${slotYear || '1'}`}>
+                                          Yr {yearRoman} ({slotYear === '1' ? '1st' : slotYear === '2' ? '2nd' : slotYear === '3' ? '3rd' : '4th'})
+                                        </span>
+                                        <span className="ft-slot-class-title">{slot.className}</span>
+                                      </div>
+                                      {slot.facultyName && (
+                                        <div className="ft-slot-faculty-chip" title={slot.facultyName}>
+                                          👤 {slot.facultyName}
+                                        </div>
+                                      )}
+                                      {slot.topic && (
+                                        <div className="ft-slot-topic-text" title={`Topic: ${slot.topic}`}>
+                                          📖 {slot.topic}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
 
-                                <div className="ft-class-name">{slot.className}</div>
-                                {slot.facultyName && (
-                                  <div className="ft-faculty-tag" title={slot.facultyName}>
-                                    👤 {slot.facultyName}
-                                  </div>
-                                )}
-                                {slot.topic && (
-                                  <div className="ft-topic-text" title={`Topic: ${slot.topic}`}>
-                                    📖 {slot.topic}
-                                  </div>
-                                )}
-                                {slot.room && (
-                                  <div style={{ fontSize: '0.62rem', color: '#64748b' }}>
-                                    📍 {slot.room}
-                                  </div>
-                                )}
+                                <button
+                                  type="button"
+                                  className="ft-cell-add-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenAddSlot(day, period);
+                                  }}
+                                  title={`Add another department class on ${day} Period ${period}`}
+                                >
+                                  + Add Dept
+                                </button>
                               </div>
                             ) : (
-                              <div className="ft-cell-empty">
+                              <div
+                                className="ft-cell-empty"
+                                onClick={() => handleOpenAddSlot(day, period)}
+                                title={`Click to add class on ${day} Period ${period}`}
+                              >
                                 {isDragOver ? 'Drop to Assign' : '+ Click to Add'}
                               </div>
                             )}
@@ -2022,6 +2694,38 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
                       </option>
                     ))}
                   </select>
+
+                  {/* Real-time Faculty Conflict Alert Banner */}
+                  {facultyConflictInfo && (
+                    <div className="ft-conflict-alert-box">
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>⚠️</span>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '4px' }}>
+                            Period Collision Warning: Staff Already Assigned!
+                          </div>
+                          <div style={{ fontSize: '0.84rem', color: '#7f1d1d', lineHeight: 1.45 }}>
+                            <strong>{facultyConflictInfo.facultyName}</strong> is already assigned to{' '}
+                            <span style={{ background: '#fee2e2', padding: '2px 8px', borderRadius: '4px', fontWeight: 800, color: '#991b1b', border: '1px solid #fca5a5' }}>
+                              {facultyConflictInfo.assignedClass}
+                            </span>{' '}
+                            in <strong>{facultyConflictInfo.department} Department</strong> on{' '}
+                            <strong>{facultyConflictInfo.day} Period {facultyConflictInfo.period}</strong>.
+                          </div>
+                          <div style={{ fontSize: '0.78rem', color: '#991b1b', marginTop: '6px', fontWeight: 600 }}>
+                            A staff member cannot teach two classes in the same period. Reassigning will move {facultyConflictInfo.facultyName} here and unassign them from {facultyConflictInfo.assignedClass}:
+                          </div>
+                          <button
+                            type="button"
+                            className="ft-conflict-reassign-btn"
+                            onClick={() => handleSaveSlot(null, true)}
+                          >
+                            <HiOutlineSwitchHorizontal /> Reassign {facultyConflictInfo.facultyName} to This Class
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Topic to teach */}
@@ -2127,8 +2831,29 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary">
-                    <HiOutlineCheck /> Save & Sync Slot
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      background: facultyConflictInfo
+                        ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
+                        : undefined,
+                    }}
+                    title={
+                      facultyConflictInfo
+                        ? 'Click to review & confirm reassigning staff'
+                        : 'Save Slot'
+                    }
+                  >
+                    {facultyConflictInfo ? (
+                      <>
+                        <HiOutlineSwitchHorizontal /> Reassign & Save Slot
+                      </>
+                    ) : (
+                      <>
+                        <HiOutlineCheck /> Save & Sync Slot
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -2276,6 +3001,173 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: REASSIGN / CHANGE STAFF CONFIRMATION DIALOG                     */}
+      {/* ========================================================================= */}
+      {reassignModal.isOpen && (
+        <div className="ft-modal-overlay" onClick={() => setReassignModal((p) => ({ ...p, isOpen: false }))}>
+          <div
+            className="ft-modal-card ft-reassign-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ft-reassign-header">
+              <div className="ft-reassign-icon-circle">
+                <HiOutlineSwitchHorizontal />
+              </div>
+              <div>
+                <h3 className="ft-modal-title" style={{ fontSize: '1.15rem', color: '#0f172a' }}>
+                  {reassignModal.mode === 'REPLACE_CLASS_STAFF'
+                    ? `Change Staff for ${reassignModal.targetClass}?`
+                    : 'Change Staff Assignment?'}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                  {reassignModal.mode === 'REPLACE_CLASS_STAFF'
+                    ? `Assign ${reassignModal.faculty?.name} to this class on ${reassignModal.day} Period ${reassignModal.period}`
+                    : `${reassignModal.faculty?.name} already has a class on ${reassignModal.day} Period ${reassignModal.period}`}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setReassignModal((p) => ({ ...p, isOpen: false }))}
+                style={{ padding: '4px 8px', marginLeft: 'auto' }}
+              >
+                <HiOutlineX />
+              </button>
+            </div>
+
+            <div className="ft-modal-body" style={{ gap: '16px', padding: '20px 22px' }}>
+              <div className="ft-reassign-question">
+                {reassignModal.mode === 'REPLACE_CLASS_STAFF' ? (
+                  <>
+                    Do you want to change the staff for{' '}
+                    <span className="ft-class-highlight">{reassignModal.targetClass}</span> from{' '}
+                    <strong>{reassignModal.existingStaffName || 'Current Staff'}</strong> to{' '}
+                    <strong>{reassignModal.faculty?.name}</strong>?
+                  </>
+                ) : (
+                  <>
+                    Do you want to change / reassign <strong>{reassignModal.faculty?.name}</strong> to{' '}
+                    <span className="ft-class-highlight">{reassignModal.targetClass}</span> instead?
+                  </>
+                )}
+              </div>
+
+              {/* Comparison flow box */}
+              <div className="ft-reassign-comparison">
+                {/* Current assignment box */}
+                <div className="ft-reassign-box ft-reassign-box-from">
+                  <div className="ft-reassign-box-label">
+                    <span className="ft-reassign-status-badge from">
+                      {reassignModal.mode === 'REPLACE_CLASS_STAFF' ? 'Current Staff' : 'Currently Assigned'}
+                    </span>
+                    <span className="ft-reassign-action-badge">
+                      {reassignModal.mode === 'REPLACE_CLASS_STAFF' ? 'Will be Replaced' : 'Will be Cleared'}
+                    </span>
+                  </div>
+                  <div className="ft-reassign-class-name">
+                    {reassignModal.mode === 'REPLACE_CLASS_STAFF'
+                      ? reassignModal.targetClass
+                      : (reassignModal.conflictSlot?.className || 'Existing Class')}
+                  </div>
+                  <div className="ft-reassign-meta">
+                    <span>
+                      🏢{' '}
+                      {reassignModal.mode === 'REPLACE_CLASS_STAFF'
+                        ? reassignModal.targetDept
+                        : (reassignModal.conflictSlot?.department || 'Dept')}{' '}
+                      Dept
+                    </span>
+                    <span>⏰ {reassignModal.day} Period {reassignModal.period}</span>
+                  </div>
+                  <div className="ft-reassign-staff-tag">
+                    👤{' '}
+                    {reassignModal.mode === 'REPLACE_CLASS_STAFF'
+                      ? (reassignModal.existingStaffName || 'Current Staff')
+                      : reassignModal.faculty?.name}
+                  </div>
+                </div>
+
+                {/* Arrow indicator */}
+                <div className="ft-reassign-arrow">
+                  <HiOutlineArrowDown />
+                  <span>
+                    {reassignModal.mode === 'REPLACE_CLASS_STAFF' ? 'Change to' : 'Reassign / Move to'}
+                  </span>
+                </div>
+
+                {/* Target assignment box */}
+                <div className="ft-reassign-box ft-reassign-box-to">
+                  <div className="ft-reassign-box-label">
+                    <span className="ft-reassign-status-badge to">
+                      {reassignModal.mode === 'REPLACE_CLASS_STAFF' ? 'New Assigned Staff' : 'New Target Class'}
+                    </span>
+                    <span className="ft-reassign-action-badge to">Will be Assigned</span>
+                  </div>
+                  <div className="ft-reassign-class-name">
+                    {reassignModal.targetClass}
+                  </div>
+                  <div className="ft-reassign-meta">
+                    <span>🏢 {reassignModal.targetDept || 'Dept'} Dept</span>
+                    <span>⏰ {reassignModal.day} Period {reassignModal.period}</span>
+                  </div>
+                  <div className="ft-reassign-staff-tag to">
+                    👤 {reassignModal.faculty?.name}
+                  </div>
+                </div>
+              </div>
+
+              <div className="ft-reassign-notice">
+                {reassignModal.mode === 'REPLACE_CLASS_STAFF' ? (
+                  <>
+                    ✅ <strong>Verified Free:</strong> <strong>{reassignModal.faculty?.name}</strong> has no other assigned class on {reassignModal.day} Period {reassignModal.period}. Confirming will assign them to <strong>{reassignModal.targetClass}</strong>.
+                  </>
+                ) : (
+                  <>
+                    ⚠️ <strong>Rule:</strong> A staff member cannot teach two classes in the same period. Confirming will unassign <strong>{reassignModal.faculty?.name}</strong> from <strong>{reassignModal.conflictSlot?.className}</strong> and assign them to <strong>{reassignModal.targetClass}</strong>.
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div
+              className="ft-modal-footer"
+              style={{
+                padding: '16px 22px',
+                background: '#f8fafc',
+                borderTop: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setReassignModal((p) => ({ ...p, isOpen: false }))}
+              >
+                Cancel / Keep Current
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmReassign}
+                style={{
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <HiOutlineSwitchHorizontal /> Yes, Change Staff Here
+              </button>
+            </div>
           </div>
         </div>
       )}

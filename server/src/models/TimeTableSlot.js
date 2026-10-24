@@ -42,7 +42,7 @@ const timeTableSlotSchema = new mongoose.Schema(
     year: {
       type: String,
       trim: true,
-      default: '', // e.g. "II", "III", "IV"
+      default: '', // e.g. "1", "2", "3", "4" or "I", "II", "III", "IV"
     },
     facultyId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -68,6 +68,10 @@ const timeTableSlotSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound indexes
 timeTableSlotSchema.index({ academicYear: 1, semester: 1, day: 1, period: 1 });
+timeTableSlotSchema.index({ academicYear: 1, semester: 1, day: 1, period: 1, className: 1 });
+timeTableSlotSchema.index({ academicYear: 1, semester: 1, day: 1, period: 1, facultyId: 1 });
+timeTableSlotSchema.index({ academicYear: 1, semester: 1, department: 1, year: 1 });
 
 module.exports = mongoose.model('TimeTableSlot', timeTableSlotSchema);

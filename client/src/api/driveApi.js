@@ -6,13 +6,17 @@ export const getDriveCandidates = (id) => api.get(`/drives/${id}/candidates`);
 export const createDrive = (data) => api.post('/drives', data);
 export const updateDrive = (id, data) => api.put(`/drives/${id}`, data);
 export const deleteDrive = (id) => api.delete(`/drives/${id}`);
-export const applyForDrive = (id) => api.post(`/drives/${id}/apply`);
+export const applyForDrive = (id, data = {}) => api.post(`/drives/${id}/apply`, data);
 export const advanceRoundCandidates = (id, roundNumber, data) =>
   api.post(`/drives/${id}/rounds/${roundNumber}/advance`, data);
 export const eliminateRoundCandidates = (id, roundNumber, data) =>
   api.post(`/drives/${id}/rounds/${roundNumber}/eliminate`, data);
+export const updateCandidateRoundStatus = (id, roundNumber, data) =>
+  api.post(`/drives/${id}/rounds/${roundNumber}/status`, data);
 export const selectFinalCandidates = (id, data) =>
   api.post(`/drives/${id}/select-final`, data);
+export const revertPlacedCandidates = (id, data) =>
+  api.post(`/drives/${id}/revert-placed`, data);
 export const addOrUpdateRound = (id, data) =>
   api.post(`/drives/${id}/rounds`, data);
 export const sendCustomRoundEmail = (id, roundNumber, data) =>

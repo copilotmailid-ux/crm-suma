@@ -14,7 +14,7 @@ const {
 // @route   GET /api/drives
 exports.getDrives = async (req, res, next) => {
   try {
-    const { search, department, batch, status } = req.query;
+    const { search, department, batch, status, visitNumber } = req.query;
     const query = {};
 
     if (search) {
@@ -28,12 +28,13 @@ exports.getDrives = async (req, res, next) => {
     if (status) query.status = status;
     if (department) query.eligibleDepartments = department;
     if (batch) query.eligibleBatches = batch;
+    if (visitNumber) query.visitNumber = Number(visitNumber);
 
     const drives = await Drive.find(query)
-      .populate('companyId', 'name industry website contactPerson contactEmail')
+      .populate('companyId', 'name industry website contactPerson contactEmail visits')
       .populate('registeredStudents', 'name rollNumber department cgpa email phone')
       .populate('finalSelectedStudents.studentId', 'name rollNumber department')
-      .sort({ driveDate: 1 });
+      .sort({ driveDate: -1 });
 
     res.json(drives);
   } catch (error) {
@@ -135,13 +136,62 @@ exports.createDrive = async (req, res, next) => {
       candidates: [],
     }));
 
+    // Support multiple roles
+    let rolesList = [];
+    if (Array.isArray(req.body.roles)) {
+      rolesList = req.body.roles.map((r) => r.trim()).filter(Boolean);
+    } else if (typeof req.body.roles === 'string') {
+      rolesList = req.body.roles.split(',').map((r) => r.trim()).filter(Boolean);
+    } else if (role) {
+      rolesList = role.split(',').map((r) => r.trim()).filter(Boolean);
+    }
+    const primaryRole = role || (rolesList.length > 0 ? rolesList[0] : 'Software Engineer');
+
+    // Determine visit number (explicitly honors requested visitNumber)
+    let visitNum = Number(req.body.visitNumber);
+    if (!visitNum || isNaN(visitNum) || visitNum < 1) {
+      if (compId) {
+        const comp = await Company.findById(compId);
+        visitNum = comp?.visits || 1;
+      } else {
+        visitNum = 1;
+      }
+    }
+
+    // Keep company visits count and visit history in sync
+    if (compId) {
+      const comp = await Company.findById(compId);
+      if (comp) {
+        let vList = Array.isArray(comp.visitsList) ? [...comp.visitsList] : [];
+        if (!vList.some((v) => Number(v.visitNumber) === visitNum)) {
+          vList.push({
+            visitNumber: visitNum,
+            contactPerson: comp.contactPerson || '',
+            contactRole: comp.contactRole || 'Campus Hiring Lead / HR Manager',
+            contactEmail: comp.contactEmail || '',
+            contactPhone: comp.contactPhone || '',
+            location: comp.location || '',
+            description: comp.description || '',
+            date: new Date(),
+          });
+          vList.sort((a, b) => a.visitNumber - b.visitNumber);
+        }
+        await Company.findByIdAndUpdate(compId, {
+          visits: Math.max(comp.visits || 1, visitNum),
+          visitsList: vList,
+        });
+      }
+    }
+
     const drive = await Drive.create({
       companyId: compId,
       companyName: compName,
-      title: title || `${compName} Campus Recruitment Drive`,
-      role,
+      title: title || `${compName} Campus Recruitment Drive (Visit ${visitNum})`,
+      role: primaryRole,
+      roles: rolesList.length > 0 ? rolesList : [primaryRole],
       package: Number(pkg) || 0,
       jobLocation: jobLocation || 'Pan India / Hybrid',
+      visitNumber: visitNum,
       eligibleDepartments: eligibleDepartments || ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'],
       eligibleBatches: eligibleBatches || ['2022-2026', '2021-2025'],
       minCgpa: minCgpa !== undefined ? Number(minCgpa) : 6.0,
@@ -186,6 +236,14 @@ exports.updateDrive = async (req, res, next) => {
 
     if (!drive) {
       return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    if (req.body.roles) {
+      const rolesList = Array.isArray(req.body.roles)
+        ? req.body.roles.map((r) => String(r).trim()).filter(Boolean)
+        : String(req.body.roles).split(',').map((r) => r.trim()).filter(Boolean);
+      drive.roles = rolesList;
+      if (!req.body.role && rolesList.length > 0) drive.role = rolesList[0];
     }
 
     Object.assign(drive, req.body);
@@ -261,6 +319,13 @@ exports.applyForDrive = async (req, res, next) => {
     }
 
     drive.registeredStudents.push(student._id);
+    if (req.body.preferredRole) {
+      if (!drive.registeredRolePreferences) drive.registeredRolePreferences = [];
+      drive.registeredRolePreferences.push({
+        studentId: student._id,
+        preferredRole: String(req.body.preferredRole).trim(),
+      });
+    }
 
     // Also add student to Round 1 candidates if rounds exist
     if (drive.rounds && drive.rounds.length > 0) {
@@ -319,10 +384,12 @@ exports.getDriveCandidates = async (req, res, next) => {
         status: idx === 0 ? 'In Progress' : 'Upcoming',
         candidates:
           idx === 0
-            ? (drive.registeredStudents || []).map((sid) => ({
-                studentId: sid,
-                status: 'pending',
-              }))
+            ? (drive.registeredStudents || [])
+                .filter(Boolean)
+                .map((sid) => ({
+                  studentId: sid,
+                  status: 'pending',
+                }))
             : [],
       }));
 
@@ -332,9 +399,14 @@ exports.getDriveCandidates = async (req, res, next) => {
       // Ensure all registered students are synced into Round 1
       const round1 = drive.rounds.find((r) => r.roundNumber === 1);
       if (round1) {
-        const currentCandSet = new Set(round1.candidates.map((c) => c.studentId.toString()));
+        if (!round1.candidates) round1.candidates = [];
+        const currentCandSet = new Set(
+          round1.candidates
+            .map((c) => (c.studentId?._id || c.studentId)?.toString())
+            .filter(Boolean)
+        );
         for (const sid of drive.registeredStudents || []) {
-          if (!currentCandSet.has(sid.toString())) {
+          if (sid && !currentCandSet.has(sid.toString())) {
             round1.candidates.push({
               studentId: sid,
               status: 'pending',
@@ -346,7 +418,11 @@ exports.getDriveCandidates = async (req, res, next) => {
     }
 
     if (shouldSave) {
-      await drive.save();
+      try {
+        await drive.save();
+      } catch (saveErr) {
+        console.warn('[getDriveCandidates] drive.save warning:', saveErr.message);
+      }
     }
 
     // Fully populate drive
@@ -371,7 +447,12 @@ exports.getDriveCandidates = async (req, res, next) => {
 
     // Build query for all eligible students in the college
     const eligibleQuery = {
-      department: { $in: drive.eligibleDepartments || [] },
+      department: {
+        $in:
+          drive.eligibleDepartments && drive.eligibleDepartments.length > 0
+            ? drive.eligibleDepartments
+            : ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'],
+      },
       cgpa: { $gte: Number(drive.minCgpa) || 0 },
       currentArrears: { $lte: Number(drive.maxCurrentArrears ?? 0) },
     };
@@ -380,11 +461,11 @@ exports.getDriveCandidates = async (req, res, next) => {
       eligibleQuery.batch = { $in: drive.eligibleBatches };
     }
 
-    if (drive.minTenthMarks && drive.minTenthMarks > 0) {
+    if (drive.minTenthMarks && Number(drive.minTenthMarks) > 0) {
       eligibleQuery.tenthPercentage = { $gte: Number(drive.minTenthMarks) };
     }
 
-    if (drive.minTwelfthMarks && drive.minTwelfthMarks > 0) {
+    if (drive.minTwelfthMarks && Number(drive.minTwelfthMarks) > 0) {
       eligibleQuery.twelfthPercentage = { $gte: Number(drive.minTwelfthMarks) };
     }
 
@@ -584,6 +665,32 @@ exports.eliminateRoundCandidates = async (req, res, next) => {
       return res.status(404).json({ message: 'Round not found' });
     }
 
+    const cRNum = Number(roundNumber);
+    // Disallow eliminating any candidate who has already been final placed or evaluated beyond 'pending' in a subsequent round
+    const lockedStudents = selectedStudentIds.filter((sid) => {
+      const sidStr = String(sid);
+      const isFinalPlaced = (drive.finalSelectedStudents || []).some(
+        (f) => (f.studentId?._id || f.studentId)?.toString() === sidStr
+      );
+      const hasProgressedInLaterRound = (drive.rounds || []).some(
+        (r) =>
+          r.roundNumber > cRNum &&
+          (r.candidates || []).some(
+            (c) =>
+              (c.studentId?._id || c.studentId)?.toString() === sidStr &&
+              c.status &&
+              c.status !== 'pending'
+          )
+      );
+      return isFinalPlaced || hasProgressedInLaterRound;
+    });
+
+    if (lockedStudents.length > 0) {
+      return res.status(400).json({
+        message: 'Cannot eliminate candidate(s) who are already placed or evaluated in a subsequent round.',
+      });
+    }
+
     const selectedSet = new Set(selectedStudentIds.map(String));
     let count = 0;
     currentRound.candidates.forEach((cand) => {
@@ -593,6 +700,15 @@ exports.eliminateRoundCandidates = async (req, res, next) => {
         if (remarks !== undefined) cand.eliminationRemarks = remarks;
         if (reason || remarks) cand.feedback = [reason, remarks].filter(Boolean).join(': ');
         count++;
+      }
+    });
+
+    // Clean up any subsequent rounds where these eliminated candidates were only 'pending'
+    drive.rounds.forEach((r) => {
+      if (r.roundNumber > cRNum) {
+        r.candidates = r.candidates.filter(
+          (c) => !selectedSet.has((c.studentId?._id || c.studentId).toString()) || c.status !== 'pending'
+        );
       }
     });
 
@@ -619,6 +735,278 @@ exports.eliminateRoundCandidates = async (req, res, next) => {
 
     res.json({
       message: `Marked ${count} candidate(s) as eliminated in Round ${roundNumber}.`,
+      drive: updatedDrive,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update candidate round status (pending review, qualified, eliminated)
+// @route   POST /api/drives/:id/rounds/:roundNumber/status
+// @access  Private (Admin)
+exports.updateCandidateRoundStatus = async (req, res, next) => {
+  try {
+    const { id, roundNumber } = req.params;
+    const { selectedStudentIds, status, reason, remarks } = req.body;
+
+    if (!selectedStudentIds || !Array.isArray(selectedStudentIds) || selectedStudentIds.length === 0) {
+      return res.status(400).json({ message: 'Please select at least one student' });
+    }
+
+    if (!['pending', 'shortlisted', 'eliminated'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be pending, shortlisted, or eliminated' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const currentRound = drive.rounds.find((r) => r.roundNumber === Number(roundNumber));
+    if (!currentRound) {
+      return res.status(404).json({ message: 'Round not found' });
+    }
+
+    const cRNum = Number(roundNumber);
+    // Disallow only if candidate has already progressed beyond pending in a subsequent round
+    const lockedStudents = selectedStudentIds.filter((sid) => {
+      const sidStr = String(sid);
+      const hasProgressedInLaterRound = (drive.rounds || []).some(
+        (r) =>
+          r.roundNumber > cRNum &&
+          (r.candidates || []).some(
+            (c) =>
+              (c.studentId?._id || c.studentId)?.toString() === sidStr &&
+              c.status &&
+              c.status !== 'pending'
+          )
+      );
+      return hasProgressedInLaterRound;
+    });
+
+    if (lockedStudents.length > 0) {
+      return res.status(400).json({
+        message: 'Cannot edit status for candidate(s) who were already evaluated in a subsequent round.',
+      });
+    }
+
+    const selectedSet = new Set(selectedStudentIds.map(String));
+    let count = 0;
+
+    // If changing to pending or eliminated, revert any placement in finalSelectedStudents
+    if (status === 'pending' || status === 'eliminated') {
+      const company = await Company.findById(drive.companyId);
+      for (const sid of selectedStudentIds) {
+        const sidStr = String(sid);
+        const finalEntry = (drive.finalSelectedStudents || []).find(
+          (f) => (f.studentId?._id || f.studentId)?.toString() === sidStr
+        );
+        if (finalEntry) {
+          if (finalEntry.placementId) {
+            await Placement.findByIdAndDelete(finalEntry.placementId);
+            await Alumni.deleteMany({ placementId: finalEntry.placementId });
+          }
+          if (company && company.studentsPlaced > 0) {
+            company.studentsPlaced = Math.max(0, company.studentsPlaced - 1);
+          }
+          const student = await Student.findById(sidStr);
+          if (student) {
+            const otherPlacements = await Placement.find({ studentId: sidStr });
+            if (otherPlacements.length > 0) {
+              student.placementId = otherPlacements[0]._id;
+              student.status = 'placed';
+            } else {
+              student.placementId = null;
+              student.status = 'unplaced';
+            }
+            await student.save();
+          }
+        }
+      }
+      if (company) await company.save();
+
+      drive.finalSelectedStudents = (drive.finalSelectedStudents || []).filter((f) => {
+        const id = f.studentId?._id || f.studentId;
+        return !id || !selectedSet.has(id.toString());
+      });
+    }
+
+    currentRound.candidates.forEach((cand) => {
+      if (selectedSet.has(cand.studentId.toString())) {
+        cand.status = status;
+        if (status === 'eliminated') {
+          if (reason) cand.eliminationReason = reason;
+          if (remarks !== undefined) cand.eliminationRemarks = remarks;
+          cand.feedback = [reason, remarks].filter(Boolean).join(': ');
+        } else {
+          cand.eliminationReason = '';
+          cand.eliminationRemarks = '';
+          cand.feedback = '';
+        }
+        count++;
+      }
+    });
+
+    // If status changed to eliminated or pending, remove from higher rounds where they were only pending
+    if (status === 'eliminated' || status === 'pending') {
+      drive.rounds.forEach((r) => {
+        if (r.roundNumber > cRNum) {
+          r.candidates = r.candidates.filter(
+            (c) => !selectedSet.has((c.studentId?._id || c.studentId).toString()) || c.status !== 'pending'
+          );
+        }
+      });
+    } else if (status === 'shortlisted') {
+      // If a next round already exists, ensure these qualified candidates appear in next round as pending
+      const nextRound = drive.rounds.find((r) => r.roundNumber === cRNum + 1);
+      if (nextRound) {
+        const existingNextSet = new Set(
+          nextRound.candidates.map((c) => (c.studentId?._id || c.studentId).toString())
+        );
+        selectedStudentIds.forEach((sid) => {
+          if (!existingNextSet.has(String(sid))) {
+            nextRound.candidates.push({
+              studentId: sid,
+              status: 'pending',
+              emailSent: false,
+            });
+          }
+        });
+      }
+    }
+
+    await drive.save();
+
+    // Refetch populated drive
+    const updatedDrive = await Drive.findById(id)
+      .populate('companyId')
+      .populate({
+        path: 'registeredStudents',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'rounds.candidates.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'finalSelectedStudents.studentId',
+        select: 'name rollNumber department batch cgpa currentArrears email phone resumeUrl careerPreference status',
+      })
+      .populate('finalSelectedStudents.placementId');
+
+    const statusLabel =
+      status === 'shortlisted' ? 'Qualified' : status === 'eliminated' ? 'Eliminated' : 'Pending Review';
+
+    res.json({
+      message: `Updated ${count} candidate(s) to ${statusLabel} in Round ${roundNumber}.`,
+      drive: updatedDrive,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Revert candidates from final placed to pending review
+// @route   POST /api/drives/:id/revert-placed
+// @access  Private (Admin)
+exports.revertPlacedCandidates = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { selectedStudentIds, roundNumber } = req.body;
+
+    if (!selectedStudentIds || !Array.isArray(selectedStudentIds) || selectedStudentIds.length === 0) {
+      return res.status(400).json({ message: 'Please select at least one student' });
+    }
+
+    const drive = await Drive.findById(id);
+    if (!drive) {
+      return res.status(404).json({ message: 'Drive not found' });
+    }
+
+    const company = await Company.findById(drive.companyId);
+    const selectedSet = new Set(selectedStudentIds.map(String));
+    let revertedCount = 0;
+
+    for (const sid of selectedStudentIds) {
+      const sidStr = String(sid);
+      const finalEntry = (drive.finalSelectedStudents || []).find(
+        (f) => (f.studentId?._id || f.studentId)?.toString() === sidStr
+      );
+
+      if (finalEntry) {
+        const placementId = finalEntry.placementId;
+        if (placementId) {
+          await Placement.findByIdAndDelete(placementId);
+          await Alumni.deleteMany({ placementId });
+        }
+
+        if (company && company.studentsPlaced > 0) {
+          company.studentsPlaced = Math.max(0, company.studentsPlaced - 1);
+        }
+
+        const student = await Student.findById(sidStr);
+        if (student) {
+          const otherPlacements = await Placement.find({ studentId: sidStr });
+          if (otherPlacements.length > 0) {
+            student.placementId = otherPlacements[0]._id;
+            student.status = 'placed';
+          } else {
+            student.placementId = null;
+            student.status = 'unplaced';
+          }
+          await student.save();
+        }
+
+        revertedCount++;
+      }
+    }
+
+    drive.finalSelectedStudents = (drive.finalSelectedStudents || []).filter((f) => {
+      const id = f.studentId?._id || f.studentId;
+      return !id || !selectedSet.has(id.toString());
+    });
+
+    if (company) {
+      await company.save();
+    }
+
+    const targetRoundNum = roundNumber ? Number(roundNumber) : null;
+    (drive.rounds || []).forEach((r) => {
+      if (!targetRoundNum || r.roundNumber === targetRoundNum) {
+        (r.candidates || []).forEach((cand) => {
+          const candId = cand.studentId?._id || cand.studentId;
+          if (candId && selectedSet.has(candId.toString())) {
+            cand.status = 'pending';
+          }
+        });
+      }
+    });
+
+    await drive.save();
+
+    const updatedDrive = await Drive.findById(id)
+      .populate('companyId')
+      .populate({
+        path: 'registeredStudents',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'rounds.candidates.studentId',
+        select:
+          'name rollNumber department batch cgpa currentArrears historyOfArrears tenthPercentage twelfthPercentage email phone resumeUrl linkedinUrl careerPreference status',
+      })
+      .populate({
+        path: 'finalSelectedStudents.studentId',
+        select: 'name rollNumber department batch cgpa currentArrears email phone resumeUrl careerPreference status',
+      })
+      .populate('finalSelectedStudents.placementId');
+
+    res.json({
+      message: `Successfully switched ${revertedCount || selectedStudentIds.length} candidate(s) to Pending Review.`,
       drive: updatedDrive,
     });
   } catch (error) {
@@ -676,6 +1064,8 @@ exports.selectFinalCandidates = async (req, res, next) => {
         const placement = await Placement.create({
           studentId: student._id,
           companyId: drive.companyId,
+          driveId: drive._id,
+          visitNumber: drive.visitNumber || 1,
           role: placedRole,
           package: placedPackage,
           placementDate: pDate,

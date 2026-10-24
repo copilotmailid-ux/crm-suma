@@ -122,14 +122,16 @@ exports.createPlacement = async (req, res, next) => {
 
     // Create placement
     const placement = await Placement.create({
-      studentId,
-      companyId,
-      role,
-      package: pkg,
-      placementDate,
-      offerType: offerType || 'on_campus',
-      status: status || 'offered',
-    });
+       studentId,
+       companyId,
+       driveId: req.body.driveId || null,
+       visitNumber: req.body.visitNumber || 1,
+       role,
+       package: pkg,
+       placementDate,
+       offerType: offerType || 'on_campus',
+       status: status || 'offered',
+     });
 
     // Update student status
     student.status = 'placed';

@@ -49,3 +49,13 @@ export const removeStudentFromAttendance = async (id, recordId) => {
   const response = await api.delete(`/events/${id}/attendance/${recordId}`);
   return response.data;
 };
+
+export const registerForEvent = async (id) => {
+  const response = await api.post(`/events/${id}/register`);
+  return response.data;
+};
+
+export const unregisterFromEvent = async (id) => {
+  const response = await api.delete(`/events/${id}/register`);
+  return response.data;
+};

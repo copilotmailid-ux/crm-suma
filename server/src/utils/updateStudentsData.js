@@ -92,11 +92,13 @@ function getRandomDob(batch) {
   return `${birthYear}-${month}-${day}`;
 }
 
-async function updateAllStudents() {
+async function updateAllStudents(isStandalone = false) {
   console.log('🚀 Updating all existing students with complete profile and career track data...');
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    if (isStandalone && mongoose.connection.readyState === 0) {
+      await mongoose.connect(MONGO_URI);
+      console.log('✅ Connected to MongoDB');
+    }
 
     const students = await Student.find({});
     console.log(`Found ${students.length} students to update.`);
@@ -221,14 +223,23 @@ async function updateAllStudents() {
     console.log(` 🌐 Other              : ${countOther}`);
     console.log('======================================================\n');
 
-    await mongoose.disconnect();
-    console.log('✅ Done! Disconnected from MongoDB.');
-    process.exit(0);
+    if (isStandalone) {
+      await mongoose.disconnect();
+      console.log('✅ Done! Disconnected from MongoDB.');
+      process.exit(0);
+    }
   } catch (err) {
     console.error('❌ Error updating students:', err);
-    await mongoose.disconnect();
-    process.exit(1);
+    if (isStandalone) {
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    throw err;
   }
 }
 
-updateAllStudents();
+if (require.main === module) {
+  updateAllStudents(true);
+}
+
+module.exports = updateAllStudents;

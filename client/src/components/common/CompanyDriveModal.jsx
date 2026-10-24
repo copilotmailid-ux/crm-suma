@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   HiOutlineX,
@@ -16,9 +16,7 @@ import {
   HiOutlineArrowRight,
   HiOutlinePlus,
   HiOutlineSparkles,
-  HiOutlineCog,
   HiOutlineRefresh,
-  HiOutlineExclamation,
   HiOutlineXCircle,
   HiOutlineUpload,
 } from 'react-icons/hi';
@@ -27,7 +25,9 @@ import {
   getDriveCandidates,
   advanceRoundCandidates,
   eliminateRoundCandidates,
+  updateCandidateRoundStatus,
   selectFinalCandidates,
+  revertPlacedCandidates,
   addOrUpdateRound,
   resendRoundEmail,
   resendOfferEmail,
@@ -51,21 +51,20 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
   // Tabs: 'pipeline' (Rounds) | 'placed' | 'registered' | 'eligible' | 'info'
   const [activeTab, setActiveTab] = useState('pipeline');
-  const [loading, setLoading] = useState(true);
-
-  // Drive & Pipeline State
+  // Drive & Pipeline State (instant display from drive prop)
   const [driveData, setDriveData] = useState(drive || {});
-  const [rounds, setRounds] = useState([]);
-  const [currentRoundNumber, setCurrentRoundNumber] = useState(1);
-  const [selectedRoundNumber, setSelectedRoundNumber] = useState(1);
-  const [finalSelectedStudents, setFinalSelectedStudents] = useState([]);
-  const [registeredStudents, setRegisteredStudents] = useState([]);
+  const [rounds, setRounds] = useState(drive?.rounds || []);
+  const [selectedRoundNumber, setSelectedRoundNumber] = useState(drive?.currentRound || 1);
+  const [finalSelectedStudents, setFinalSelectedStudents] = useState(drive?.finalSelectedStudents || []);
+  const [registeredStudents, setRegisteredStudents] = useState(drive?.registeredStudents || []);
   const [eligibleStudents, setEligibleStudents] = useState([]);
+  const [currentRoundNumber, setCurrentRoundNumber] = useState(drive?.currentRound || 1);
+  const [loading, setLoading] = useState(!drive?.rounds || drive.rounds.length === 0);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
   const [roundSearchQuery, setRoundSearchQuery] = useState('');
-  const [eligibleFilter, setEligibleFilter] = useState('all');
+  const eligibleFilter = 'all';
 
   // Checkbox Selection for Active Round
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
@@ -75,6 +74,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   // Modal: Eliminate with Reason & Feedback
   const [showEliminateModal, setShowEliminateModal] = useState(false);
   const [eliminateTargetIds, setEliminateTargetIds] = useState([]);
+  const [advanceTargetIds, setAdvanceTargetIds] = useState([]);
+  const [finalTargetIds, setFinalTargetIds] = useState([]);
   const [eliminateForm, setEliminateForm] = useState({
     reason: 'Technical Lag',
     customReason: '',
@@ -132,9 +133,12 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   });
 
   // Fetch Candidates & Rounds
-  const loadDriveDetails = () => {
+  const loadDriveDetails = useCallback(() => {
     if (!drive?._id) return;
-    setLoading(true);
+
+    if (!drive.rounds || drive.rounds.length === 0) {
+      setLoading(true);
+    }
 
     getDriveCandidates(drive._id)
       .then((res) => {
@@ -155,14 +159,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         setLoading(false);
       })
       .catch((err) => {
-        toast.error(err.response?.data?.message || 'Failed to load drive candidates');
+        console.warn('[CompanyDriveModal] getDriveCandidates error, preserving drive data:', err?.message || err);
+        const d = drive || {};
+        setDriveData(d);
+        setRounds(d.rounds || []);
+        setCurrentRoundNumber(d.currentRound || 1);
+        setSelectedRoundNumber((prev) => (d.rounds?.some((r) => r.roundNumber === prev) ? prev : (d.currentRound || 1)));
+        setFinalSelectedStudents(d.finalSelectedStudents || []);
+        setRegisteredStudents(d.registeredStudents || []);
         setLoading(false);
       });
-  };
+  }, [drive]);
 
   useEffect(() => {
     loadDriveDetails();
-  }, [drive?._id]);
+  }, [loadDriveDetails]);
 
   // Lookup map of all registered student objects by ID
   const studentMap = useMemo(() => {
@@ -212,6 +223,107 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     });
   }, [activeRoundCandidates, roundSearchQuery]);
 
+  // Candidates in active round who are actionable (NOT evaluated beyond 'pending' in any subsequent round)
+  const actionableCandidatesInRound = useMemo(() => {
+    return filteredRoundCandidates.filter((cand) => {
+      const sId = (cand.student?._id || cand.studentId?._id || cand.studentId)?.toString();
+      const hasProgressedInLaterRound = (driveData.rounds || []).some(
+        (r) =>
+          r.roundNumber > selectedRoundNumber &&
+          (r.candidates || []).some(
+            (c) =>
+              (c.student?._id || c.studentId?._id || c.studentId)?.toString() === sId &&
+              c.status &&
+              c.status !== 'pending'
+          )
+      );
+      return !hasProgressedInLaterRound;
+    });
+  }, [filteredRoundCandidates, driveData.rounds, selectedRoundNumber]);
+
+  // Categorize selected candidates so actions only apply to different/valid status transitions
+  const selectedAnalysis = useMemo(() => {
+    if (selectedStudentIds.length === 0) {
+      return {
+        selected: [],
+        pending: [],
+        placed: [],
+        qualified: [],
+        eliminated: [],
+        canRevertToPending: [],
+        canPlace: [],
+        canAdvance: [],
+        canQualify: [],
+        canEliminate: [],
+      };
+    }
+
+    const selectedSet = new Set(selectedStudentIds.map(String));
+    const isCurrentRoundFinal = selectedRoundNumber === (driveData.rounds || []).length;
+    const finalPlacedSet = new Set(
+      (driveData.finalSelectedStudents || []).map((f) =>
+        (f.studentId?._id || f.studentId)?.toString()
+      )
+    );
+
+    const selected = filteredRoundCandidates.filter((cand) => {
+      const sId = (cand.student?._id || cand.studentId?._id || cand.studentId)?.toString();
+      return selectedSet.has(sId);
+    });
+
+    const pending = [];
+    const placed = [];
+    const qualified = [];
+    const eliminated = [];
+    const canAdvance = [];
+
+    selected.forEach((cand) => {
+      const sId = (cand.student?._id || cand.studentId?._id || cand.studentId)?.toString();
+      const isPlaced = (cand.status === 'selected' || finalPlacedSet.has(sId)) && isCurrentRoundFinal;
+      const isQualified = cand.status === 'shortlisted' || (cand.status === 'selected' && !isPlaced);
+      const isEliminated = cand.status === 'eliminated';
+      const isPending = !isPlaced && !isQualified && !isEliminated;
+
+      if (isPlaced) placed.push(cand);
+      else if (isQualified) qualified.push(cand);
+      else if (isEliminated) eliminated.push(cand);
+      else pending.push(cand);
+
+      // Can advance if not locked in later round and not eliminated
+      const hasProgressedInLaterRound = (driveData.rounds || []).some(
+        (r) =>
+          r.roundNumber > selectedRoundNumber &&
+          (r.candidates || []).some(
+            (c) =>
+              (c.student?._id || c.studentId?._id || c.studentId)?.toString() === sId &&
+              c.status &&
+              c.status !== 'pending'
+          )
+      );
+      if (!hasProgressedInLaterRound && !isEliminated) {
+        canAdvance.push(cand);
+      }
+    });
+
+    return {
+      selected,
+      pending,
+      placed,
+      qualified,
+      eliminated,
+      // Only students who are currently NOT in pending review can be reverted to pending review
+      canRevertToPending: [...placed, ...qualified, ...eliminated],
+      // Only students who are currently NOT placed can be marked as placed
+      canPlace: [...pending, ...qualified, ...eliminated],
+      // Only students who are eligible for advancement
+      canAdvance,
+      // Only students who are currently NOT qualified (and not placed) can be qualified
+      canQualify: [...pending, ...eliminated],
+      // Only students who are currently NOT eliminated (and not placed) can be eliminated
+      canEliminate: [...pending, ...qualified],
+    };
+  }, [selectedStudentIds, filteredRoundCandidates, selectedRoundNumber, driveData]);
+
   // Set of applied student IDs for fast lookup in eligible tab
   const appliedIds = useMemo(() => {
     return new Set(registeredStudents.map((s) => (s._id || s).toString()));
@@ -254,21 +366,42 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   // Selection Checkbox Helpers
   const handleToggleSelectStudent = (studentId) => {
     const sIdStr = studentId.toString();
+    const isLocked = (driveData.rounds || []).some(
+      (r) =>
+        r.roundNumber > selectedRoundNumber &&
+        (r.candidates || []).some(
+          (c) =>
+            (c.student?._id || c.studentId?._id || c.studentId)?.toString() === sIdStr &&
+            c.status &&
+            c.status !== 'pending'
+        )
+    );
+
+    if (isLocked) {
+      toast.error('Cannot modify candidate who was already evaluated in a subsequent round.');
+      return;
+    }
+
     setSelectedStudentIds((prev) =>
       prev.includes(sIdStr) ? prev.filter((id) => id !== sIdStr) : [...prev, sIdStr]
     );
   };
 
   const handleSelectAllInRound = () => {
-    const visibleIds = filteredRoundCandidates
+    const selectableIds = actionableCandidatesInRound
       .map((c) => (c.student?._id || c.studentId?._id || c.studentId)?.toString())
       .filter(Boolean);
 
-    const allSelected = visibleIds.every((id) => selectedStudentIds.includes(id));
+    if (selectableIds.length === 0) {
+      toast.info('All candidates in this round have already passed to subsequent stages or been placed.');
+      return;
+    }
+
+    const allSelected = selectableIds.every((id) => selectedStudentIds.includes(id));
     if (allSelected) {
-      setSelectedStudentIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
+      setSelectedStudentIds((prev) => prev.filter((id) => !selectableIds.includes(id)));
     } else {
-      setSelectedStudentIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
+      setSelectedStudentIds((prev) => Array.from(new Set([...prev, ...selectableIds])));
     }
   };
 
@@ -348,6 +481,30 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       toast.error('Please select at least one candidate to eliminate');
       return;
     }
+
+    // Verify none of the target students have passed to the next round or are final placed
+    const invalidIds = idsToEliminate.filter((sid) => {
+      const sidStr = sid.toString();
+      const inLaterRound = (driveData.rounds || []).some(
+        (r) =>
+          r.roundNumber > selectedRoundNumber &&
+          (r.candidates || []).some(
+            (c) => (c.student?._id || c.studentId?._id || c.studentId)?.toString() === sidStr
+          )
+      );
+      const isPlaced = (driveData.finalSelectedStudents || []).some(
+        (f) => (f.studentId?._id || f.studentId)?.toString() === sidStr
+      );
+      return inLaterRound || isPlaced;
+    });
+
+    if (invalidIds.length > 0) {
+      toast.error(
+        'Cannot eliminate candidate(s) on a previous round where the student has already passed to the next round or been placed on the final round.'
+      );
+      return;
+    }
+
     setEliminateTargetIds(idsToEliminate);
     setEliminateForm({
       reason: 'Technical Lag',
@@ -418,12 +575,115 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     }
   };
 
-  // Open "Advance to Next Round" modal
-  const handleOpenAdvanceModal = () => {
-    if (selectedStudentIds.length === 0) {
-      toast.error('Please select at least one student to advance to the next round');
+  // Directly update candidate status (pending review, qualified, eliminated)
+  const handleUpdateCandidateStatus = async (studentIds, newStatus, reason = '', remarks = '') => {
+    const targetIds = Array.isArray(studentIds) ? studentIds : [studentIds];
+    if (targetIds.length === 0) return;
+
+    if (newStatus === 'eliminated' && !reason) {
+      handleOpenEliminateModal(targetIds);
       return;
     }
+
+    try {
+      const res = await updateCandidateRoundStatus(driveData._id, selectedRoundNumber, {
+        selectedStudentIds: targetIds,
+        status: newStatus,
+        reason,
+        remarks,
+      });
+
+      toast.success(res.data?.message || `Status updated to ${newStatus === 'shortlisted' ? 'Qualified' : newStatus === 'eliminated' ? 'Eliminated' : 'Pending Review'}`);
+
+      if (res.data?.drive) {
+        setDriveData(res.data.drive);
+        setRounds(res.data.drive.rounds || []);
+      }
+
+      setSelectedStudentIds((prev) => prev.filter((id) => !targetIds.includes(String(id))));
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to update candidate status');
+    }
+  };
+
+  // Revert candidates from Placed/Qualified/Eliminated to Pending Review
+  const handleBulkRevertToPending = async (studentIds = null) => {
+    const targetCandidates = studentIds
+      ? filteredRoundCandidates.filter((c) => {
+          const sId = (c.student?._id || c.studentId?._id || c.studentId)?.toString();
+          return studentIds.includes(sId);
+        })
+      : selectedAnalysis.canRevertToPending;
+
+    if (!targetCandidates || targetCandidates.length === 0) {
+      toast.error('Selected candidate(s) are already in Pending Review');
+      return;
+    }
+
+    const placedIds = [];
+    const otherIds = [];
+
+    const isCurrentRoundFinal = selectedRoundNumber === (driveData.rounds || []).length;
+    const finalPlacedSet = new Set(
+      (driveData.finalSelectedStudents || []).map((f) =>
+        (f.studentId?._id || f.studentId)?.toString()
+      )
+    );
+
+    targetCandidates.forEach((cand) => {
+      const sId = (cand.student?._id || cand.studentId?._id || cand.studentId)?.toString();
+      if (!sId) return;
+      if ((cand.status === 'selected' || finalPlacedSet.has(sId)) && isCurrentRoundFinal) {
+        placedIds.push(sId);
+      } else {
+        otherIds.push(sId);
+      }
+    });
+
+    try {
+      if (placedIds.length > 0) {
+        await revertPlacedCandidates(driveData._id, {
+          selectedStudentIds: placedIds,
+          roundNumber: selectedRoundNumber,
+        });
+      }
+      if (otherIds.length > 0) {
+        await updateCandidateRoundStatus(driveData._id, selectedRoundNumber, {
+          selectedStudentIds: otherIds,
+          status: 'pending',
+        });
+      }
+
+      toast.success(
+        `${placedIds.length + otherIds.length} candidate(s) switched back to Pending Review`
+      );
+
+      const allReverted = [...placedIds, ...otherIds];
+      setSelectedStudentIds((prev) => prev.filter((id) => !allReverted.includes(String(id))));
+      await loadDriveDetails();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to revert candidates to Pending Review');
+    }
+  };
+
+  const handleRevertPlaced = handleBulkRevertToPending;
+
+  // Open "Advance to Next Round" modal
+  const handleOpenAdvanceModal = (targetStudentIds = null) => {
+    const ids =
+      targetStudentIds ||
+      selectedAnalysis.canAdvance.map((c) =>
+        (c.student?._id || c.studentId?._id || c.studentId)?.toString()
+      ).filter(Boolean);
+
+    if (!ids || ids.length === 0) {
+      toast.error('Please select at least one candidate eligible to advance to the next round');
+      return;
+    }
+
+    setAdvanceTargetIds(ids);
 
     const nextRNum = selectedRoundNumber + 1;
     const existingNextRound = rounds.find((r) => r.roundNumber === nextRNum);
@@ -473,8 +733,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
 
     setAdvancing(true);
     try {
+      const targetIds = advanceTargetIds.length > 0 ? advanceTargetIds : selectedStudentIds;
       const payload = {
-        selectedStudentIds,
+        selectedStudentIds: targetIds,
         nextRoundNumber: Number(advanceForm.nextRoundNumber),
         nextRoundName: advanceForm.nextRoundName.trim(),
         scheduledDate: advanceForm.scheduledDate ? new Date(advanceForm.scheduledDate).toISOString() : null,
@@ -489,7 +750,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       toast.success(res.data.message || 'Candidates advanced successfully!');
 
       setShowAdvanceModal(false);
-      setSelectedStudentIds([]);
+      setAdvanceTargetIds([]);
+      setSelectedStudentIds((prev) => prev.filter((id) => !targetIds.includes(String(id))));
       setSelectedRoundNumber(Number(advanceForm.nextRoundNumber));
       loadDriveDetails();
     } catch (err) {
@@ -500,11 +762,19 @@ const CompanyDriveModal = ({ drive, onClose }) => {
   };
 
   // Open "Mark as Finally Selected" modal
-  const handleOpenFinalModal = () => {
-    if (selectedStudentIds.length === 0) {
-      toast.error('Please select at least one student to mark as Finally Selected');
+  const handleOpenFinalModal = (targetStudentIds = null) => {
+    const ids =
+      targetStudentIds ||
+      selectedAnalysis.canPlace.map((c) =>
+        (c.student?._id || c.studentId?._id || c.studentId)?.toString()
+      ).filter(Boolean);
+
+    if (!ids || ids.length === 0) {
+      toast.error('Selected student(s) are already marked as Placed');
       return;
     }
+
+    setFinalTargetIds(ids);
 
     setFinalForm({
       role: driveData.role || '',
@@ -523,8 +793,9 @@ const CompanyDriveModal = ({ drive, onClose }) => {
     e.preventDefault();
     setSelectingFinal(true);
     try {
+      const targetIds = finalTargetIds.length > 0 ? finalTargetIds : selectedStudentIds;
       const payload = {
-        selectedStudentIds,
+        selectedStudentIds: targetIds,
         currentRoundNumber: selectedRoundNumber,
         role: finalForm.role.trim() || driveData.role,
         package: Number(finalForm.package) || driveData.package,
@@ -538,7 +809,8 @@ const CompanyDriveModal = ({ drive, onClose }) => {
       toast.success(res.data.message || 'Selected candidates marked as placed successfully!');
 
       setShowFinalModal(false);
-      setSelectedStudentIds([]);
+      setFinalTargetIds([]);
+      setSelectedStudentIds((prev) => prev.filter((id) => !targetIds.includes(String(id))));
       setActiveTab('placed');
       loadDriveDetails();
     } catch (err) {
@@ -734,7 +1006,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         bottom: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: 99999,
+        zIndex: 9999,
         background: 'rgba(11, 29, 55, 0.75)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -753,7 +1025,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
           width: '98%',
           height: 'calc(100vh - 40px)',
           maxHeight: '940px',
-          minHeight: '560px',
+          minHeight: '0',
           display: 'flex',
           flexDirection: 'column',
           padding: 0,
@@ -914,7 +1186,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             gap: '12px',
           }}
         >
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch', alignItems: 'center', width: '100%', paddingBottom: '2px' }}>
             {/* Rounds & Shortlisting Tab Button */}
             <button
               onClick={() => {
@@ -1498,7 +1770,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         }}
                       >
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#059669' }}>
-                          {activeRoundCandidates.filter((c) => c.status === 'shortlisted').length}
+                          {
+                            activeRoundCandidates.filter((c) => {
+                              const sid = (c.student?._id || c.studentId?._id || c.studentId)?.toString();
+                              const isElimLater = (drive.rounds || []).some(
+                                (r) => r.roundNumber > selectedRoundNumber && (r.candidates || []).some(
+                                  (rc) => (rc.student?._id || rc.studentId?._id || rc.studentId)?.toString() === sid && rc.status === 'eliminated'
+                                )
+                              );
+                              const isPlaced = (drive.finalSelectedStudents || []).some(
+                                (f) => (f.studentId?._id || f.studentId)?.toString() === sid
+                              );
+                              const isFinal = selectedRoundNumber === (drive.rounds || []).length;
+                              return c.status === 'shortlisted' || (c.status === 'selected' && (!isFinal || isElimLater || !isPlaced));
+                            }).length
+                          }
                         </div>
                         <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600 }}>ADVANCED</div>
                       </div>
@@ -1513,7 +1799,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         }}
                       >
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#b45309' }}>
-                          {activeRoundCandidates.filter((c) => c.status === 'selected').length}
+                          {
+                            activeRoundCandidates.filter((c) => {
+                              const sid = (c.student?._id || c.studentId?._id || c.studentId)?.toString();
+                              const isElimLater = (drive.rounds || []).some(
+                                (r) => r.roundNumber > selectedRoundNumber && (r.candidates || []).some(
+                                  (rc) => (rc.student?._id || rc.studentId?._id || rc.studentId)?.toString() === sid && rc.status === 'eliminated'
+                                )
+                              );
+                              const isPlaced = (drive.finalSelectedStudents || []).some(
+                                (f) => (f.studentId?._id || f.studentId)?.toString() === sid
+                              );
+                              const isFinal = selectedRoundNumber === (drive.rounds || []).length;
+                              return c.status === 'selected' && isFinal && isPlaced && !isElimLater;
+                            }).length
+                          }
                         </div>
                         <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 600 }}>PLACED</div>
                       </div>
@@ -1612,72 +1912,142 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                         {resendingId === 'bulk' ? 'Resending...' : `Resend Email (${selectedStudentIds.length})`}
                       </button>
 
-                      {/* Primary Button: Advance to Next Round & Send Mail */}
-                      <button
-                        type="button"
-                        onClick={handleOpenAdvanceModal}
-                        className="btn btn-primary"
-                        style={{
-                          padding: '8px 16px',
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          background: 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)',
-                          boxShadow: '0 4px 12px rgba(11, 29, 55, 0.3)',
-                        }}
-                      >
-                        <HiOutlineArrowRight /> Advance to Round {selectedRoundNumber + 1} & Send Mail ({selectedStudentIds.length})
-                      </button>
+                      {/* Switch from Placed/Qualified/Eliminated to Pending Review Button */}
+                      {selectedAnalysis.canRevertToPending.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleBulkRevertToPending()}
+                          style={{
+                            padding: '7px 14px',
+                            fontSize: '0.82rem',
+                            fontWeight: 700,
+                            borderRadius: '8px',
+                            border: '1px solid #fde68a',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#fffbeb',
+                            color: '#b45309',
+                            boxShadow: '0 2px 6px rgba(180, 83, 9, 0.12)',
+                          }}
+                          title={`Switch ${selectedAnalysis.canRevertToPending.length} selected candidate(s) back to Pending Review`}
+                        >
+                          ⏳ Switch to Pending Review ({selectedAnalysis.canRevertToPending.length})
+                        </button>
+                      )}
 
                       {/* Final Placement Offer Button */}
-                      <button
-                        type="button"
-                        onClick={handleOpenFinalModal}
-                        style={{
-                          padding: '8px 16px',
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          borderRadius: '8px',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                          color: '#ffffff',
-                          boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
-                        }}
-                      >
-                        <HiOutlineSparkles /> Mark as Placed ({selectedStudentIds.length})
-                      </button>
+                      {selectedAnalysis.canPlace.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenFinalModal()}
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            borderRadius: '8px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                            color: '#ffffff',
+                            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                          }}
+                          title={`Mark ${selectedAnalysis.canPlace.length} selected candidate(s) as Placed`}
+                        >
+                          <HiOutlineSparkles /> Mark as Placed ({selectedAnalysis.canPlace.length})
+                        </button>
+                      )}
+
+                      {/* Primary Button: Move / Advance to Next Round (if not final round) */}
+                      {selectedRoundNumber < (driveData.rounds || []).length && selectedAnalysis.canAdvance.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAdvanceModal()}
+                          className="btn btn-primary"
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)',
+                            boxShadow: '0 4px 12px rgba(11, 29, 55, 0.3)',
+                          }}
+                          title={`Move ${selectedAnalysis.canAdvance.length} candidate(s) to Round ${selectedRoundNumber + 1}`}
+                        >
+                          <HiOutlineArrowRight /> Move to Round {selectedRoundNumber + 1} ({selectedAnalysis.canAdvance.length})
+                        </button>
+                      )}
+
+                      {/* Bulk Qualify in current round */}
+                      {selectedAnalysis.canQualify.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdateCandidateStatus(
+                              selectedAnalysis.canQualify
+                                .map((c) => (c.student?._id || c.studentId?._id || c.studentId)?.toString())
+                                .filter(Boolean),
+                              'shortlisted'
+                            )
+                          }
+                          style={{
+                            padding: '7px 14px',
+                            fontSize: '0.82rem',
+                            fontWeight: 700,
+                            borderRadius: '8px',
+                            border: '1px solid #86efac',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#f0fdf4',
+                            color: '#15803d',
+                          }}
+                          title={`Mark ${selectedAnalysis.canQualify.length} candidate(s) as Qualified for Round ${selectedRoundNumber}`}
+                        >
+                          ✓ Qualify ({selectedAnalysis.canQualify.length})
+                        </button>
+                      )}
 
                       {/* Eliminated Button on each round */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEliminateModal()}
-                        disabled={eliminating}
-                        style={{
-                          padding: '8px 16px',
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          borderRadius: '8px',
-                          border: '1px solid #fecaca',
-                          cursor: eliminating ? 'not-allowed' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: '#fee2e2',
-                          color: '#dc2626',
-                          boxShadow: '0 2px 6px rgba(220, 38, 38, 0.15)',
-                          transition: 'all 0.15s ease',
-                        }}
-                        title={`Mark ${selectedStudentIds.length} candidate(s) as eliminated in Round ${selectedRoundNumber}`}
-                      >
-                        <HiOutlineXCircle style={{ fontSize: '1.15rem' }} />
-                        {eliminating ? 'Eliminating...' : `Eliminated (${selectedStudentIds.length})`}
-                      </button>
+                      {selectedAnalysis.canEliminate.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleOpenEliminateModal(
+                              selectedAnalysis.canEliminate
+                                .map((c) => (c.student?._id || c.studentId?._id || c.studentId)?.toString())
+                                .filter(Boolean)
+                            )
+                          }
+                          disabled={eliminating}
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            borderRadius: '8px',
+                            border: '1px solid #fecaca',
+                            cursor: eliminating ? 'not-allowed' : 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            boxShadow: '0 2px 6px rgba(220, 38, 38, 0.15)',
+                            transition: 'all 0.15s ease',
+                          }}
+                          title={`Mark ${selectedAnalysis.canEliminate.length} candidate(s) as eliminated in Round ${selectedRoundNumber}`}
+                        >
+                          <HiOutlineXCircle style={{ fontSize: '1.15rem' }} />
+                          {eliminating ? 'Eliminating...' : `Eliminated (${selectedAnalysis.canEliminate.length})`}
+                        </button>
+                      )}
                     </>
                   ) : (
                     <div style={{ fontSize: '0.84rem', color: 'var(--text-muted, #64748b)' }}>
@@ -1722,7 +2092,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '480px', margin: '0 auto' }}>
                     {selectedRoundNumber === 1
                       ? 'Students who register for this drive will automatically appear here in Round 1.'
-                      : `Select candidates from Round ${selectedRoundNumber - 1} and click 'Advance to Round ${selectedRoundNumber}' to shortlist them for this stage.`}
+                      : `Select candidates from Round ${selectedRoundNumber - 1} and click 'Move to Round ${selectedRoundNumber}' to shortlist them for this stage.`}
                   </p>
                 </div>
               ) : (
@@ -1742,17 +2112,27 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           <th style={{ width: '40px', textAlign: 'center' }}>
                             <input
                               type="checkbox"
-                              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                cursor: actionableCandidatesInRound.length === 0 ? 'not-allowed' : 'pointer',
+                                opacity: actionableCandidatesInRound.length === 0 ? 0.35 : 1,
+                              }}
                               checked={
-                                filteredRoundCandidates.length > 0 &&
-                                filteredRoundCandidates.every((c) =>
+                                actionableCandidatesInRound.length > 0 &&
+                                actionableCandidatesInRound.every((c) =>
                                   selectedStudentIds.includes(
                                     (c.student?._id || c.studentId?._id || c.studentId)?.toString()
                                   )
                                 )
                               }
+                              disabled={actionableCandidatesInRound.length === 0}
                               onChange={handleSelectAllInRound}
-                              title="Select / Deselect all in this round"
+                              title={
+                                actionableCandidatesInRound.length === 0
+                                  ? 'All candidates in this round have passed to the next stage or been placed'
+                                  : 'Select / Deselect all actionable candidates in this round'
+                              }
                             />
                           </th>
                           <th style={{ width: '40px' }}>#</th>
@@ -1773,6 +2153,27 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                           const sIdStr = (student._id || cand.studentId?._id || cand.studentId)?.toString();
                           const isSelected = selectedStudentIds.includes(sIdStr);
 
+                          const isCurrentRoundFinal = selectedRoundNumber === (driveData.rounds || []).length;
+                          const isCandidateFinalPlacedInDrive = (driveData.finalSelectedStudents || []).some(
+                            (f) => (f.studentId?._id || f.studentId)?.toString() === sIdStr
+                          );
+
+                          // A candidate is locked in earlier rounds ONLY IF evaluated beyond 'pending' in any later round
+                          const hasProgressedInLaterRound = (driveData.rounds || []).some(
+                            (r) =>
+                              r.roundNumber > selectedRoundNumber &&
+                              (r.candidates || []).some(
+                                (c) =>
+                                  (c.student?._id || c.studentId?._id || c.studentId)?.toString() === sIdStr &&
+                                  c.status &&
+                                  c.status !== 'pending'
+                              )
+                          );
+
+                          const isLockedInPastRound = hasProgressedInLaterRound;
+                          const isEffectivelyPlaced = (cand.status === 'selected' || isCandidateFinalPlacedInDrive) && isCurrentRoundFinal;
+                          const isEffectivelyQualified = cand.status === 'shortlisted' || (cand.status === 'selected' && !isEffectivelyPlaced);
+
                           return (
                             <tr
                               key={sIdStr || idx}
@@ -1783,9 +2184,22 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                               <td style={{ textAlign: 'center' }}>
                                 <input
                                   type="checkbox"
-                                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                  style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: isLockedInPastRound ? 'not-allowed' : 'pointer',
+                                    opacity: isLockedInPastRound ? 0.35 : 1,
+                                  }}
                                   checked={isSelected}
+                                  disabled={isLockedInPastRound}
                                   onChange={() => handleToggleSelectStudent(sIdStr)}
+                                  title={
+                                    isLockedInPastRound
+                                      ? 'Candidate was already evaluated in a subsequent round — previous round is locked'
+                                      : isEffectivelyPlaced
+                                      ? 'Select to switch between Placed and Pending Review'
+                                      : 'Select candidate'
+                                  }
                                 />
                               </td>
                               <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{idx + 1}</td>
@@ -1820,14 +2234,31 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                 </span>
                               </td>
                               <td>
-                                {cand.status === 'shortlisted' ? (
-                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                {isLockedInPastRound ? (
+                                  isEffectivelyPlaced ? (
+                                    <span
+                                      style={{
+                                        background: '#fef08a',
+                                        color: '#854d0e',
+                                        border: '1px solid #fde047',
+                                        padding: '4px 10px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: 800,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                      }}
+                                    >
+                                      🏆 Placed / Offered
+                                    </span>
+                                  ) : isEffectivelyQualified ? (
                                     <span
                                       style={{
                                         background: '#dcfce7',
                                         color: '#15803d',
                                         border: '1px solid #86efac',
-                                        padding: '3px 8px',
+                                        padding: '4px 10px',
                                         borderRadius: '12px',
                                         fontSize: '0.74rem',
                                         fontWeight: 700,
@@ -1835,83 +2266,98 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                         alignItems: 'center',
                                         gap: '4px',
                                       }}
+                                      title="Locked: Passed to subsequent round or placed"
                                     >
-                                      ✓ Qualified Round {selectedRoundNumber}
+                                      ✓ Qualified Round {selectedRoundNumber} 🔒
                                     </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenEliminateModal([sIdStr])}
-                                      disabled={eliminating}
+                                  ) : cand.status === 'eliminated' ? (
+                                    <span
                                       style={{
-                                        padding: '2px 6px',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600,
-                                        borderRadius: '6px',
+                                        background: '#fee2e2',
+                                        color: '#dc2626',
                                         border: '1px solid #fecaca',
-                                        background: '#fff1f2',
-                                        color: '#e11d48',
-                                        cursor: 'pointer',
+                                        padding: '4px 10px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: 700,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
                                       }}
-                                      title="Eliminate candidate with reason"
+                                      title="Locked in previous round"
                                     >
-                                      ✕ Eliminate
-                                    </button>
-                                  </div>
-                                ) : cand.status === 'selected' ? (
+                                      ✕ Eliminated 🔒
+                                    </span>
+                                  ) : (
+                                    <span
+                                      style={{
+                                        background: '#fef3c7',
+                                        color: '#b45309',
+                                        padding: '4px 10px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.74rem',
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      Pending Review 🔒
+                                    </span>
+                                  )
+                                ) : isEffectivelyPlaced ? (
                                   <span
                                     style={{
                                       background: '#fef08a',
                                       color: '#854d0e',
                                       border: '1px solid #fde047',
-                                      padding: '3px 8px',
+                                      padding: '4px 10px',
                                       borderRadius: '12px',
-                                      fontSize: '0.74rem',
+                                      fontSize: '0.75rem',
                                       fontWeight: 800,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      boxShadow: '0 1px 2px rgba(133, 77, 14, 0.1)',
+                                    }}
+                                  >
+                                    🏆 Placed / Offered
+                                  </span>
+                                ) : isEffectivelyQualified ? (
+                                  /* Qualified candidate */
+                                  <span
+                                    style={{
+                                      background: '#dcfce7',
+                                      color: '#15803d',
+                                      border: '1px solid #86efac',
+                                      padding: '4px 10px',
+                                      borderRadius: '12px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 700,
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: '4px',
                                     }}
                                   >
-                                    🏆 Placed / Offered
+                                    ✓ Qualified Round {selectedRoundNumber}
                                   </span>
                                 ) : cand.status === 'eliminated' ? (
+                                  /* Eliminated candidate */
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                      <span
-                                        style={{
-                                          background: '#fee2e2',
-                                          color: '#dc2626',
-                                          border: '1px solid #fecaca',
-                                          padding: '3px 8px',
-                                          borderRadius: '12px',
-                                          fontSize: '0.74rem',
-                                          fontWeight: 700,
-                                          display: 'inline-flex',
-                                          alignItems: 'center',
-                                          gap: '4px',
-                                          width: 'fit-content',
-                                        }}
-                                      >
-                                        ✕ Eliminated
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleOpenEliminateModal([sIdStr])}
-                                        style={{
-                                          padding: '1px 6px',
-                                          fontSize: '0.68rem',
-                                          fontWeight: 600,
-                                          borderRadius: '4px',
-                                          border: '1px solid #fecaca',
-                                          background: '#ffffff',
-                                          color: '#dc2626',
-                                          cursor: 'pointer',
-                                        }}
-                                        title="Change or update elimination reason"
-                                      >
-                                        Edit Reason
-                                      </button>
-                                    </div>
+                                    <span
+                                      style={{
+                                        background: '#fee2e2',
+                                        color: '#dc2626',
+                                        border: '1px solid #fecaca',
+                                        padding: '4px 10px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 700,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        width: 'fit-content',
+                                      }}
+                                    >
+                                      ✕ Eliminated
+                                    </span>
                                     {(cand.eliminationReason || cand.feedback) && (
                                       <span
                                         style={{
@@ -1939,38 +2385,23 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                                     )}
                                   </div>
                                 ) : (
-                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                    <span
-                                      style={{
-                                        background: '#fef3c7',
-                                        color: '#b45309',
-                                        padding: '3px 8px',
-                                        borderRadius: '12px',
-                                        fontSize: '0.74rem',
-                                        fontWeight: 600,
-                                      }}
-                                    >
-                                      Pending Review
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenEliminateModal([sIdStr])}
-                                      disabled={eliminating}
-                                      style={{
-                                        padding: '2px 6px',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600,
-                                        borderRadius: '6px',
-                                        border: '1px solid #fecaca',
-                                        background: '#fff1f2',
-                                        color: '#e11d48',
-                                        cursor: 'pointer',
-                                      }}
-                                      title="Quick Eliminate with Reason"
-                                    >
-                                      ✕ Eliminate
-                                    </button>
-                                  </div>
+                                  /* Pending Review candidate */
+                                  <span
+                                    style={{
+                                      background: '#fef3c7',
+                                      color: '#b45309',
+                                      border: '1px solid #fde68a',
+                                      padding: '4px 10px',
+                                      borderRadius: '12px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 700,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                    }}
+                                  >
+                                    ⏳ Pending Review
+                                  </span>
                                 )}
                               </td>
                               <td>
@@ -3009,26 +3440,37 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         >
           <div
             className="form-modal"
-            style={{ maxWidth: '640px', width: '92%', borderRadius: '16px', overflow: 'hidden' }}
+            style={{
+              maxWidth: '640px',
+              width: '92%',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              background: '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
-                padding: '20px 24px 16px',
+                padding: '18px 24px 14px',
                 background: '#ffffff',
                 color: '#0f172a',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 borderBottom: '1px solid #e2e8f0',
+                flexShrink: 0,
               }}
             >
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
-                  🚀 Advance to Round {advanceForm.nextRoundNumber} & Send Invitations
+                  🚀 Move to Round {advanceForm.nextRoundNumber} & Send Invitations
                 </h3>
                 <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
-                  Shortlisting <strong style={{ color: '#0f172a' }}>{selectedStudentIds.length} candidate(s)</strong> from Round {selectedRoundNumber}
+                  Moving <strong style={{ color: '#0f172a' }}>{advanceTargetIds.length > 0 ? advanceTargetIds.length : selectedStudentIds.length} candidate(s)</strong> from Round {selectedRoundNumber}
                 </p>
               </div>
               <button
@@ -3052,118 +3494,150 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               </button>
             </div>
 
-            <form onSubmit={handleConfirmAdvance} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700 }}>
-                  Round Title / Stage Name
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  required
-                  value={advanceForm.nextRoundName}
-                  onChange={(e) => setAdvanceForm({ ...advanceForm, nextRoundName: e.target.value })}
-                  placeholder="e.g. Round 2: Technical Interview"
-                />
-              </div>
-
-              {/* WHEN IS THE 2ND ROUND / NEXT ROUND (Date & Time) */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700, color: '#0b1d37', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <HiOutlineCalendar /> When is Round {advanceForm.nextRoundNumber} Scheduled? (Date & Time)
-                </label>
-                <input
-                  type="datetime-local"
-                  className="form-input"
-                  required
-                  value={advanceForm.scheduledDate}
-                  onChange={(e) => setAdvanceForm({ ...advanceForm, scheduledDate: e.target.value })}
-                  style={{ fontWeight: 600, fontSize: '0.95rem', borderColor: '#0b1d37' }}
-                />
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  This date and time will be prominently highlighted in the student&apos;s email invitation.
-                </span>
-              </div>
-
-              {/* Venue or Online Meeting Link */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700 }}>
-                  Venue or Meeting Link
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  required
-                  value={advanceForm.venue}
-                  onChange={(e) => setAdvanceForm({ ...advanceForm, venue: e.target.value })}
-                  placeholder="e.g. CS Lab 3 / Google Meet link"
-                />
-              </div>
-
-              {/* Special Instructions for Candidates */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700 }}>
-                  Instructions for Candidates
-                </label>
-                <textarea
-                  className="form-textarea"
-                  rows="3"
-                  value={advanceForm.instructions}
-                  onChange={(e) => setAdvanceForm({ ...advanceForm, instructions: e.target.value })}
-                  placeholder="e.g. Bring college ID, formal attire, and 2 updated resumes..."
-                />
-              </div>
-
-              {/* Send Email Checkbox Option */}
+            <form
+              onSubmit={handleConfirmAdvance}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                minHeight: 0,
+                margin: 0,
+                overflow: 'hidden',
+              }}
+            >
               <div
                 style={{
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: '10px',
-                  padding: '12px 16px',
+                  padding: '20px 24px',
                   display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  overflowY: 'auto',
+                  flex: 1,
+                }}
+              >
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>
+                    Round Title / Stage Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    required
+                    value={advanceForm.nextRoundName}
+                    onChange={(e) => setAdvanceForm({ ...advanceForm, nextRoundName: e.target.value })}
+                    placeholder="e.g. Round 2: Technical Interview"
+                  />
+                </div>
+
+                {/* WHEN IS THE 2ND ROUND / NEXT ROUND (Date & Time) */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700, color: '#0b1d37', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <HiOutlineCalendar /> When is Round {advanceForm.nextRoundNumber} Scheduled? (Date & Time)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    className="form-input"
+                    required
+                    value={advanceForm.scheduledDate}
+                    onChange={(e) => setAdvanceForm({ ...advanceForm, scheduledDate: e.target.value })}
+                    style={{ fontWeight: 600, fontSize: '0.95rem', borderColor: '#0b1d37' }}
+                  />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    This date and time will be prominently highlighted in the student&apos;s email invitation.
+                  </span>
+                </div>
+
+                {/* Venue or Online Meeting Link */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>
+                    Venue or Meeting Link
+                  </label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    required
+                    value={advanceForm.venue}
+                    onChange={(e) => setAdvanceForm({ ...advanceForm, venue: e.target.value })}
+                    placeholder="e.g. CS Lab 3 / Google Meet link"
+                  />
+                </div>
+
+                {/* Special Instructions for Candidates */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>
+                    Instructions for Candidates
+                  </label>
+                  <textarea
+                    className="form-textarea"
+                    rows="3"
+                    value={advanceForm.instructions}
+                    onChange={(e) => setAdvanceForm({ ...advanceForm, instructions: e.target.value })}
+                    placeholder="e.g. Bring college ID, formal attire, and 2 updated resumes..."
+                  />
+                </div>
+
+                {/* Send Email Checkbox Option */}
+                <div
+                  style={{
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    id="send-round-mail"
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#16a34a' }}
+                    checked={advanceForm.sendEmail}
+                    onChange={(e) => setAdvanceForm({ ...advanceForm, sendEmail: e.target.checked })}
+                  />
+                  <label htmlFor="send-round-mail" style={{ fontSize: '0.86rem', fontWeight: 600, color: '#166534', cursor: 'pointer', margin: 0 }}>
+                    ✉️ Send official shortlist email invitations to all {advanceTargetIds.length > 0 ? advanceTargetIds.length : selectedStudentIds.length} candidate(s) now
+                  </label>
+                </div>
+
+                {/* Live Email Preview Box */}
+                <div
+                  style={{
+                    background: 'var(--bg-secondary, #f8fafc)',
+                    border: '1px dashed var(--border-color, #cbd5e1)',
+                    borderRadius: '10px',
+                    padding: '14px',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, color: '#1e293b', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <HiOutlineMail style={{ color: '#0b1d37' }} /> Email Preview Summary:
+                  </div>
+                  <div style={{ color: '#475569', lineHeight: 1.5 }}>
+                    <strong>Subject:</strong> {advanceForm.customSubject || `Congratulations! Shortlisted for ${advanceForm.nextRoundName || 'Next Round'}`}<br />
+                    <strong>Round:</strong> {advanceForm.nextRoundName}<br />
+                    <strong>Scheduled For:</strong>{' '}
+                    <span style={{ color: '#059669', fontWeight: 700 }}>
+                      {advanceForm.scheduledDate ? new Date(advanceForm.scheduledDate).toLocaleString('en-IN') : 'Not set'}
+                    </span><br />
+                    <strong>Venue:</strong> {advanceForm.venue}
+                  </div>
+                </div>
+              </div>
+
+              {/* Pinned Bottom Footer with Move Button */}
+              <div
+                style={{
+                  padding: '14px 24px',
+                  background: '#f8fafc',
+                  borderTop: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
                   alignItems: 'center',
                   gap: '12px',
+                  flexShrink: 0,
                 }}
               >
-                <input
-                  type="checkbox"
-                  id="send-round-mail"
-                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#16a34a' }}
-                  checked={advanceForm.sendEmail}
-                  onChange={(e) => setAdvanceForm({ ...advanceForm, sendEmail: e.target.checked })}
-                />
-                <label htmlFor="send-round-mail" style={{ fontSize: '0.86rem', fontWeight: 600, color: '#166534', cursor: 'pointer', margin: 0 }}>
-                  ✉️ Send official shortlist email invitations to all {selectedStudentIds.length} candidate(s) now
-                </label>
-              </div>
-
-              {/* Live Email Preview Box */}
-              <div
-                style={{
-                  background: 'var(--bg-secondary, #f8fafc)',
-                  border: '1px dashed var(--border-color, #cbd5e1)',
-                  borderRadius: '10px',
-                  padding: '14px',
-                  fontSize: '0.8rem',
-                }}
-              >
-                <div style={{ fontWeight: 700, color: '#1e293b', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <HiOutlineMail style={{ color: '#0b1d37' }} /> Email Preview Summary:
-                </div>
-                <div style={{ color: '#475569', lineHeight: 1.5 }}>
-                  <strong>Subject:</strong> {advanceForm.customSubject || `Congratulations! Shortlisted for ${advanceForm.nextRoundName || 'Next Round'}`}<br />
-                  <strong>Round:</strong> {advanceForm.nextRoundName}<br />
-                  <strong>Scheduled For:</strong>{' '}
-                  <span style={{ color: '#059669', fontWeight: 700 }}>
-                    {advanceForm.scheduledDate ? new Date(advanceForm.scheduledDate).toLocaleString('en-IN') : 'Not set'}
-                  </span><br />
-                  <strong>Venue:</strong> {advanceForm.venue}
-                </div>
-              </div>
-
-              {/* Modal Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -3177,15 +3651,21 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   className="btn btn-primary"
                   disabled={advancing}
                   style={{
-                    padding: '10px 22px',
+                    padding: '10px 24px',
                     fontWeight: 700,
+                    fontSize: '0.92rem',
                     background: 'linear-gradient(135deg, #0b1d37 0%, #1e3a5f 100%)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
+                    boxShadow: '0 4px 14px rgba(11, 29, 55, 0.25)',
+                    cursor: advancing ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {advancing ? 'Advancing & Sending Emails...' : `Confirm & Advance (${selectedStudentIds.length} Students)`}
+                  <HiOutlineArrowRight />
+                  {advancing
+                    ? 'Moving & Sending Emails...'
+                    : `Move to Round ${advanceForm.nextRoundNumber} & Send Invitations (${advanceTargetIds.length > 0 ? advanceTargetIds.length : selectedStudentIds.length})`}
                 </button>
               </div>
             </form>
@@ -3221,18 +3701,29 @@ const CompanyDriveModal = ({ drive, onClose }) => {
         >
           <div
             className="form-modal"
-            style={{ maxWidth: '620px', width: '92%', borderRadius: '16px', overflow: 'hidden' }}
+            style={{
+              maxWidth: '620px',
+              width: '92%',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              background: '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
-                padding: '20px 24px 16px',
+                padding: '18px 24px 14px',
                 background: '#ffffff',
                 color: '#0f172a',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 borderBottom: '1px solid #e2e8f0',
+                flexShrink: 0,
               }}
             >
               <div>
@@ -3240,7 +3731,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   🎉 Final Placement Selection & Offers
                 </h3>
                 <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
-                  Generating official placement records for <strong style={{ color: '#0f172a' }}>{selectedStudentIds.length} candidate(s)</strong>
+                  Generating official placement records for <strong style={{ color: '#0f172a' }}>{finalTargetIds.length > 0 ? finalTargetIds.length : selectedStudentIds.length} candidate(s)</strong>
                 </p>
               </div>
               <button
@@ -3264,81 +3755,114 @@ const CompanyDriveModal = ({ drive, onClose }) => {
               </button>
             </div>
 
-            <form onSubmit={handleConfirmFinalSelection} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700 }}>
-                  Selected Company
-                </label>
-                <input type="text" className="form-input" disabled value={driveData.companyName} />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontWeight: 700 }}>
-                    Designation / Role
-                  </label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    required
-                    value={finalForm.role}
-                    onChange={(e) => setFinalForm({ ...finalForm, role: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontWeight: 700 }}>
-                    CTC Package (LPA)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-input"
-                    required
-                    value={finalForm.package}
-                    onChange={(e) => setFinalForm({ ...finalForm, package: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontWeight: 700 }}>
-                  Offer / Placement Date
-                </label>
-                <input
-                  type="date"
-                  className="form-input"
-                  required
-                  value={finalForm.placementDate}
-                  onChange={(e) => setFinalForm({ ...finalForm, placementDate: e.target.value })}
-                />
-              </div>
-
-              {/* Send Offer Mail Checkbox */}
+            <form
+              onSubmit={handleConfirmFinalSelection}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                minHeight: 0,
+                margin: 0,
+                overflow: 'hidden',
+              }}
+            >
               <div
                 style={{
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: '10px',
-                  padding: '12px 16px',
+                  padding: '20px 24px',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  overflowY: 'auto',
+                  flex: 1,
                 }}
               >
-                <input
-                  type="checkbox"
-                  id="send-final-mail"
-                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#16a34a' }}
-                  checked={finalForm.sendEmail}
-                  onChange={(e) => setFinalForm({ ...finalForm, sendEmail: e.target.checked })}
-                />
-                <label htmlFor="send-final-mail" style={{ fontSize: '0.86rem', fontWeight: 600, color: '#166534', cursor: 'pointer', margin: 0 }}>
-                  ✉️ Send official congratulatory placement offer email to all {selectedStudentIds.length} candidate(s)
-                </label>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>
+                    Selected Company
+                  </label>
+                  <input type="text" className="form-input" disabled value={driveData.companyName} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 700 }}>
+                      Designation / Role
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      required
+                      value={finalForm.role}
+                      onChange={(e) => setFinalForm({ ...finalForm, role: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 700 }}>
+                      CTC Package (LPA)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="form-input"
+                      required
+                      value={finalForm.package}
+                      onChange={(e) => setFinalForm({ ...finalForm, package: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>
+                    Offer / Placement Date
+                  </label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    required
+                    value={finalForm.placementDate}
+                    onChange={(e) => setFinalForm({ ...finalForm, placementDate: e.target.value })}
+                  />
+                </div>
+
+                {/* Send Offer Mail Checkbox */}
+                <div
+                  style={{
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    id="send-final-mail"
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#16a34a' }}
+                    checked={finalForm.sendEmail}
+                    onChange={(e) => setFinalForm({ ...finalForm, sendEmail: e.target.checked })}
+                  />
+                  <label htmlFor="send-final-mail" style={{ fontSize: '0.86rem', fontWeight: 600, color: '#166534', cursor: 'pointer', margin: 0 }}>
+                    ✉️ Send official congratulatory placement offer email to all {finalTargetIds.length > 0 ? finalTargetIds.length : selectedStudentIds.length} candidate(s)
+                  </label>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+              {/* Pinned Bottom Footer */}
+              <div
+                style={{
+                  padding: '14px 24px',
+                  background: '#f8fafc',
+                  borderTop: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                  gap: '12px',
+                  flexShrink: 0,
+                }}
+              >
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -3351,21 +3875,23 @@ const CompanyDriveModal = ({ drive, onClose }) => {
                   type="submit"
                   disabled={selectingFinal}
                   style={{
-                    padding: '10px 22px',
+                    padding: '10px 24px',
                     fontWeight: 700,
                     borderRadius: '8px',
                     border: 'none',
-                    cursor: 'pointer',
+                    cursor: selectingFinal ? 'not-allowed' : 'pointer',
                     background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                     color: '#ffffff',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
+                    boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
                   }}
                 >
+                  <HiOutlineSparkles />
                   {selectingFinal
                     ? 'Recording Placements & Sending Emails...'
-                    : `🎉 Confirm Placement Offers (${selectedStudentIds.length} Students)`}
+                    : `🎉 Confirm Placement Offers (${finalTargetIds.length > 0 ? finalTargetIds.length : selectedStudentIds.length} Students)`}
                 </button>
               </div>
             </form>
@@ -3387,7 +3913,7 @@ const CompanyDriveModal = ({ drive, onClose }) => {
             bottom: 0,
             width: '100vw',
             height: '100vh',
-            zIndex: 100050,
+            zIndex: 10050,
             background: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(4px)',
             WebkitBackdropFilter: 'blur(4px)',

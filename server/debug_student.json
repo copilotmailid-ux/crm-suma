@@ -1,0 +1,3871 @@
+{
+  "kavya": {
+    "offerLetterUrl": "",
+    "offerLetterName": "",
+    "_id": "6ac88abb1d1fb2385b0a073c",
+    "name": "Kavya Soni",
+    "rollNumber": "21ME004",
+    "email": "kavya.soni4@college.edu",
+    "phone": "9895119810",
+    "department": "ME",
+    "batch": "2021-2025",
+    "cgpa": 9.68,
+    "skills": [
+      "AutoCAD",
+      "Robotics",
+      "GD&T"
+    ],
+    "status": "placed",
+    "careerPreference": "Placement",
+    "careerDetails": "",
+    "placementId": "6ac88abb1d1fb2385b0a07d6",
+    "gender": "Female",
+    "dob": "2003-09-15",
+    "tenthPercentage": 88.6,
+    "twelfthPercentage": 90.7,
+    "currentArrears": 0,
+    "historyOfArrears": 0,
+    "resumeUrl": "https://drive.google.com/file/d/student_resume_21me004/view",
+    "linkedinUrl": "https://linkedin.com/in/kavyasoni-21me004",
+    "githubUrl": "https://github.com/kavyasoni004",
+    "portfolioUrl": "https://kavyasoni.dev",
+    "address": "14, Gandhi Road, RS Puram, Coimbatore - 641002",
+    "__v": 0,
+    "createdAt": "2026-10-09T06:33:31.323Z",
+    "updatedAt": "2026-10-23T10:47:45.597Z"
+  },
+  "kavyaPlacements": [
+    {
+      "visitNumber": 1,
+      "driveType": "on_campus",
+      "driveDetails": "",
+      "offerLetterUrl": "",
+      "offerLetterName": "",
+      "_id": "6ac88abb1d1fb2385b0a07d6",
+      "studentId": "6ac88abb1d1fb2385b0a073c",
+      "companyId": "6ac88abb1d1fb2385b0a07c0",
+      "role": "Software Engineer - Payments",
+      "package": 22,
+      "placementDate": "2025-02-15T00:00:00.000Z",
+      "offerType": "on_campus",
+      "status": "joined",
+      "createdAt": "2026-10-09T06:33:31.351Z",
+      "updatedAt": "2026-10-09T06:33:31.351Z",
+      "__v": 0
+    }
+  ],
+  "kavyaDrives": [
+    {
+      "_id": "6ac88abb1d1fb2385b0a08db",
+      "companyId": "6ac88abb1d1fb2385b0a07bf",
+      "companyName": "Zoho Corporation",
+      "title": "Zoho Campus Hiring 2026",
+      "role": "Member Technical Staff / Software Developer",
+      "package": 8.5,
+      "jobLocation": "Chennai / Tenkasi / Coimbatore",
+      "eligibleDepartments": [
+        "CSE",
+        "IT",
+        "AIDS",
+        "AIML",
+        "ECE",
+        "EEE",
+        "ME",
+        "CE"
+      ],
+      "eligibleBatches": [
+        "2022-2026",
+        "2023-2027"
+      ],
+      "minCgpa": 6,
+      "minTenthMarks": 60,
+      "minTwelfthMarks": 60,
+      "maxCurrentArrears": 1,
+      "maxHistoryArrears": 3,
+      "driveDate": "2026-10-27T06:33:31.410Z",
+      "registrationDeadline": "2026-10-19T06:33:31.410Z",
+      "status": "Ongoing",
+      "jobDescription": "Develop robust full-stack web applications, database engines, and high-performance server backends.",
+      "selectionProcess": "Round 1: Written Aptitude & C Programming, Round 2: Basic Programming on System, Round 3: Advanced Programming, Round 4: HR Interview",
+      "applicationLink": "https://zoho.com/careers",
+      "registeredStudents": [
+        "6ac88abb1d1fb2385b0a076d",
+        "6ac88abb1d1fb2385b0a0768",
+        "6ac88abb1d1fb2385b0a0755",
+        "6ac88abb1d1fb2385b0a0751",
+        "6ac88abb1d1fb2385b0a075c",
+        "6ac88abb1d1fb2385b0a0757",
+        "6ac88abb1d1fb2385b0a074b",
+        "6ac88abb1d1fb2385b0a075f",
+        "6ac88abb1d1fb2385b0a075b",
+        "6ac88abb1d1fb2385b0a0743",
+        "6ac88abb1d1fb2385b0a074c",
+        "6ac88abb1d1fb2385b0a0764",
+        "6ac88abb1d1fb2385b0a0746",
+        "6ac88abb1d1fb2385b0a0760",
+        "6ac88abb1d1fb2385b0a074d",
+        "6ac88abb1d1fb2385b0a074f",
+        "6ac88abb1d1fb2385b0a0772",
+        "6ac88abb1d1fb2385b0a076e",
+        "6ac88abb1d1fb2385b0a0786",
+        "6ac88abb1d1fb2385b0a0750",
+        "6ac88abb1d1fb2385b0a076f",
+        "6ac88abb1d1fb2385b0a077c",
+        "6ac88abb1d1fb2385b0a0748",
+        "6ac88abb1d1fb2385b0a0783",
+        "6ac88abb1d1fb2385b0a0787",
+        "6ac88abb1d1fb2385b0a077e",
+        "6ac88abb1d1fb2385b0a077b",
+        "6ac88abb1d1fb2385b0a0780",
+        "6ac88abb1d1fb2385b0a078f",
+        "6ac88abb1d1fb2385b0a075d",
+        "6ac88abb1d1fb2385b0a078c",
+        "6ac88abb1d1fb2385b0a078d",
+        "6ac88abb1d1fb2385b0a0778",
+        "6ac88abb1d1fb2385b0a0759",
+        "6ac88abb1d1fb2385b0a078e",
+        "6ac88abb1d1fb2385b0a0785",
+        "6ac88abb1d1fb2385b0a0773",
+        "6ac88abb1d1fb2385b0a077a",
+        "6ac88abb1d1fb2385b0a0763",
+        "6ac88abb1d1fb2385b0a0770",
+        "6ac88abb1d1fb2385b0a077d",
+        "6ac88abb1d1fb2385b0a075a",
+        "6ac88abb1d1fb2385b0a0775",
+        "6ac88abb1d1fb2385b0a0789",
+        "6ac88abb1d1fb2385b0a0744",
+        "6ac88abb1d1fb2385b0a072a",
+        "6ac88abb1d1fb2385b0a071f",
+        "6ac88abb1d1fb2385b0a0720",
+        "6ac88abb1d1fb2385b0a0754",
+        "6ac88abb1d1fb2385b0a0738",
+        "6ac88abb1d1fb2385b0a076c",
+        "6ac88abb1d1fb2385b0a07ba",
+        "6ac88abb1d1fb2385b0a073c",
+        "6ac88abb1d1fb2385b0a07b7"
+      ],
+      "currentRound": 3,
+      "rounds": [
+        {
+          "roundNumber": 1,
+          "name": "Round 1: Online Assessment / Aptitude",
+          "type": "Online Test",
+          "scheduledDate": "2026-10-01T06:33:31.410Z",
+          "venue": "College Central Computing Center (Lab 1 & 2)",
+          "instructions": "Students must log in using their college email credentials and college ID.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a076d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08dd"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08de"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08df"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e0"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e1"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0757",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e2"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e3"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e4"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075b",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e5"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e6"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e7"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0764",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e8"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0746",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08e9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0760",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08ea"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08eb"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08ec"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0772",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08ed"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a076e",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08ee"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0786",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08ef"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f0"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a076f",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f1"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a077c",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f2"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f3"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0783",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f4"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0787",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f5"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a077e",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f6"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a077b",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f7"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0780",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f8"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a078f",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08f9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08fa"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a078c",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08fb"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a078d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08fc"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0778",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08fd"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0759",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08fe"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a078e",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a08ff"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0785",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0900"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0773",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0901"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a077a",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0902"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0763",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0903"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0770",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0904"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a077d",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0905"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075a",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0906"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0775",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0907"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0789",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0908"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0744",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0909"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a072a",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e17e"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a071f",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e84b"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0720",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e84d"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0754",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e88f"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0738",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098dd"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a076c",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa13b3"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a07ba",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa1537"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa18d8"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a07b7",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa192c"
+            }
+          ],
+          "completedAt": "2026-10-02T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a08dc"
+        },
+        {
+          "roundNumber": 2,
+          "name": "Round 2: Technical Interview & Problem Solving",
+          "type": "Interview",
+          "scheduledDate": "2026-10-05T06:33:31.410Z",
+          "venue": "Placement Cell Interview Cabin 1 - 4",
+          "instructions": "Carry 2 printed resumes, academic certificates, and college identity badge.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a076d",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a090b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075b",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a090c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0789",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a090d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0775",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a090e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a090f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a078c",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0910"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0911"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0746",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0912"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0913"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0787",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0914"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0915"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0916"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0764",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0917"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a078d",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0918"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0919"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a091a"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a091b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0783",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a091c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a091d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a091e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0759",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a091f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0786",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0920"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0921"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0922"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a077b",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0923"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a072a",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e17f"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0720",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e84e"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a076c",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa13b4"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a07ba",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa1538"
+            }
+          ],
+          "completedAt": "2026-10-06T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a090a"
+        },
+        {
+          "roundNumber": 3,
+          "name": "Round 3: HR & Management Discussion",
+          "type": "Interview",
+          "venue": "Online / Campus",
+          "instructions": "",
+          "status": "Completed",
+          "candidates": [
+            {
+              "studentId": "6ac88abb1d1fb2385b0a072a",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c99c41"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a076c",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa13b5"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a07ba",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa1539"
+            }
+          ],
+          "_id": "6ad609b53f6130c216c99c40"
+        }
+      ],
+      "finalSelectedStudents": [
+        {
+          "studentId": "6ac88abb1d1fb2385b0a072a",
+          "role": "Member Technical Staff",
+          "package": 8.5,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a07f4",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e180"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a076c",
+          "role": "Software Developer",
+          "package": 8.5,
+          "placementDate": "2026-07-01T00:00:00.000Z",
+          "placementId": "6adb18c72e11afe11eac9e39",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6adb1d13dcf477bf80aa13b6"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a07ba",
+          "role": "Product Developer",
+          "package": 8.5,
+          "placementDate": "2026-10-01T00:00:00.000Z",
+          "placementId": "6adb18c72e11afe11eac9e75",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6adb1d13dcf477bf80aa153a"
+        }
+      ],
+      "createdAt": "2026-10-09T06:33:31.421Z",
+      "updatedAt": "2026-10-23T08:38:43.723Z",
+      "__v": 12,
+      "visitNumber": 1,
+      "roles": [],
+      "registeredRolePreferences": []
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a0925",
+      "companyId": "6ac88abb1d1fb2385b0a07c0",
+      "companyName": "PayPal",
+      "title": "PayPal University Recruitment",
+      "role": "Software Engineer - Payments Infrastructure",
+      "package": 22,
+      "jobLocation": "Chennai / Bangalore",
+      "eligibleDepartments": [
+        "CSE",
+        "IT",
+        "AIDS",
+        "AIML",
+        "ECE"
+      ],
+      "eligibleBatches": [
+        "2022-2026"
+      ],
+      "minCgpa": 7.8,
+      "minTenthMarks": 75,
+      "minTwelfthMarks": 75,
+      "maxCurrentArrears": 0,
+      "maxHistoryArrears": 0,
+      "driveDate": "2026-10-31T06:33:31.410Z",
+      "registrationDeadline": "2026-10-23T06:33:31.410Z",
+      "status": "Upcoming",
+      "jobDescription": "Architect highly secure, resilient financial APIs handling millions of global transactions every second.",
+      "selectionProcess": "Round 1: HackerRank Coding Challenge, Round 2: DSA & Problem Solving, Round 3: Low Level Design, Round 4: HR & Behavioral",
+      "applicationLink": "https://paypal.com/careers",
+      "registeredStudents": [
+        "6ac88abb1d1fb2385b0a0743",
+        "6ac88abb1d1fb2385b0a074e",
+        "6ac88abb1d1fb2385b0a0748",
+        "6ac88abb1d1fb2385b0a0749",
+        "6ac88abb1d1fb2385b0a0744",
+        "6ac88abb1d1fb2385b0a0756",
+        "6ac88abb1d1fb2385b0a0745",
+        "6ac88abb1d1fb2385b0a0751",
+        "6ac88abb1d1fb2385b0a0747",
+        "6ac88abb1d1fb2385b0a074c",
+        "6ac88abb1d1fb2385b0a074f",
+        "6ac88abb1d1fb2385b0a0755",
+        "6ac88abb1d1fb2385b0a0759",
+        "6ac88abb1d1fb2385b0a073c",
+        "6ac88abb1d1fb2385b0a0724",
+        "6ac88abb1d1fb2385b0a0752",
+        "6ac88abb1d1fb2385b0a075c",
+        "6ac88abb1d1fb2385b0a0721",
+        "6ac88abb1d1fb2385b0a073a",
+        "6ac88abb1d1fb2385b0a073b",
+        "6ac88abb1d1fb2385b0a0757",
+        "6ac88abb1d1fb2385b0a0739",
+        "6ac88abb1d1fb2385b0a0754",
+        "6ac88abb1d1fb2385b0a0775",
+        "6ac88abb1d1fb2385b0a073e",
+        "6ac88abb1d1fb2385b0a07b8"
+      ],
+      "currentRound": 1,
+      "rounds": [
+        {
+          "roundNumber": 1,
+          "name": "Round 1: Online Technical Assessment",
+          "type": "Online Test",
+          "scheduledDate": "2026-10-31T06:33:31.410Z",
+          "venue": "Online Assessment Platform (HackerEarth / Mettl)",
+          "instructions": "Check your registered email for login link 2 hours before the test window.",
+          "status": "Upcoming",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0927"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074e",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0928"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0929"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0749",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a092a"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0744",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a092b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0756",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a092c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0745",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a092d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a092e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0747",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a092f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0930"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0931"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0932"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0759",
+              "status": "pending",
+              "feedback": "Registered & eligible for Round 1",
+              "emailSent": false,
+              "_id": "6ac88abb1d1fb2385b0a0933"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e0f8"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0724",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e117"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0752",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e4ba"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e594"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0721",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e850"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073a",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e86f"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073b",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e871"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0757",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e891"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0739",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098df"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0754",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098ff"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0775",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa1339"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073e",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa18da"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a07b8",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa192e"
+            }
+          ],
+          "_id": "6ac88abb1d1fb2385b0a0926"
+        },
+        {
+          "roundNumber": 2,
+          "name": "Round 2: Technical Interview",
+          "type": "Interview",
+          "venue": "Online / Campus",
+          "instructions": "",
+          "status": "Completed",
+          "candidates": [
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c99b89"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0724",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c99bc8"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0752",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c9a061"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c9a17a"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0739",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098e0"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0754",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f146709900"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0775",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa133a"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073e",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa18db"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a07b8",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa192f"
+            }
+          ],
+          "_id": "6ad609b53f6130c216c99b87"
+        },
+        {
+          "roundNumber": 3,
+          "name": "Round 3: HR & Management Discussion",
+          "type": "Interview",
+          "venue": "Online / Campus",
+          "instructions": "",
+          "status": "Completed",
+          "candidates": [
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c99b8a"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0724",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c99bc9"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0752",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c9a062"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad609b53f6130c216c9a17b"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0775",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa133b"
+            }
+          ],
+          "_id": "6ad609b53f6130c216c99b88"
+        }
+      ],
+      "finalSelectedStudents": [
+        {
+          "studentId": "6ac88abb1d1fb2385b0a073c",
+          "role": "Software Engineer - Payments",
+          "package": 22,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a07d6",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e0f9"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0724",
+          "role": "Software Engineer - Payments",
+          "package": 22,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a07e2",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e118"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0752",
+          "role": "Software Engineer - Payments",
+          "package": 22,
+          "placementDate": "2026-03-01T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a0872",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e4bb"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a075c",
+          "role": "Software Engineer - Payments",
+          "package": 22,
+          "placementDate": "2026-03-01T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a088e",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e595"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0775",
+          "role": "Data Engineering Intern",
+          "package": 22,
+          "placementDate": "2026-05-25T00:00:00.000Z",
+          "placementId": "6adb18c72e11afe11eac9e2d",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6adb1d13dcf477bf80aa133c"
+        }
+      ],
+      "createdAt": "2026-10-09T06:33:31.424Z",
+      "updatedAt": "2026-10-23T08:38:43.725Z",
+      "__v": 19,
+      "visitNumber": 1,
+      "roles": [],
+      "registeredRolePreferences": []
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a0943",
+      "companyId": "6ac88abb1d1fb2385b0a07c3",
+      "companyName": "Deloitte",
+      "title": "Deloitte USI Campus Recruitment",
+      "role": "Technology Analyst",
+      "package": 11.5,
+      "jobLocation": "Bangalore / Hyderabad / Chennai",
+      "eligibleDepartments": [
+        "CSE",
+        "IT",
+        "AIDS",
+        "AIML",
+        "ECE",
+        "EEE",
+        "ME",
+        "CE"
+      ],
+      "eligibleBatches": [
+        "2022-2026"
+      ],
+      "minCgpa": 6.8,
+      "minTenthMarks": 65,
+      "minTwelfthMarks": 65,
+      "maxCurrentArrears": 0,
+      "maxHistoryArrears": 2,
+      "driveDate": "2026-09-29T06:33:31.410Z",
+      "registrationDeadline": "2026-09-21T06:33:31.410Z",
+      "status": "Completed",
+      "jobDescription": "Consulting on enterprise systems, data warehouse engineering, cloud migration, and ERP implementations.",
+      "selectionProcess": "Round 1: Cognitive & Tech Assessment, Round 2: Case Discussion, Round 3: Technical Interview, Round 4: Partner Interview",
+      "applicationLink": "https://deloitte.com/careers",
+      "registeredStudents": [
+        "6ac88abb1d1fb2385b0a074b",
+        "6ac88abb1d1fb2385b0a0748",
+        "6ac88abb1d1fb2385b0a0759",
+        "6ac88abb1d1fb2385b0a075d",
+        "6ac88abb1d1fb2385b0a0743",
+        "6ac88abb1d1fb2385b0a074c",
+        "6ac88abb1d1fb2385b0a0744",
+        "6ac88abb1d1fb2385b0a0761",
+        "6ac88abb1d1fb2385b0a0749",
+        "6ac88abb1d1fb2385b0a074d",
+        "6ac88abb1d1fb2385b0a0769",
+        "6ac88abb1d1fb2385b0a075c",
+        "6ac88abb1d1fb2385b0a0746",
+        "6ac88abb1d1fb2385b0a074f",
+        "6ac88abb1d1fb2385b0a0750",
+        "6ac88abb1d1fb2385b0a0762",
+        "6ac88abb1d1fb2385b0a0747",
+        "6ac88abb1d1fb2385b0a0760",
+        "6ac88abb1d1fb2385b0a0755",
+        "6ac88abb1d1fb2385b0a074e",
+        "6ac88abb1d1fb2385b0a0745",
+        "6ac88abb1d1fb2385b0a0764",
+        "6ac88abb1d1fb2385b0a0751",
+        "6ac88abb1d1fb2385b0a0767",
+        "6ac88abb1d1fb2385b0a075f",
+        "6ac88abb1d1fb2385b0a0768",
+        "6ac88abb1d1fb2385b0a0756",
+        "6ac88abb1d1fb2385b0a0765",
+        "6ac88abb1d1fb2385b0a0729",
+        "6ac88abb1d1fb2385b0a074a",
+        "6ac88abb1d1fb2385b0a073c",
+        "6ac88abb1d1fb2385b0a073e",
+        "6ac88abb1d1fb2385b0a075a",
+        "6ac88abb1d1fb2385b0a075b",
+        "6ac88abb1d1fb2385b0a073a",
+        "6ac88abb1d1fb2385b0a073b",
+        "6ac88abb1d1fb2385b0a0742"
+      ],
+      "currentRound": 4,
+      "rounds": [
+        {
+          "roundNumber": 1,
+          "name": "Round 1: Online Assessment / Aptitude",
+          "type": "Online Test",
+          "scheduledDate": "2026-10-01T06:33:31.410Z",
+          "venue": "College Central Computing Center (Lab 1 & 2)",
+          "instructions": "Students must log in using their college email credentials and college ID.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "eliminated",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0945"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "eliminated",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0946"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0759",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0947"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0948"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0949"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a094a"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0744",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a094b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0761",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a094c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0749",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a094d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a094e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0769",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a094f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0950"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0746",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0951"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0952"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0953"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0762",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0954"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0747",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0955"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0760",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0956"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0957"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074e",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0958"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0745",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0959"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0764",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a095a"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a095b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0767",
+              "status": "eliminated",
+              "feedback": "Did not meet test cutoff score",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a095c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a095d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a095e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0756",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a095f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0765",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0960"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0729",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e273"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a074a",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e57a"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e873"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073e",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e876"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a075a",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e893"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a075b",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e896"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073a",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098e2"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073b",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098e4"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0742",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa18df"
+            }
+          ],
+          "completedAt": "2026-10-02T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0944"
+        },
+        {
+          "roundNumber": 2,
+          "name": "Round 2: Technical Interview & Problem Solving",
+          "type": "Interview",
+          "scheduledDate": "2026-10-05T06:33:31.410Z",
+          "venue": "Placement Cell Interview Cabin 1 - 4",
+          "instructions": "Carry 2 printed resumes, academic certificates, and college identity badge.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "eliminated",
+              "feedback": "Technical Lag",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0962",
+              "eliminationReason": "Technical Lag",
+              "eliminationRemarks": ""
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0963"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0964"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0764",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0965"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0966"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0967"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0968"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0744",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0969"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0749",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a096a"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a096b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0746",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a096c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a096d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a096e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0765",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a096f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0747",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0970"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0971"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0761",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0972"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0745",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0973"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0756",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0974"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0975"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0729",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e274"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a074a",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e57b"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e874"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a075a",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e894"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073b",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098e5"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0742",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa18e0"
+            }
+          ],
+          "completedAt": "2026-10-06T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0961"
+        },
+        {
+          "roundNumber": 3,
+          "name": "Round 3: HR & Management Discussion",
+          "type": "HR",
+          "scheduledDate": "2026-10-07T06:33:31.410Z",
+          "venue": "Board Room / Virtual Video Conference",
+          "instructions": "Discuss job profile, location preferences, and onboarding dates.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0977"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0756",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0978"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0979"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a097a"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a097b"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0745",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a097c"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a097d"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a097e"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a097f"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a0980"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0729",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e275"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a074a",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e57c"
+            }
+          ],
+          "completedAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0976"
+        }
+      ],
+      "finalSelectedStudents": [
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a074c",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0981"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a075f",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0982"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0743",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0983"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0745",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0984"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0756",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a0985"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0729",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a0818",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e276"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a074a",
+          "role": "Technology Analyst",
+          "package": 11.5,
+          "placementDate": "2026-03-01T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a088a",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e57d"
+        }
+      ],
+      "createdAt": "2026-10-09T06:33:31.429Z",
+      "updatedAt": "2026-10-23T08:38:43.654Z",
+      "__v": 11,
+      "visitNumber": 1,
+      "roles": [],
+      "registeredRolePreferences": []
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a09a5",
+      "companyId": "6ac88abb1d1fb2385b0a07c5",
+      "companyName": "Tata Consultancy Services (TCS)",
+      "title": "TCS National Qualifier & Digital Hiring 2026",
+      "role": "Digital & Prime Software Engineer",
+      "package": 9,
+      "jobLocation": "Pan India",
+      "eligibleDepartments": [
+        "CSE",
+        "IT",
+        "AIDS",
+        "AIML",
+        "ECE",
+        "EEE",
+        "ME",
+        "CE"
+      ],
+      "eligibleBatches": [
+        "2022-2026"
+      ],
+      "minCgpa": 6.5,
+      "minTenthMarks": 60,
+      "minTwelfthMarks": 60,
+      "maxCurrentArrears": 0,
+      "maxHistoryArrears": 1,
+      "driveDate": "2026-09-14T06:33:31.410Z",
+      "registrationDeadline": "2026-09-04T06:33:31.410Z",
+      "status": "Completed",
+      "jobDescription": "Develop next-gen applications, cloud computing, and AI-enabled client transformations.",
+      "selectionProcess": "Round 1: TCS NQT Assessment, Round 2: Technical & Coding Interview, Round 3: HR Interview",
+      "applicationLink": "https://tcs.com/careers",
+      "registeredStudents": [
+        "6ac88abb1d1fb2385b0a0750",
+        "6ac88abb1d1fb2385b0a0762",
+        "6ac88abb1d1fb2385b0a075f",
+        "6ac88abb1d1fb2385b0a0760",
+        "6ac88abb1d1fb2385b0a0744",
+        "6ac88abb1d1fb2385b0a074c",
+        "6ac88abb1d1fb2385b0a0755",
+        "6ac88abb1d1fb2385b0a0743",
+        "6ac88abb1d1fb2385b0a0767",
+        "6ac88abb1d1fb2385b0a074d",
+        "6ac88abb1d1fb2385b0a0761",
+        "6ac88abb1d1fb2385b0a0756",
+        "6ac88abb1d1fb2385b0a0746",
+        "6ac88abb1d1fb2385b0a075d",
+        "6ac88abb1d1fb2385b0a0769",
+        "6ac88abb1d1fb2385b0a0749",
+        "6ac88abb1d1fb2385b0a074b",
+        "6ac88abb1d1fb2385b0a0765",
+        "6ac88abb1d1fb2385b0a074e",
+        "6ac88abb1d1fb2385b0a0745",
+        "6ac88abb1d1fb2385b0a074f",
+        "6ac88abb1d1fb2385b0a0759",
+        "6ac88abb1d1fb2385b0a0748",
+        "6ac88abb1d1fb2385b0a0764",
+        "6ac88abb1d1fb2385b0a0768",
+        "6ac88abb1d1fb2385b0a075c",
+        "6ac88abb1d1fb2385b0a0747",
+        "6ac88abb1d1fb2385b0a0751",
+        "6ac88abb1d1fb2385b0a0738",
+        "6ac88abb1d1fb2385b0a072b",
+        "6ac88abb1d1fb2385b0a0736",
+        "6ac88abb1d1fb2385b0a0741",
+        "6ac88abb1d1fb2385b0a0728",
+        "6ac88abb1d1fb2385b0a0742",
+        "6ac88abb1d1fb2385b0a0725",
+        "6ac88abb1d1fb2385b0a073c",
+        "6ac88abb1d1fb2385b0a073e",
+        "6ac88abb1d1fb2385b0a0771"
+      ],
+      "currentRound": 2,
+      "rounds": [
+        {
+          "roundNumber": 1,
+          "name": "Round 1: Online Assessment / Aptitude",
+          "type": "Online Test",
+          "scheduledDate": "2026-10-01T06:33:31.410Z",
+          "venue": "College Central Computing Center (Lab 1 & 2)",
+          "instructions": "Students must log in using their college email credentials and college ID.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09a7"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0762",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09a8"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09a9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0760",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09aa"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0744",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ab"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ac"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ad"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ae"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0767",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09af"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b0"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0761",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b1"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0756",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b2"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0746",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b3"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b4"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0769",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b5"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0749",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b6"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b7"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0765",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b8"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074e",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09b9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0745",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ba"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09bb"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0759",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09bc"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09bd"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0764",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09be"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09bf"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c0"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0747",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c1"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "shortlisted",
+              "feedback": "Cleared online assessment with score > 85%",
+              "emailSent": true,
+              "emailSentAt": "2026-10-02T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c2"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0738",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e22b"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a072b",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e2de"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0736",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e3a3"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0741",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e409"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0728",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e856"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0742",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e87b"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0725",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098c4"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073c",
+              "status": "eliminated",
+              "feedback": "Did not meet sectional cutoff in logical aptitude.",
+              "eliminationReason": "Aptitude sectional cutoff not met",
+              "eliminationRemarks": "Scored 62% against 75% cutoff threshold in logical reasoning.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098e7"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073e",
+              "status": "shortlisted",
+              "feedback": "Cleared online test with 85%. Qualified for Technical Interview.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098e9"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0771",
+              "status": "shortlisted",
+              "feedback": "High score in aptitude & domain test (94%). Qualified for Round 2.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa143c"
+            }
+          ],
+          "completedAt": "2026-10-09T10:49:16.739Z",
+          "_id": "6ac88abb1d1fb2385b0a09a6"
+        },
+        {
+          "roundNumber": 2,
+          "name": "Round 2: Technical Interview & Problem Solving",
+          "type": "Interview",
+          "scheduledDate": "2026-10-05T06:33:00.000Z",
+          "venue": "Placement Cell Interview Cabin 1 - 4",
+          "instructions": "Carry 2 printed resumes, academic certificates, and college identity badge.",
+          "status": "In Progress",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0767",
+              "status": "eliminated",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c4"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c5"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0744",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c6"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0759",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c7"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "eliminated",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c8"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0751",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09c9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074d",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ca"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0762",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09cb"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0745",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09cc"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0743",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09cd"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "eliminated",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ce"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09cf"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d0"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d1"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0760",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d2"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0765",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d3"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0761",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d4"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0746",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d5"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0749",
+              "status": "eliminated",
+              "feedback": "Absent / Did Not Attend",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d6",
+              "eliminationReason": "Absent / Did Not Attend",
+              "eliminationRemarks": ""
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0747",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d7"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d8"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09d9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09da"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0756",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09db"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a074e",
+              "status": "eliminated",
+              "feedback": "Absent / Did Not Attend",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09dc",
+              "eliminationReason": "Absent / Did Not Attend",
+              "eliminationRemarks": ""
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "shortlisted",
+              "feedback": "Strong algorithmic intuition and clear fundamentals",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09dd"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0769",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09de"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0764",
+              "status": "eliminated",
+              "feedback": "Needs improvement in core system concepts",
+              "emailSent": true,
+              "emailSentAt": "2026-10-05T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09df"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0738",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e22c"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a072b",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e2df"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0736",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e3a4"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0741",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e40a"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0728",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e857"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0725",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098c5"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a073e",
+              "status": "eliminated",
+              "feedback": "Good technical discussion, candidate opted for alternate Tier-1 offer.",
+              "eliminationReason": "Technical Round 2 - Candidate Withdrawn / Final Shortlist",
+              "eliminationRemarks": "Interview completed. Candidate accepted offer from primary company.",
+              "emailSent": false,
+              "_id": "6ad89a9be99919f1467098ea"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0771",
+              "status": "shortlisted",
+              "feedback": "Strong technical knowledge and problem solving. Qualified for Round 3.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa143d"
+            }
+          ],
+          "completedAt": "2026-10-06T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09c3"
+        },
+        {
+          "roundNumber": 3,
+          "name": "Round 3: HR & Management Discussion",
+          "type": "HR",
+          "scheduledDate": "2026-10-07T06:33:31.410Z",
+          "venue": "Board Room / Virtual Video Conference",
+          "instructions": "Discuss job profile, location preferences, and onboarding dates.",
+          "status": "Completed",
+          "candidates": [
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074c",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e1"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0767",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e2"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075c",
+              "status": "eliminated",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e3"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0768",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e4"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075d",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e5"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a075f",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e6"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0750",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e7"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0747",
+              "status": "eliminated",
+              "feedback": "Domain Knowledge Gap",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e8",
+              "eliminationReason": "Domain Knowledge Gap",
+              "eliminationRemarks": ""
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0762",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09e9"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0755",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ea"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0749",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09eb"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074b",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ec"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074e",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ed"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0761",
+              "status": "selected",
+              "feedback": "Excellent cultural fit and communication. Selected for offer.",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ee"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a0760",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09ef"
+            },
+            {
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "studentId": "6ac88abb1d1fb2385b0a074f",
+              "status": "eliminated",
+              "feedback": "Candidate placed in waitlist",
+              "emailSent": true,
+              "emailSentAt": "2026-10-08T06:33:31.410Z",
+              "_id": "6ac88abb1d1fb2385b0a09f0"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0738",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e22d"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a072b",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e2e0"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0736",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e3a5"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0741",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e40b"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0748",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6ad608c78877689624f1e65e"
+            },
+            {
+              "studentId": "6ac88abb1d1fb2385b0a0771",
+              "status": "selected",
+              "feedback": "Clear communication, high cultural fit. Final placement offer confirmed.",
+              "eliminationReason": "",
+              "eliminationRemarks": "",
+              "emailSent": false,
+              "_id": "6adb1d13dcf477bf80aa143e"
+            }
+          ],
+          "completedAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09e0"
+        }
+      ],
+      "finalSelectedStudents": [
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0747",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f1"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0761",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f2"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a075c",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f3"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0767",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f4"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a075f",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f5"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0755",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f6"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a0762",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f7"
+        },
+        {
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "studentId": "6ac88abb1d1fb2385b0a074c",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-08T06:33:31.410Z",
+          "emailSent": true,
+          "emailSentAt": "2026-10-08T06:33:31.410Z",
+          "_id": "6ac88abb1d1fb2385b0a09f8"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0748",
+          "role": "Digital & Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2026-10-10T00:00:00.000Z",
+          "placementId": "6ac9d113bef30193717a1547",
+          "emailSent": false,
+          "_id": "6ac9d113bef30193717a154d",
+          "offerLetterName": "",
+          "offerLetterUrl": ""
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0738",
+          "role": "Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a0812",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e22e"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a072b",
+          "role": "Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a0824",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e2e1"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0736",
+          "role": "Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a0842",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e3a6"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0741",
+          "role": "Prime Software Engineer",
+          "package": 9,
+          "placementDate": "2025-02-15T00:00:00.000Z",
+          "placementId": "6ac88abb1d1fb2385b0a0848",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6ad608c78877689624f1e40c"
+        },
+        {
+          "studentId": "6ac88abb1d1fb2385b0a0771",
+          "role": "Prime Engineer",
+          "package": 9,
+          "placementDate": "2026-07-15T00:00:00.000Z",
+          "placementId": "6adb18c72e11afe11eac9e45",
+          "emailSent": false,
+          "offerLetterUrl": "",
+          "offerLetterName": "",
+          "_id": "6adb1d13dcf477bf80aa143f"
+        }
+      ],
+      "createdAt": "2026-10-09T06:33:31.437Z",
+      "updatedAt": "2026-10-23T08:38:43.583Z",
+      "__v": 14,
+      "visitNumber": 1,
+      "roles": [],
+      "registeredRolePreferences": []
+    }
+  ],
+  "samplePlacements": [
+    {
+      "visitNumber": 1,
+      "driveType": "on_campus",
+      "driveDetails": "",
+      "offerLetterUrl": "",
+      "offerLetterName": "",
+      "_id": "6ac88abb1d1fb2385b0a07d6",
+      "studentId": "6ac88abb1d1fb2385b0a073c",
+      "companyId": "6ac88abb1d1fb2385b0a07c0",
+      "role": "Software Engineer - Payments",
+      "package": 22,
+      "placementDate": "2025-02-15T00:00:00.000Z",
+      "offerType": "on_campus",
+      "status": "joined",
+      "createdAt": "2026-10-09T06:33:31.351Z",
+      "updatedAt": "2026-10-09T06:33:31.351Z",
+      "__v": 0
+    },
+    {
+      "visitNumber": 1,
+      "driveType": "on_campus",
+      "driveDetails": "",
+      "offerLetterUrl": "",
+      "offerLetterName": "",
+      "_id": "6ac88abb1d1fb2385b0a07dc",
+      "studentId": "6ac88abb1d1fb2385b0a072f",
+      "companyId": "6ac88abb1d1fb2385b0a07ce",
+      "role": "Analog Design Engineer",
+      "package": 21,
+      "placementDate": "2025-02-15T00:00:00.000Z",
+      "offerType": "on_campus",
+      "status": "joined",
+      "createdAt": "2026-10-09T06:33:31.357Z",
+      "updatedAt": "2026-10-09T06:33:31.357Z",
+      "__v": 0
+    },
+    {
+      "visitNumber": 1,
+      "driveType": "on_campus",
+      "driveDetails": "",
+      "offerLetterUrl": "",
+      "offerLetterName": "",
+      "_id": "6ac88abb1d1fb2385b0a07e2",
+      "studentId": "6ac88abb1d1fb2385b0a0724",
+      "companyId": "6ac88abb1d1fb2385b0a07c0",
+      "role": "Software Engineer - Payments",
+      "package": 22,
+      "placementDate": "2025-02-15T00:00:00.000Z",
+      "offerType": "on_campus",
+      "status": "joined",
+      "createdAt": "2026-10-09T06:33:31.359Z",
+      "updatedAt": "2026-10-09T06:33:31.359Z",
+      "__v": 0
+    },
+    {
+      "visitNumber": 1,
+      "driveType": "on_campus",
+      "driveDetails": "",
+      "offerLetterUrl": "",
+      "offerLetterName": "",
+      "_id": "6ac88abb1d1fb2385b0a07e8",
+      "studentId": "6ac88abb1d1fb2385b0a073b",
+      "companyId": "6ac88abb1d1fb2385b0a07be",
+      "role": "SDE-1",
+      "package": 32,
+      "placementDate": "2025-02-15T00:00:00.000Z",
+      "offerType": "on_campus",
+      "status": "joined",
+      "createdAt": "2026-10-09T06:33:31.361Z",
+      "updatedAt": "2026-10-09T06:33:31.361Z",
+      "__v": 0
+    },
+    {
+      "visitNumber": 1,
+      "driveType": "on_campus",
+      "driveDetails": "",
+      "offerLetterUrl": "",
+      "offerLetterName": "",
+      "_id": "6ac88abb1d1fb2385b0a07ee",
+      "studentId": "6ac88abb1d1fb2385b0a0733",
+      "companyId": "6ac88abb1d1fb2385b0a07c1",
+      "role": "Engineering Analyst",
+      "package": 26,
+      "placementDate": "2025-02-15T00:00:00.000Z",
+      "offerType": "on_campus",
+      "status": "joined",
+      "createdAt": "2026-10-09T06:33:31.363Z",
+      "updatedAt": "2026-10-09T06:33:31.363Z",
+      "__v": 0
+    }
+  ],
+  "sampleDrives": [
+    {
+      "_id": "6ac88abb1d1fb2385b0a089e",
+      "title": "Google Campus Recruitment Drive 2026",
+      "companyName": "Google",
+      "registeredStudentsCount": 33,
+      "roundsCount": 3,
+      "finalSelectedCount": 10
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a08b8",
+      "title": "Microsoft Graduate Hire Program 2026",
+      "companyName": "Microsoft",
+      "registeredStudentsCount": 40,
+      "roundsCount": 3,
+      "finalSelectedCount": 2
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a08db",
+      "title": "Zoho Campus Hiring 2026",
+      "companyName": "Zoho Corporation",
+      "registeredStudentsCount": 54,
+      "roundsCount": 3,
+      "finalSelectedCount": 3
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a0925",
+      "title": "PayPal University Recruitment",
+      "companyName": "PayPal",
+      "registeredStudentsCount": 26,
+      "roundsCount": 3,
+      "finalSelectedCount": 5
+    },
+    {
+      "_id": "6ac88abb1d1fb2385b0a0935",
+      "title": "Goldman Sachs Engineering Analyst 2026",
+      "companyName": "Goldman Sachs",
+      "registeredStudentsCount": 19,
+      "roundsCount": 3,
+      "finalSelectedCount": 4
+    }
+  ]
+}

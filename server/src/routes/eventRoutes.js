@@ -11,6 +11,8 @@ const {
   bulkUpdateAttendance,
   autoRegisterStudents,
   removeStudentFromAttendance,
+  registerForEvent,
+  unregisterFromEvent,
 } = require('../controllers/eventController');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -24,6 +26,10 @@ router.route('/:id')
   .get(getEventById)
   .put(updateEvent)
   .delete(deleteEvent);
+
+router.route('/:id/register')
+  .post(registerForEvent)
+  .delete(unregisterFromEvent);
 
 router.route('/:id/attendance')
   .post(addStudentToAttendance);

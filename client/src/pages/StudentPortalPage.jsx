@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getDrives, applyForDrive } from '../api/driveApi';
+import { getEvents, registerForEvent, unregisterFromEvent } from '../api/eventApi';
 import {
   HiOutlineBriefcase,
   HiOutlineUser,
@@ -18,6 +19,12 @@ import {
   HiOutlineMenuAlt2,
   HiOutlineEye,
   HiOutlineEyeOff,
+  HiOutlineClock,
+  HiOutlineLocationMarker,
+  HiOutlineSparkles,
+  HiOutlineCalendar,
+  HiOutlineUserGroup,
+  HiOutlineFilter,
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import Loader from '../components/common/Loader';
@@ -25,6 +32,7 @@ import '../styles/studentPortal.css';
 
 const tabTitles = {
   drives: 'Placement Drives',
+  events: 'Training & Events',
   profile: 'Candidate Profile',
   password: 'Security Settings',
 };
@@ -35,11 +43,20 @@ const StudentPortalPage = () => {
 
   const [activeTab, setActiveTab] = useState('drives'); // 'drives' | 'profile' | 'password'
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [drives, setDrives] = useState([]);
   const [loadingDrives, setLoadingDrives] = useState(true);
   const [searchDrive, setSearchDrive] = useState('');
   const [filterEligibleOnly, setFilterEligibleOnly] = useState(false);
   const [selectedDrive, setSelectedDrive] = useState(null);
+
+  const handleToggle = () => {
+    if (window.innerWidth <= 768) {
+      setMobileOpen((prev) => !prev);
+    } else {
+      setCollapsed((prev) => !prev);
+    }
+  };
 
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
@@ -115,6 +132,101 @@ const StudentPortalPage = () => {
   useEffect(() => {
     fetchDrivesList();
   }, [fetchDrivesList]);
+
+  // Training Events State
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [searchEvent, setSearchEvent] = useState('');
+  const [selectedEventType, setSelectedEventType] = useState('all');
+  const [filterEligibleEventsOnly, setFilterEligibleEventsOnly] = useState(false);
+  const [registeringEventId, setRegisteringEventId] = useState(null);
+
+  // Fetch Events
+  const fetchEventsList = useCallback(async () => {
+    setLoadingEvents(true);
+    try {
+      const res = await getEvents();
+      setEvents(res.data || []);
+    } catch {
+      toast.error('Failed to load training events');
+    } finally {
+      setLoadingEvents(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEventsList();
+  }, [fetchEventsList]);
+
+  // Handle Register for Event
+  const handleRegisterEvent = async (eventId, eventTitle) => {
+    try {
+      setRegisteringEventId(eventId);
+      const res = await registerForEvent(eventId);
+      toast.success(res.message || `Successfully registered for ${eventTitle}!`);
+      fetchEventsList();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to register for event');
+    } finally {
+      setRegisteringEventId(null);
+    }
+  };
+
+  // Handle Unregister from Event
+  const handleUnregisterEvent = async (eventId, eventTitle) => {
+    if (!window.confirm(`Are you sure you want to cancel your enrollment in "${eventTitle}"?`)) return;
+    try {
+      setRegisteringEventId(eventId);
+      const res = await unregisterFromEvent(eventId);
+      toast.success(res.message || 'Enrollment cancelled');
+      fetchEventsList();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel enrollment');
+    } finally {
+      setRegisteringEventId(null);
+    }
+  };
+
+  // Check if current student is registered for event
+  const isStudentRegisteredForEvent = (evt) => {
+    if (!student || !evt || !evt.attendance) return false;
+    const sId = student._id?.toString();
+    const roll = student.rollNumber?.toUpperCase();
+    return evt.attendance.some(
+      (a) =>
+        (a.studentId && (a.studentId._id || a.studentId).toString() === sId) ||
+        (a.rollNumber && a.rollNumber.toUpperCase() === roll)
+    );
+  };
+
+  // Check student department & batch eligibility for event
+  const checkEventEligibility = (evt) => {
+    if (!student) return { eligible: false, message: 'Profile loading...' };
+    const deptMatch = !evt.departments || evt.departments.length === 0 || evt.departments.includes(student.department);
+    const batchMatch = !evt.eligibleBatches || evt.eligibleBatches.length === 0 || evt.eligibleBatches.includes(student.batch);
+    if (!deptMatch) return { eligible: false, message: `Dept ${student.department} not eligible` };
+    if (!batchMatch) return { eligible: false, message: `Batch ${student.batch} not eligible` };
+    return { eligible: true, message: 'Eligible for your Dept & Batch' };
+  };
+
+  const upcomingEventsCount = events.filter((e) => e.status === 'Upcoming' || e.status === 'Ongoing').length;
+
+  // Filtered Events
+  const filteredEvents = events.filter((evt) => {
+    const matchSearch =
+      !searchEvent ||
+      evt.title?.toLowerCase().includes(searchEvent.toLowerCase()) ||
+      evt.chiefGuest?.toLowerCase().includes(searchEvent.toLowerCase()) ||
+      evt.chiefGuestCompany?.toLowerCase().includes(searchEvent.toLowerCase()) ||
+      evt.venue?.toLowerCase().includes(searchEvent.toLowerCase()) ||
+      evt.description?.toLowerCase().includes(searchEvent.toLowerCase());
+
+    const matchType = selectedEventType === 'all' || evt.eventType === selectedEventType;
+
+    const matchEligible = !filterEligibleEventsOnly || checkEventEligibility(evt).eligible;
+
+    return matchSearch && matchType && matchEligible;
+  });
 
   // Helper for student initials
   const getInitials = (name) => {
@@ -275,11 +387,14 @@ const StudentPortalPage = () => {
   };
 
 
-  const handleApply = async (driveId, companyName) => {
+  const [preferredRole, setPreferredRole] = useState('');
+
+  const handleApply = async (driveId, companyName, roleChoice = '') => {
     try {
-      await applyForDrive(driveId);
+      await applyForDrive(driveId, { preferredRole: roleChoice });
       toast.success(`Successfully registered for ${companyName} drive!`);
       fetchDrivesList();
+      setPreferredRole('');
       if (selectedDrive) setSelectedDrive(null);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Application failed');
@@ -335,8 +450,17 @@ const StudentPortalPage = () => {
 
   return (
     <div className="app-layout">
+      {/* Mobile Drawer Backdrop */}
+      {mobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Admin-styled Sidebar for Student Portal */}
-      <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-brand">
           <img src="/logo.png" alt="NSCET Logo" className="brand-logo-img" />
           <span className="brand-text" style={{ fontSize: '0.95rem' }}>NSCET</span>
@@ -348,7 +472,10 @@ const StudentPortalPage = () => {
           <button
             type="button"
             className={`nav-item ${activeTab === 'drives' ? 'active' : ''}`}
-            onClick={() => setActiveTab('drives')}
+            onClick={() => {
+              setActiveTab('drives');
+              setMobileOpen(false);
+            }}
             style={{ width: '100%', border: 'none', textAlign: 'left', background: activeTab === 'drives' ? 'var(--accent-gradient)' : 'transparent' }}
           >
             <span className="nav-icon"><HiOutlineBriefcase /></span>
@@ -357,8 +484,48 @@ const StudentPortalPage = () => {
 
           <button
             type="button"
+            className={`nav-item ${activeTab === 'events' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('events');
+              setMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              border: 'none',
+              textAlign: 'left',
+              background: activeTab === 'events' ? 'var(--accent-gradient)' : 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="nav-icon"><HiOutlineAcademicCap /></span>
+              <span className="nav-text">Training & Events</span>
+            </div>
+            {upcomingEventsCount > 0 && (
+              <span
+                style={{
+                  background: activeTab === 'events' ? '#c59e51' : 'rgba(197, 158, 81, 0.25)',
+                  color: activeTab === 'events' ? '#0b1d37' : '#c59e51',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                }}
+              >
+                {upcomingEventsCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
             className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
+            onClick={() => {
+              setActiveTab('profile');
+              setMobileOpen(false);
+            }}
             style={{ width: '100%', border: 'none', textAlign: 'left', background: activeTab === 'profile' ? 'var(--accent-gradient)' : 'transparent' }}
           >
             <span className="nav-icon"><HiOutlineUser /></span>
@@ -368,7 +535,10 @@ const StudentPortalPage = () => {
           <button
             type="button"
             className={`nav-item ${activeTab === 'password' ? 'active' : ''}`}
-            onClick={() => setActiveTab('password')}
+            onClick={() => {
+              setActiveTab('password');
+              setMobileOpen(false);
+            }}
             style={{ width: '100%', border: 'none', textAlign: 'left', background: activeTab === 'password' ? 'var(--accent-gradient)' : 'transparent' }}
           >
             <span className="nav-icon"><HiOutlineLockClosed /></span>
@@ -381,6 +551,7 @@ const StudentPortalPage = () => {
             type="button"
             className="nav-item"
             onClick={() => {
+              setMobileOpen(false);
               logout();
               navigate('/login');
             }}
@@ -398,8 +569,13 @@ const StudentPortalPage = () => {
         <header className="topbar">
           <div className="topbar-container">
             <div className="topbar-left">
-              <button className="toggle-btn" onClick={() => setCollapsed(!collapsed)} id="sidebar-toggle">
-                {collapsed ? <HiOutlineMenu /> : <HiOutlineMenuAlt2 />}
+              <button
+                className="toggle-btn"
+                onClick={handleToggle}
+                id="sidebar-toggle"
+                aria-label="Toggle Menu"
+              >
+                {mobileOpen || collapsed ? <HiOutlineMenu /> : <HiOutlineMenuAlt2 />}
               </button>
               <h1 className="page-title">{tabTitles[activeTab] || 'Student Portal'}</h1>
             </div>
@@ -478,6 +654,31 @@ const StudentPortalPage = () => {
           {/* TAB 1: PLACEMENT DRIVES */}
           {activeTab === 'drives' && (
             <div>
+              {/* Training & Placement Events Featured Advertisement Banner */}
+              {upcomingEventsCount > 0 && (
+                <div className="training-promo-banner">
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="promo-badge">
+                      <HiOutlineSparkles /> Industry Masterclasses & Placement Training
+                    </div>
+                    <h3 className="promo-title">
+                      Upskill with Corporate Trainers & Industry Experts
+                    </h3>
+                    <p className="promo-subtitle">
+                      {upcomingEventsCount} technical workshops, mock interviews, and training bootcamps are open for student registration. View expert profiles and reserve your seat.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="promo-btn"
+                    onClick={() => setActiveTab('events')}
+                    style={{ position: 'relative', zIndex: 1 }}
+                  >
+                    <HiOutlineCalendar /> View Programs ({events.length})
+                  </button>
+                </div>
+              )}
+
               <div className="student-filter-bar">
                 <div>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
@@ -648,7 +849,400 @@ const StudentPortalPage = () => {
             </div>
           )}
 
-          {/* TAB 2: EDIT PLACEMENT PROFILE */}
+          {/* TAB 2: TRAINING & EVENTS MODULES (ADVERTISED FOR STUDENTS) */}
+          {activeTab === 'events' && (
+            <div>
+              {/* Filter & Search Bar */}
+              <div className="student-filter-bar">
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                    Training Programs & Placement Events
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                    Industry expert seminars, technical workshops, aptitude bootcamps, and live mock drives
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <div className="search-bar" style={{ minWidth: '240px' }}>
+                    <HiOutlineSearch className="search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Search training topic, trainer, venue..."
+                      value={searchEvent}
+                      onChange={(e) => setSearchEvent(e.target.value)}
+                    />
+                  </div>
+
+                  <select
+                    className="filter-select"
+                    value={selectedEventType}
+                    onChange={(e) => setSelectedEventType(e.target.value)}
+                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}
+                  >
+                    <option value="all">All Event Categories</option>
+                    <option value="Training">Training</option>
+                    <option value="Technical Training">Technical Training</option>
+                    <option value="Aptitude Training">Aptitude Training</option>
+                    <option value="Soft Skills Training">Soft Skills Training</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Bootcamp">Bootcamp</option>
+                    <option value="Guest Lecture">Guest Lecture</option>
+                    <option value="Mock Interview Drive">Mock Interview Drive</option>
+                    <option value="Hackathon">Hackathon</option>
+                  </select>
+
+                  <label className="student-checkbox-pill">
+                    <input
+                      type="checkbox"
+                      checked={filterEligibleEventsOnly}
+                      onChange={(e) => setFilterEligibleEventsOnly(e.target.checked)}
+                    />
+                    Eligible for My Dept Only
+                  </label>
+                </div>
+              </div>
+
+              {loadingEvents ? (
+                <Loader text="Loading training programs and event schedules..." />
+              ) : filteredEvents.length === 0 ? (
+                <div className="empty-state" style={{ padding: '48px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🎯</div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>No Training Programs Found</h3>
+                  <p style={{ color: 'var(--text-muted)', maxWidth: '420px', margin: '6px auto 16px' }}>
+                    No upcoming sessions match your current filter criteria. Try selecting "All Event Categories" or clearing search.
+                  </p>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      setSearchEvent('');
+                      setSelectedEventType('all');
+                      setFilterEligibleEventsOnly(false);
+                    }}
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="student-events-grid">
+                  {filteredEvents.map((evt) => {
+                    const dateObj = evt.eventDate ? new Date(evt.eventDate) : new Date();
+                    const monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
+                    const dayStr = dateObj.getDate();
+                    const yearStr = dateObj.getFullYear();
+
+                    const isMultiDay = evt.isMultiDay && evt.endDate;
+                    const endDateObj = isMultiDay ? new Date(evt.endDate) : null;
+                    const endMonthStr = endDateObj ? endDateObj.toLocaleString('en-US', { month: 'short' }) : '';
+                    const endDayStr = endDateObj ? endDateObj.getDate() : '';
+                    const dateRangeLabel = isMultiDay
+                      ? (monthStr === endMonthStr ? `${monthStr} ${dayStr} – ${endDayStr}, ${yearStr}` : `${monthStr} ${dayStr} – ${endMonthStr} ${endDayStr}, ${yearStr}`)
+                      : `${monthStr} ${dayStr}, ${yearStr}`;
+
+                    const isRegistered = isStudentRegisteredForEvent(evt);
+                    const { eligible, message: eligMsg } = checkEventEligibility(evt);
+                    const totalReg = evt.attendance ? evt.attendance.length : 0;
+                    const maxCap = evt.maxParticipants || 150;
+                    const isFull = maxCap > 0 && totalReg >= maxCap;
+
+                    const isTrainingType =
+                      evt.eventType?.toLowerCase().includes('training') ||
+                      evt.eventType === 'Bootcamp' ||
+                      evt.eventType === 'Workshop';
+
+                    return (
+                      <div key={evt._id} className="student-event-card">
+                        {/* Header with Date Badge & Title */}
+                        <div className="student-event-header">
+                          <div className="event-date-badge" style={{ minWidth: isMultiDay ? '64px' : '54px' }}>
+                            <span className="month">{monthStr}</span>
+                            <span className="day" style={{ fontSize: isMultiDay ? '1.05rem' : '1.35rem', lineHeight: 1.1 }}>
+                              {isMultiDay ? `${dayStr}–${endDayStr}` : dayStr}
+                            </span>
+                            <span className="year">{yearStr}</span>
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                              <span
+                                style={{
+                                  fontSize: '0.68rem',
+                                  fontWeight: 800,
+                                  textTransform: 'uppercase',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  background: isTrainingType ? '#f0fdf4' : '#eff6ff',
+                                  color: isTrainingType ? '#16a34a' : '#1d4ed8',
+                                  border: isTrainingType ? '1px solid #bbf7d0' : '1px solid #bfdbfe',
+                                }}
+                              >
+                                {evt.eventType || 'Training'}
+                              </span>
+
+                              <span
+                                style={{
+                                  fontSize: '0.68rem',
+                                  fontWeight: 700,
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  background: evt.status === 'Completed' ? '#ecfdf5' : '#fef3c7',
+                                  color: evt.status === 'Completed' ? '#059669' : '#b45309',
+                                  border: evt.status === 'Completed' ? '1px solid #a7f3d0' : '1px solid #fde68a',
+                                }}
+                              >
+                                {evt.status || 'Upcoming'}
+                              </span>
+
+                              {isMultiDay && (
+                                <span
+                                  style={{
+                                    fontSize: '0.68rem',
+                                    fontWeight: 800,
+                                    padding: '2px 7px',
+                                    borderRadius: '6px',
+                                    background: '#fef3c7',
+                                    color: '#b45309',
+                                    border: '1px solid #fde68a',
+                                  }}
+                                >
+                                  🗓️ {evt.durationDays ? `${evt.durationDays} Days / ${evt.durationDays >= 6 ? Math.round(evt.durationDays / 6) + ' Wk' : evt.durationDays + 'D'}` : 'Multi-Day'}
+                                </span>
+                              )}
+
+                              {eligible ? (
+                                <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700, marginLeft: 'auto' }}>
+                                  ✓ Eligible
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: '0.72rem', color: '#ea580c', fontWeight: 600, marginLeft: 'auto' }}>
+                                  ⚠️ Restricted
+                                </span>
+                              )}
+                            </div>
+
+                            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, lineHeight: 1.3 }}>
+                              {evt.title}
+                            </h3>
+                          </div>
+                        </div>
+
+                        {/* Body with Resource Person Details */}
+                        <div className="student-event-body">
+                          {/* Resource Person Spotlight */}
+                          <div className="student-rp-card">
+                            <div className="student-rp-avatar">
+                              {evt.chiefGuest
+                                ? evt.chiefGuest
+                                    .split(' ')
+                                    .map((n) => n[0])
+                                    .join('')
+                                    .slice(0, 2)
+                                    .toUpperCase()
+                                : 'RP'}
+                            </div>
+
+                            <div className="student-rp-info">
+                              <span className="student-rp-role">
+                                {isTrainingType ? '⭐ Resource Person / Trainer' : '⭐ Chief Guest / Speaker'}
+                              </span>
+                              <span className="student-rp-name">{evt.chiefGuest}</span>
+                              <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
+                                {evt.chiefGuestDesignation || 'Invited Industry Professional'}
+                                {evt.chiefGuestCompany ? ` • ${evt.chiefGuestCompany}` : ''}
+                              </span>
+
+                              {evt.chiefGuestBio && (
+                                <p className="student-rp-desc" style={{ margin: '4px 0 0' }}>
+                                  {evt.chiefGuestBio}
+                                </p>
+                              )}
+
+                              {(evt.chiefGuestEmail || evt.chiefGuestLinkedin) && (
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px', fontSize: '0.72rem' }}>
+                                  {evt.chiefGuestEmail && <span style={{ color: '#64748b' }}>✉️ {evt.chiefGuestEmail}</span>}
+                                  {evt.chiefGuestLinkedin && (
+                                    <a
+                                      href={evt.chiefGuestLinkedin}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 700 }}
+                                    >
+                                      🔗 Trainer LinkedIn
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Logistics: Time, Venue & Seats */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#475569' }}>
+                            {isMultiDay && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#b45309', fontWeight: 600 }}>
+                                <HiOutlineCalendar style={{ color: '#d97706', fontSize: '1rem' }} />
+                                <span>{dateRangeLabel} ({evt.durationDays || 'Multi'} Days Program)</span>
+                              </div>
+                            )}
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <HiOutlineClock style={{ color: 'var(--accent-start, #0b1d37)', fontSize: '1rem' }} />
+                                <span>{isMultiDay ? <strong>Daily: </strong> : null}{evt.startTime} – {evt.endTime || 'Wrap up'}</span>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <HiOutlineLocationMarker style={{ color: 'var(--accent-start, #0b1d37)', fontSize: '1rem' }} />
+                                <span>{evt.venue}</span>
+                              </div>
+                            </div>
+
+                            {isMultiDay && evt.dailyTimingNote && (
+                              <div style={{ fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic', paddingLeft: '22px' }}>
+                                ℹ️ {evt.dailyTimingNote}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Capacity tracker */}
+                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <HiOutlineUserGroup /> Seat Availability
+                              </span>
+                              <span>
+                                <strong>{totalReg}</strong> / {maxCap} Enrolled
+                              </span>
+                            </div>
+                            <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div
+                                style={{
+                                  height: '100%',
+                                  width: `${Math.min(100, Math.round((totalReg / maxCap) * 100))}%`,
+                                  background: isFull ? '#ef4444' : 'var(--accent-gradient, #0b1d37)',
+                                  borderRadius: '3px',
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Pre-requisites */}
+                          {evt.prerequisites && (
+                            <div style={{ fontSize: '0.76rem', background: 'rgba(197, 158, 81, 0.08)', border: '1px solid rgba(197, 158, 81, 0.25)', borderRadius: '6px', padding: '6px 10px', color: '#854d0e' }}>
+                              <strong>📌 Requirements:</strong> {evt.prerequisites}
+                            </div>
+                          )}
+
+                          {/* Description / Agenda */}
+                          {evt.description && (
+                            <p style={{ fontSize: '0.78rem', color: '#475569', margin: 0, lineHeight: 1.4 }}>
+                              {evt.description}
+                            </p>
+                          )}
+
+                          {/* Department tags */}
+                          <div>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                              Participating Departments:
+                            </span>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                              {evt.departments?.map((d) => {
+                                const isMyDept = d === student.department;
+                                return (
+                                  <span
+                                    key={d}
+                                    style={{
+                                      fontSize: '0.72rem',
+                                      fontWeight: 700,
+                                      padding: '2px 8px',
+                                      borderRadius: '4px',
+                                      background: isMyDept ? 'rgba(197, 158, 81, 0.2)' : '#f1f5f9',
+                                      color: isMyDept ? '#b45309' : '#475569',
+                                      border: isMyDept ? '1px solid rgba(197, 158, 81, 0.5)' : '1px solid transparent',
+                                    }}
+                                  >
+                                    {d}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Footer with Enrollment Actions */}
+                        <div className="student-event-footer">
+                          <div>
+                            <span style={{ fontSize: '0.74rem', color: '#64748b', display: 'block' }}>
+                              {isRegistered ? 'Status: Confirmed Registration' : eligible ? 'Status: Open for Enrollment' : 'Eligibility: Not applicable'}
+                            </span>
+                          </div>
+
+                          <div>
+                            {isRegistered ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span
+                                  style={{
+                                    background: '#dcfce7',
+                                    color: '#15803d',
+                                    border: '1px solid #86efac',
+                                    fontWeight: 700,
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                  }}
+                                >
+                                  <HiOutlineCheckCircle /> Enrolled
+                                </span>
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ padding: '6px 10px', fontSize: '0.75rem', color: '#dc2626' }}
+                                  disabled={registeringEventId === evt._id}
+                                  onClick={() => handleUnregisterEvent(evt._id, evt.title)}
+                                  title="Cancel Enrollment"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : eligible ? (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                style={{ padding: '7px 16px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                disabled={registeringEventId === evt._id || isFull}
+                                onClick={() => handleRegisterEvent(evt._id, evt.title)}
+                              >
+                                <HiOutlineSparkles />
+                                {registeringEventId === evt._id
+                                  ? 'Registering...'
+                                  : isFull
+                                  ? 'Seats Full'
+                                  : 'Register for Training'}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                style={{ padding: '6px 12px', fontSize: '0.8rem', opacity: 0.65, cursor: 'not-allowed' }}
+                                disabled
+                                title={eligMsg}
+                              >
+                                Not Eligible
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: EDIT PLACEMENT PROFILE */}
           {activeTab === 'profile' && (
             <div className="profile-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -664,10 +1258,11 @@ const StudentPortalPage = () => {
 
               <form onSubmit={handleProfileSubmit}>
                 {/* Section 1: College Institutional Info */}
+                {/* Section 1: Personal & Contact Information */}
                 <div className="profile-section-title">
-                  <HiOutlineIdentification /> 1. College Institutional Records
+                  <HiOutlineUser /> 1. Personal & Contact Information
                 </div>
-                <div className="profile-form-grid">
+                <div className="profile-form-grid" style={{ marginBottom: '24px' }}>
                   <div className="form-group">
                     <label className="form-label">
                       Student Full Name <span className="readonly-badge">Locked by College</span>
@@ -697,7 +1292,7 @@ const StudentPortalPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">College Email *</label>
+                    <label className="form-label">College / Personal Email *</label>
                     <input
                       type="email"
                       className="form-input"
@@ -746,11 +1341,94 @@ const StudentPortalPage = () => {
                       onChange={(e) => setProfileForm({ ...profileForm, dob: e.target.value })}
                     />
                   </div>
+
+                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                    <label className="form-label">Current / Permanent Address</label>
+                    <textarea
+                      className="form-input"
+                      rows={2}
+                      placeholder="Enter city, state, postal code"
+                      value={profileForm.address}
+                      onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                    />
+                  </div>
                 </div>
 
-                {/* Career Goal & Placement Preference */}
+                {/* Section 2: Academic Credentials */}
                 <div className="profile-section-title">
-                  <HiOutlineTrendingUp /> 2. Career Track & Placement Aspiration
+                  <HiOutlineAcademicCap /> 2. Academic Credentials
+                </div>
+                <div className="profile-form-grid" style={{ marginBottom: '24px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Cumulative GPA (CGPA)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="10"
+                      className="form-input"
+                      placeholder="e.g. 8.45"
+                      value={profileForm.cgpa}
+                      onChange={(e) => setProfileForm({ ...profileForm, cgpa: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">10th Standard Percentage (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      className="form-input"
+                      placeholder="e.g. 91.5"
+                      value={profileForm.tenthPercentage}
+                      onChange={(e) => setProfileForm({ ...profileForm, tenthPercentage: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">12th / Diploma Percentage (%)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      className="form-input"
+                      placeholder="e.g. 89.2"
+                      value={profileForm.twelfthPercentage}
+                      onChange={(e) => setProfileForm({ ...profileForm, twelfthPercentage: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Current Standing Arrears</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="form-input"
+                      placeholder="0"
+                      value={profileForm.currentArrears}
+                      onChange={(e) => setProfileForm({ ...profileForm, currentArrears: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">History of Arrears</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="form-input"
+                      placeholder="0"
+                      value={profileForm.historyOfArrears}
+                      onChange={(e) => setProfileForm({ ...profileForm, historyOfArrears: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Section 3: Career Track & Placement Aspiration */}
+                <div className="profile-section-title">
+                  <HiOutlineTrendingUp /> 3. Career Track & Placement Aspiration
                 </div>
                 <div
                   style={{
@@ -798,77 +1476,11 @@ const StudentPortalPage = () => {
                   )}
                 </div>
 
-                {/* Academic Scores & Arrears */}
+                {/* Section 4: Skills & Professional Portfolios */}
                 <div className="profile-section-title">
-                  <HiOutlineAcademicCap /> 3. Academic Scores & Arrears Tracking
+                  <HiOutlineExternalLink /> 4. Skills & Professional Portfolios
                 </div>
                 <div className="profile-form-grid">
-                  <div className="form-group">
-                    <label className="form-label">Cumulative GPA (CGPA)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="10"
-                      className="form-input"
-                      placeholder="e.g. 8.45"
-                      value={profileForm.cgpa}
-                      onChange={(e) => setProfileForm({ ...profileForm, cgpa: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Current Standing Arrears</label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="form-input"
-                      placeholder="0"
-                      value={profileForm.currentArrears}
-                      onChange={(e) => setProfileForm({ ...profileForm, currentArrears: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">History of Arrears</label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="form-input"
-                      placeholder="0"
-                      value={profileForm.historyOfArrears}
-                      onChange={(e) => setProfileForm({ ...profileForm, historyOfArrears: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">10th Standard Percentage (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      className="form-input"
-                      placeholder="e.g. 91.5"
-                      value={profileForm.tenthPercentage}
-                      onChange={(e) => setProfileForm({ ...profileForm, tenthPercentage: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">12th / Diploma Percentage (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      className="form-input"
-                      placeholder="e.g. 89.2"
-                      value={profileForm.twelfthPercentage}
-                      onChange={(e) => setProfileForm({ ...profileForm, twelfthPercentage: e.target.value })}
-                    />
-                  </div>
-
                   <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                     <label className="form-label">Technical Skills (Comma separated)</label>
                     <input
@@ -879,13 +1491,7 @@ const StudentPortalPage = () => {
                       onChange={(e) => setProfileForm({ ...profileForm, skills: e.target.value })}
                     />
                   </div>
-                </div>
 
-                {/* Resume and Professional Links */}
-                <div className="profile-section-title">
-                  <HiOutlineExternalLink /> 4. Resume & Professional Links
-                </div>
-                <div className="profile-form-grid">
                   <div className="form-group">
                     <label className="form-label">Resume Link (Google Drive / Cloud)</label>
                     <input
@@ -927,17 +1533,6 @@ const StudentPortalPage = () => {
                       placeholder="https://yourportfolio.dev"
                       value={profileForm.portfolioUrl}
                       onChange={(e) => setProfileForm({ ...profileForm, portfolioUrl: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                    <label className="form-label">Current / Permanent Address</label>
-                    <textarea
-                      className="form-input"
-                      rows={2}
-                      placeholder="Enter city, state, postal code"
-                      value={profileForm.address}
-                      onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
                     />
                   </div>
                 </div>
@@ -1136,13 +1731,34 @@ const StudentPortalPage = () => {
                       </a>
                     </div>
                   )}
+                  {selectedDrive.roles && selectedDrive.roles.length > 1 && (
+                    <div style={{ marginTop: '16px', background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e293b', display: 'block', marginBottom: '6px' }}>
+                        Select Preferred Job Role (Optional):
+                      </label>
+                      <select
+                        className="form-select"
+                        value={preferredRole}
+                        onChange={(e) => setPreferredRole(e.target.value)}
+                        style={{ width: '100%', background: '#ffffff', padding: '8px 10px', fontSize: '0.85rem' }}
+                      >
+                        <option value="">Any Role / Open to all roles offered</option>
+                        {selectedDrive.roles.map((r, i) => (
+                          <option key={i} value={r}>{r}</option>
+                        ))}
+                      </select>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px' }}>
+                        Multiple roles available: {selectedDrive.roles.join(', ')}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-footer">
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => setSelectedDrive(null)}
+                    onClick={() => { setSelectedDrive(null); setPreferredRole(''); }}
                   >
                     Close
                   </button>
@@ -1150,7 +1766,7 @@ const StudentPortalPage = () => {
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={() => handleApply(selectedDrive._id, selectedDrive.companyName)}
+                      onClick={() => handleApply(selectedDrive._id, selectedDrive.companyName, preferredRole)}
                     >
                       Register / Apply Now
                     </button>

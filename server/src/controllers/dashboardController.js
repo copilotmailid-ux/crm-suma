@@ -178,8 +178,8 @@ exports.getBatchAnalysis = async (req, res, next) => {
   try {
     const { batch } = req.query;
     
-    // 1. Build query filters
-    const matchQuery = batch ? { batch } : {};
+    // 1. Build query filters (supports 'ALL' or specific batch)
+    const matchQuery = batch && batch !== 'ALL' ? { batch } : {};
 
     // 2. Fetch student statistics and placed student IDs and dept stats in parallel!
     const [totalStudents, placedStudents, placedStudentIds, deptStatsRaw] = await Promise.all([

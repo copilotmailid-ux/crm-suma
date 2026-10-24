@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   HiOutlinePlus,
   HiOutlinePencil,
@@ -11,7 +11,7 @@ import {
   HiOutlineBriefcase,
 } from 'react-icons/hi';
 import { getDrives, createDrive, updateDrive, deleteDrive } from '../api/driveApi';
-import { getCompanies } from '../api/companyApi';
+import { getCompanies, getAllCompanies } from '../api/companyApi';
 import ConfirmModal from '../components/common/ConfirmModal';
 import CompanyDriveModal from '../components/common/CompanyDriveModal';
 import Loader from '../components/common/Loader';
@@ -21,7 +21,9 @@ import toast from 'react-hot-toast';
 const DEPARTMENTS = ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'];
 
 const emptyDriveForm = {
+  companyId: '',
   companyName: '',
+  visitNumber: 1,
   role: '',
   package: '',
   jobLocation: 'Pan India / Hybrid',
@@ -44,46 +46,100 @@ const DrivesPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [visitFilter, setVisitFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(emptyDriveForm);
   const [deleteId, setDeleteId] = useState(null);
   const [viewDrive, setViewDrive] = useState(null);
+  const [companySearch, setCompanySearch] = useState('');
+  const [showCompanyList, setShowCompanyList] = useState(false);
+  const companyDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (companyDropdownRef.current && !companyDropdownRef.current.contains(e.target)) {
+        setShowCompanyList(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
   const debouncedSearch = useDebounce(search);
+
+  const filteredCompanies = useMemo(() => {
+    if (!companySearch || !companySearch.trim()) return companies;
+    const q = companySearch.toLowerCase().trim();
+    return companies.filter(
+      (c) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.industry?.toLowerCase().includes(q) ||
+        c.location?.toLowerCase().includes(q)
+    );
+  }, [companies, companySearch]);
 
   const fetchDrives = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getDrives({ search: debouncedSearch, status: statusFilter });
+      const params = { search: debouncedSearch, status: statusFilter };
+      if (visitFilter) params.visitNumber = visitFilter;
+      const res = await getDrives(params);
       setDrives(res.data);
     } catch {
       toast.error('Failed to fetch placement drives');
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch, statusFilter, visitFilter]);
+
+  const fetchCompanies = useCallback(async () => {
+    try {
+      const res = await getAllCompanies();
+      const list = Array.isArray(res.data) ? res.data : (res.data.companies || []);
+      setCompanies(list);
+    } catch {
+      try {
+        const fallback = await getCompanies({ limit: 100 });
+        setCompanies(fallback.data.companies || []);
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchDrives();
   }, [fetchDrives]);
 
   useEffect(() => {
-    getCompanies({ limit: 100 })
-      .then((res) => setCompanies(res.data.companies || []))
-      .catch(() => {});
-  }, []);
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const openCreateModal = () => {
     setEditId(null);
     setForm(emptyDriveForm);
+    setCompanySearch('');
+    setShowCompanyList(false);
+    fetchCompanies();
     setShowModal(true);
   };
 
   const openEditModal = (drive) => {
     setEditId(drive._id);
+    fetchCompanies();
+    const cId = (drive.companyId?._id || drive.companyId)?.toString() || '';
+    const rolesArr = drive.roles && drive.roles.length > 0 ? drive.roles : [drive.role || ''];
     setForm({
-      companyName: drive.companyName,
-      role: drive.role,
+      companyId: cId,
+      companyName: drive.companyName || drive.companyId?.name || '',
+      visitNumber: drive.visitNumber || 1,
+      role: drive.role || '',
+      roles: rolesArr,
+      rolesInput: rolesArr.join(', '),
       package: drive.package,
       jobLocation: drive.jobLocation || '',
       eligibleDepartments: drive.eligibleDepartments || [],
@@ -98,18 +154,37 @@ const DrivesPage = () => {
       selectionProcess: drive.selectionProcess || '',
       applicationLink: drive.applicationLink || '',
     });
+    setCompanySearch('');
+    setShowCompanyList(false);
     setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.companyName) {
+      toast.error('Please select or enter a company name');
+      return;
+    }
+    const rolesList = (form.rolesInput || form.role || '')
+      .split(',')
+      .map((r) => r.trim())
+      .filter(Boolean);
+    const primaryRole = rolesList[0] || form.role || 'Software Engineer';
+
+    const payload = {
+      ...form,
+      role: primaryRole,
+      roles: rolesList.length > 0 ? rolesList : [primaryRole],
+      visitNumber: Number(form.visitNumber) || 1,
+    };
+
     try {
       if (editId) {
-        await updateDrive(editId, form);
+        await updateDrive(editId, payload);
         toast.success('Placement drive requirements updated! (Visible to students)');
       } else {
-        await createDrive(form);
-        toast.success('New placement drive entered! (Now live on student side)');
+        await createDrive(payload);
+        toast.success(`Placement drive entered for Visit ${payload.visitNumber}! (Now live on student side)`);
       }
       setShowModal(false);
       fetchDrives();
@@ -175,6 +250,17 @@ const DrivesPage = () => {
             <option value="Ongoing">Ongoing</option>
             <option value="Completed">Completed</option>
           </select>
+
+          <select
+            className="filter-select"
+            value={visitFilter}
+            onChange={(e) => setVisitFilter(e.target.value)}
+          >
+            <option value="">All Campus Visits</option>
+            <option value="1">Visit 1 Drives</option>
+            <option value="2">Visit 2 Drives</option>
+            <option value="3">Visit 3 Drives</option>
+          </select>
         </div>
       </div>
 
@@ -211,26 +297,42 @@ const DrivesPage = () => {
                       onClick={() => setViewDrive(d)}
                       title="Click company to view registered & eligible candidates"
                     >
-                      <span
-                        style={{
-                          color: '#0f172a',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          transition: 'color 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#c59e51';
-                          e.currentTarget.style.textDecoration = 'underline';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#0f172a';
-                          e.currentTarget.style.textDecoration = 'none';
-                        }}
-                      >
-                        {d.companyName}
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>↗</span>
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            color: '#0f172a',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#c59e51';
+                            e.currentTarget.style.textDecoration = 'underline';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = '#0f172a';
+                            e.currentTarget.style.textDecoration = 'none';
+                          }}
+                        >
+                          {d.companyName}
+                          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>↗</span>
+                        </span>
+                        <span
+                          className="badge badge-neutral"
+                          style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            padding: '2px 7px',
+                            borderRadius: '10px',
+                            background: d.visitNumber > 1 ? '#eff6ff' : '#f8fafc',
+                            color: d.visitNumber > 1 ? '#1d4ed8' : '#475569',
+                            border: d.visitNumber > 1 ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                          }}
+                        >
+                          Visit {d.visitNumber || 1}
+                        </span>
+                      </div>
                     </td>
                     <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{d.role}</td>
                     <td>
@@ -349,32 +451,252 @@ const DrivesPage = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-body">
                 <div className="form-row">
-                  <div className="form-group">
+                  <div className="form-group" ref={companyDropdownRef} style={{ position: 'relative' }}>
                     <label className="form-label">Company Name *</label>
-                    <input
-                      className="form-input"
-                      placeholder="e.g. Google, Zoho, Bosch"
-                      value={form.companyName}
-                      onChange={(e) => setForm({ ...form, companyName: e.target.value })}
-                      required
-                      list="companies-list"
-                    />
-                    <datalist id="companies-list">
-                      {companies.map((c) => (
-                        <option key={c._id} value={c.name} />
-                      ))}
-                    </datalist>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <HiOutlineSearch
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          color: '#94a3b8',
+                          fontSize: '1rem',
+                          pointerEvents: 'none',
+                          zIndex: 1,
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="form-input"
+                        style={{
+                          width: '100%',
+                          paddingLeft: '34px',
+                          paddingRight: form.companyName ? '32px' : '14px',
+                        }}
+                        placeholder="e.g. Google, Zoho, Bosch"
+                        value={form.companyName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const matched = companies.find((c) => c.name?.toLowerCase() === val.toLowerCase());
+                          setForm({
+                            ...form,
+                            companyName: val,
+                            companyId: matched ? matched._id : '',
+                          });
+                          setCompanySearch(val);
+                          setShowCompanyList(true);
+                        }}
+                        onFocus={() => {
+                          setShowCompanyList(true);
+                        }}
+                        onClick={() => {
+                          setShowCompanyList(true);
+                        }}
+                        required
+                      />
+
+                      {form.companyName && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForm({ ...form, companyName: '', companyId: '' });
+                            setCompanySearch('');
+                            setShowCompanyList(true);
+                          }}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            padding: 0,
+                          }}
+                          title="Clear company"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Floating Dropdown Menu (Absolute position so it never pushes down the form) */}
+                    {showCompanyList && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 4px)',
+                          left: 0,
+                          right: 0,
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          boxShadow: '0 12px 28px rgba(0, 0, 0, 0.16)',
+                          maxHeight: '210px',
+                          overflowY: 'auto',
+                          zIndex: 9999,
+                          padding: '4px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            padding: '6px 10px',
+                            borderBottom: '1px solid #f1f5f9',
+                            fontSize: '0.72rem',
+                            color: '#64748b',
+                            fontWeight: 600,
+                          }}
+                        >
+                          <span>
+                            {filteredCompanies.length} companies available
+                            {companySearch ? ` matching "${companySearch}"` : ''}
+                          </span>
+                        </div>
+
+                        {filteredCompanies.length === 0 ? (
+                          <div style={{ padding: '12px', textAlign: 'center', color: '#64748b', fontSize: '0.8rem' }}>
+                            No company matching &quot;{companySearch}&quot;
+                          </div>
+                        ) : (
+                          filteredCompanies.map((c) => {
+                            const isSelected =
+                              form.companyId === c._id ||
+                              form.companyName?.toLowerCase() === c.name?.toLowerCase();
+
+                            return (
+                              <div
+                                key={c._id}
+                                onClick={() => {
+                                  // Auto-detect next visit number if company visited before!
+                                  const existingDrivesForComp = drives.filter(
+                                    (d) =>
+                                      (d.companyId?._id || d.companyId)?.toString() === c._id?.toString() ||
+                                      d.companyName?.toLowerCase() === c.name?.toLowerCase()
+                                  );
+                                  const autoVisit = existingDrivesForComp.length > 0
+                                    ? existingDrivesForComp.length + 1
+                                    : (c.visits || 1);
+
+                                  setForm({
+                                    ...form,
+                                    companyId: c._id,
+                                    companyName: c.name,
+                                    visitNumber: autoVisit,
+                                    jobLocation:
+                                      form.jobLocation && form.jobLocation !== 'Pan India / Hybrid'
+                                        ? form.jobLocation
+                                        : c.location || 'Pan India / Hybrid',
+                                  });
+                                  setCompanySearch('');
+                                  setShowCompanyList(false);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '8px 12px',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  background: isSelected ? '#f0fdf4' : 'transparent',
+                                  borderBottom: '1px solid #f8fafc',
+                                  transition: 'all 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isSelected) e.currentTarget.style.background = '#f1f5f9';
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isSelected) e.currentTarget.style.background = 'transparent';
+                                }}
+                              >
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      fontWeight: 700,
+                                      fontSize: '0.86rem',
+                                      color: isSelected ? '#15803d' : '#0f172a',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                    }}
+                                  >
+                                    {c.name}
+                                  </div>
+                                  {c.industry && (
+                                    <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                                      🏷️ {c.industry} {c.location ? `• ${c.location}` : ''}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {isSelected && (
+                                  <span style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 800 }}>
+                                    ✓
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Job Role / Designation *</label>
+                  <div className="form-group" style={{ flex: '0 0 160px' }}>
+                    <label className="form-label">Campus Visit *</label>
+                    <select
+                      className="form-select"
+                      value={form.visitNumber || 1}
+                      onChange={(e) => setForm({ ...form, visitNumber: Number(e.target.value) })}
+                    >
+                      <option value={1}>Visit 1</option>
+                      <option value={2}>Visit 2</option>
+                      <option value={3}>Visit 3</option>
+                      <option value={4}>Visit 4</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: 2 }}>
+                    <label className="form-label">
+                      Job Roles Offered * (Multiple roles allowed, separated by commas)
+                    </label>
                     <input
                       className="form-input"
-                      placeholder="e.g. Software Engineer, Cloud Trainee"
-                      value={form.role}
-                      onChange={(e) => setForm({ ...form, role: e.target.value })}
+                      placeholder="e.g. Software Engineer, Cloud Trainee, Data Analyst"
+                      value={form.rolesInput !== undefined ? form.rolesInput : form.role}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setForm({
+                          ...form,
+                          rolesInput: val,
+                          role: val.split(',')[0]?.trim() || '',
+                        });
+                      }}
                       required
                     />
+                    {/* Role Chips Preview */}
+                    {form.rolesInput && form.rolesInput.includes(',') && (
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        {form.rolesInput.split(',').map((r) => r.trim()).filter(Boolean).map((r, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              border: '1px solid #bfdbfe',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            Role {i + 1}: {r}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

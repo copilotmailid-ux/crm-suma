@@ -10,7 +10,9 @@ const {
   applyForDrive,
   advanceRoundCandidates,
   eliminateRoundCandidates,
+  updateCandidateRoundStatus,
   selectFinalCandidates,
+  revertPlacedCandidates,
   addOrUpdateRound,
   sendCustomRoundEmail,
   resendRoundEmail,
@@ -40,9 +42,11 @@ router.delete('/:id', authMiddleware, deleteDrive);
 router.post('/:id/rounds', authMiddleware, addOrUpdateRound);
 router.post('/:id/rounds/:roundNumber/advance', authMiddleware, advanceRoundCandidates);
 router.post('/:id/rounds/:roundNumber/eliminate', authMiddleware, eliminateRoundCandidates);
+router.post('/:id/rounds/:roundNumber/status', authMiddleware, updateCandidateRoundStatus);
 router.post('/:id/rounds/:roundNumber/send-email', authMiddleware, sendCustomRoundEmail);
 router.post('/:id/rounds/:roundNumber/resend-email', authMiddleware, resendRoundEmail);
 router.post('/:id/select-final', authMiddleware, selectFinalCandidates);
+router.post('/:id/revert-placed', authMiddleware, revertPlacedCandidates);
 router.post('/:id/resend-offer-email', authMiddleware, resendOfferEmail);
 router.post('/:id/offer-letter', authMiddleware, uploadDriveOfferLetter);
 

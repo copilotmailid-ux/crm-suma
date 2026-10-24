@@ -219,12 +219,14 @@ function getRandomDob(batch) {
   return `${birthYear}-${month}-${day}`;
 }
 
-async function runSeed() {
+async function runSeed(isStandalone = false) {
   console.log('🚀 Starting Large-Scale Seeding: 2000 Students & 50 Companies...\n');
 
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log(`✅ Connected to MongoDB at: ${MONGO_URI}\n`);
+    if (isStandalone && mongoose.connection.readyState === 0) {
+      await mongoose.connect(MONGO_URI);
+      console.log(`✅ Connected to MongoDB at: ${MONGO_URI}\n`);
+    }
 
     // Clear existing students, companies, placements, alumni (Admin is preserved!)
     await Student.deleteMany({});
@@ -651,14 +653,23 @@ async function runSeed() {
     console.log(` 🎓 Total Alumni      : ${totalAlumni}`);
     console.log('======================================================\n');
 
-    await mongoose.disconnect();
-    console.log('🔌 Disconnected from MongoDB. You can now refresh the CRM Dashboard!');
-    process.exit(0);
+    if (isStandalone) {
+      await mongoose.disconnect();
+      console.log('🔌 Disconnected from MongoDB. You can now refresh the CRM Dashboard!');
+      process.exit(0);
+    }
   } catch (error) {
     console.error('❌ Error during seeding:', error);
-    await mongoose.disconnect();
-    process.exit(1);
+    if (isStandalone) {
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    throw error;
   }
 }
 
-runSeed();
+if (require.main === module) {
+  runSeed(true);
+}
+
+module.exports = runSeed;

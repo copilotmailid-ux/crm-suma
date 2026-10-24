@@ -12,6 +12,15 @@ const placementSchema = new mongoose.Schema(
       ref: 'Company',
       required: [true, 'Company is required'],
     },
+    driveId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Drive',
+    },
+    visitNumber: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
     role: {
       type: String,
       required: [true, 'Role/designation is required'],
@@ -30,6 +39,16 @@ const placementSchema = new mongoose.Schema(
       type: String,
       enum: ['on_campus', 'off_campus'],
       default: 'on_campus',
+    },
+    driveType: {
+      type: String,
+      enum: ['on_campus', 'external_off_campus', 'inter_college_pool', 'walk_in_job_fair', 'referral', 'other'],
+      default: 'on_campus',
+    },
+    driveDetails: {
+      type: String,
+      trim: true,
+      default: '',
     },
     status: {
       type: String,
