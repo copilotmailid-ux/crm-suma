@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children, requiredRole = 'admin' }) => {
 
   // Only redirect if explicitly a student trying to access admin pages
   if (requiredRole === 'admin' && userRole === 'student') {
-    return <Navigate to="/student/drives" replace />;
+    return <Navigate to="/student/dashboard" replace />;
   }
 
   // Only redirect if explicitly an admin trying to access student pages

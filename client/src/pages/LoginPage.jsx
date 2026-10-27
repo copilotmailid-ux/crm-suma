@@ -37,7 +37,7 @@ const LoginPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       if (isAdmin) navigate('/dashboard', { replace: true });
-      else if (isStudent) navigate('/student/drives', { replace: true });
+      else if (isStudent) navigate('/student/dashboard', { replace: true });
     }
   }, [isAuthenticated, isAdmin, isStudent, navigate]);
 
@@ -49,7 +49,7 @@ const LoginPage = () => {
     try {
       if (activeTab === 'student') {
         await studentLogin(rollNumber.trim(), studentPassword);
-        navigate('/student/drives');
+        navigate('/student/dashboard');
       } else {
         await login(email.trim(), adminPassword);
         navigate('/dashboard');

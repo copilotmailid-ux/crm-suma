@@ -26,7 +26,7 @@ const AppRoutes = () => {
         element={
           !loading && isAuthenticated ? (
             userRole === 'student' ? (
-              <Navigate to="/student/drives" replace />
+              <Navigate to="/student/dashboard" replace />
             ) : (
               <ProtectedRoute requiredRole="admin">
                 <AppLayout>
@@ -48,7 +48,7 @@ const AppRoutes = () => {
         path="/login"
         element={
           !loading && isAuthenticated ? (
-            userRole === 'student' ? <Navigate to="/student/drives" replace /> : <Navigate to="/" replace />
+            userRole === 'student' ? <Navigate to="/student/dashboard" replace /> : <Navigate to="/" replace />
           ) : (
             <LoginPage />
           )
@@ -58,7 +58,7 @@ const AppRoutes = () => {
         path="/student/login"
         element={
           !loading && isAuthenticated ? (
-            userRole === 'student' ? <Navigate to="/student/drives" replace /> : <Navigate to="/" replace />
+            userRole === 'student' ? <Navigate to="/student/dashboard" replace /> : <Navigate to="/" replace />
           ) : (
             <LoginPage />
           )

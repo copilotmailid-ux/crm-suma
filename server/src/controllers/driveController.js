@@ -3,6 +3,7 @@ const Company = require('../models/Company');
 const Student = require('../models/Student');
 const Placement = require('../models/Placement');
 const Alumni = require('../models/Alumni');
+const { isBatchEligibleForPlacement } = require('../utils/batchUtils');
 const {
   sendRoundShortlistEmail,
   sendFinalSelectionEmail,
@@ -119,17 +120,31 @@ exports.createDrive = async (req, res, next) => {
     const dDate = driveDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
     const initialSelectionProcess = selectionProcess || 'Round 1: Online Assessment, Round 2: Technical Interview, Round 3: HR Interview';
 
-    // Parse selection process to initialize default rounds
-    const roundNames = initialSelectionProcess
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    // Parse selection process or use roundsList to initialize default rounds
+    const rawRounds = Array.isArray(req.body.roundsList) && req.body.roundsList.length > 0
+      ? req.body.roundsList
+      : initialSelectionProcess.split(',').map((s) => s.trim()).filter(Boolean);
 
-    const initialRounds = roundNames.map((name, idx) => ({
+    const roundItems = rawRounds
+      .map((item) => {
+        if (typeof item === 'object' && item !== null) {
+          const name = String(item.name || '').trim();
+          let parsedDate = null;
+          if (item.date) {
+            const d = new Date(item.date);
+            if (!isNaN(d.getTime())) parsedDate = d;
+          }
+          return { name, date: parsedDate };
+        }
+        return { name: String(item || '').trim(), date: null };
+      })
+      .filter((r) => Boolean(r.name));
+
+    const initialRounds = roundItems.map((item, idx) => ({
       roundNumber: idx + 1,
-      name: name.startsWith('Round') ? name : `Round ${idx + 1}: ${name}`,
-      type: idx === 0 ? 'Online Assessment' : idx === roundNames.length - 1 ? 'HR Interview' : 'Technical Interview',
-      scheduledDate: idx === 0 ? dDate : null,
+      name: item.name.startsWith('Round') ? item.name : `Round ${idx + 1}: ${item.name}`,
+      type: idx === 0 ? 'Online Assessment' : idx === roundItems.length - 1 ? 'HR Interview' : 'Technical Interview',
+      scheduledDate: item.date || (idx === 0 ? dDate : null),
       venue: jobLocation || 'Campus / Online',
       instructions: idx === 0 ? 'Aptitude & Technical Online Assessment' : '',
       status: idx === 0 ? 'In Progress' : 'Upcoming',
@@ -246,6 +261,49 @@ exports.updateDrive = async (req, res, next) => {
       if (!req.body.role && rolesList.length > 0) drive.role = rolesList[0];
     }
 
+    if (req.body.roundsList && Array.isArray(req.body.roundsList) && req.body.roundsList.length > 0) {
+      const roundItems = req.body.roundsList
+        .map((item) => {
+          if (typeof item === 'object' && item !== null) {
+            const name = String(item.name || '').trim();
+            let parsedDate = null;
+            if (item.date) {
+              const d = new Date(item.date);
+              if (!isNaN(d.getTime())) parsedDate = d;
+            }
+            return { name, date: parsedDate, hasDate: item.date !== undefined };
+          }
+          return { name: String(item || '').trim(), date: null, hasDate: false };
+        })
+        .filter((r) => Boolean(r.name));
+
+      const existingRounds = drive.rounds || [];
+      const updatedRounds = roundItems.map((item, idx) => {
+        const roundNum = idx + 1;
+        const existing = existingRounds.find((r) => r.roundNumber === roundNum);
+        const displayName = item.name.startsWith('Round') ? item.name : `Round ${roundNum}: ${item.name}`;
+        if (existing) {
+          existing.name = displayName;
+          if (item.hasDate) {
+            existing.scheduledDate = item.date;
+          }
+          return existing;
+        }
+        return {
+          roundNumber: roundNum,
+          name: displayName,
+          type: idx === 0 ? 'Online Assessment' : idx === roundItems.length - 1 ? 'HR Interview' : 'Technical Interview',
+          scheduledDate: item.date || null,
+          venue: drive.jobLocation || 'Campus / Online',
+          status: idx === 0 ? (drive.status === 'Completed' ? 'Completed' : 'In Progress') : 'Upcoming',
+          candidates: [],
+        };
+      });
+      drive.rounds = updatedRounds;
+    }
+
+    delete req.body.roundsList;
+    delete req.body.rounds;
     Object.assign(drive, req.body);
     await drive.save();
 
@@ -1051,6 +1109,11 @@ exports.selectFinalCandidates = async (req, res, next) => {
     for (const studentId of selectedStudentIds) {
       const student = await Student.findById(studentId);
       if (!student) continue;
+
+      // Third-year and junior students cannot be placed until their final year
+      if (!isBatchEligibleForPlacement(student.batch)) {
+        continue;
+      }
 
       // Check if already in finalSelectedStudents
       const alreadySelected = drive.finalSelectedStudents.some(

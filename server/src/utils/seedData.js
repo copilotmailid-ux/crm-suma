@@ -105,7 +105,7 @@ const placementData = [
   { studentRoll: '22AIDS001', companyName: 'Deloitte', role: 'Data Scientist', package: 14.0, date: '2026-03-01', offerType: 'on_campus', status: 'accepted' },
   { studentRoll: '22CSE004', companyName: 'Infosys', role: 'DevOps Engineer', package: 9.5, date: '2026-03-10', offerType: 'off_campus', status: 'offered' },
 
-  // Batch 2023-2027 placements (early / off-campus)
+  // Current Final Year Batch 2023-2027 placements
   { studentRoll: '23AIML001', companyName: 'Google', role: 'AI Research Intern', package: 40.0, date: '2026-06-01', offerType: 'off_campus', status: 'offered' },
   { studentRoll: '23CSE002', companyName: 'Microsoft', role: 'SWE Intern', package: 20.0, date: '2026-06-10', offerType: 'on_campus', status: 'offered' },
   { studentRoll: '23AIDS001', companyName: 'HDFC Bank', role: 'Data Analyst', package: 8.0, date: '2026-06-15', offerType: 'on_campus', status: 'offered' },

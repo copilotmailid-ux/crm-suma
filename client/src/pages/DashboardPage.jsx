@@ -16,13 +16,21 @@ import {
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { getStats, getDeptWise, getCompanyWise, getBatchWise, getRecent } from '../api/dashboardApi';
 import { getBatches } from '../api/studentApi';
+import { getCurrentFinalYearBatch } from '../utils/batchUtils';
 import Loader from '../components/common/Loader';
 import FacultyTimetablePage from './FacultyTimetablePage';
 import '../styles/dashboard.css';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#ec4899'];
 
-const DEFAULT_BATCHES = ['2023-2027', '2022-2026', '2021-2025', '2020-2024'];
+const currentFinalBatch = getCurrentFinalYearBatch();
+const currentGradYear = parseInt(currentFinalBatch.split('-')[1], 10);
+const DEFAULT_BATCHES = [
+  currentFinalBatch,
+  `${currentGradYear - 5}-${currentGradYear - 1}`,
+  `${currentGradYear - 6}-${currentGradYear - 2}`,
+  `${currentGradYear - 7}-${currentGradYear - 3}`,
+];
 
 const StatCard = ({ icon, label, value, colorClass }) => (
   <div className="stat-card">

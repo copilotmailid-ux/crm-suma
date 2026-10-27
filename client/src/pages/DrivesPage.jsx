@@ -20,6 +20,86 @@ import toast from 'react-hot-toast';
 
 const DEPARTMENTS = ['CSE', 'IT', 'AIDS', 'AIML', 'ECE', 'EEE', 'ME', 'CE'];
 
+const parseRoundsFromSelectionProcess = (selectionProcessStr, driveRounds = []) => {
+  if (Array.isArray(driveRounds) && driveRounds.length > 0) {
+    return driveRounds.map((r, idx) => {
+      const rawName = r.name || `Round ${idx + 1}`;
+      let dateStr = '';
+      if (r.scheduledDate) {
+        try {
+          dateStr = new Date(r.scheduledDate).toISOString().split('T')[0];
+        } catch {
+          dateStr = String(r.scheduledDate).split('T')[0] || '';
+        }
+      }
+      const cleanName = rawName.replace(/^Round\s*\d+\s*[:\-–]\s*/i, '').trim();
+      return {
+        name: cleanName || `Round ${idx + 1}`,
+        date: dateStr,
+      };
+    });
+  }
+
+  if (!selectionProcessStr || !selectionProcessStr.trim()) {
+    return [
+      { name: 'Online Assessment', date: '' },
+      { name: 'Technical Interview', date: '' },
+      { name: 'HR Interview', date: '' },
+    ];
+  }
+
+  const parts = selectionProcessStr
+    .split(/,|\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return [
+      { name: 'Online Assessment', date: '' },
+      { name: 'Technical Interview', date: '' },
+      { name: 'HR Interview', date: '' },
+    ];
+  }
+
+  return parts.map((part, idx) => {
+    let roundDate = '';
+    let nameWithoutRound = part.replace(/^Round\s*\d+\s*[:\-–]\s*/i, '').trim();
+    const dateMatch = nameWithoutRound.match(/\(([^)]+)\)$/);
+    if (dateMatch) {
+      const potentialDate = dateMatch[1].trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(potentialDate)) {
+        roundDate = potentialDate;
+        nameWithoutRound = nameWithoutRound.replace(/\(([^)]+)\)$/, '').trim();
+      } else if (!isNaN(Date.parse(potentialDate))) {
+        try {
+          roundDate = new Date(potentialDate).toISOString().split('T')[0];
+          nameWithoutRound = nameWithoutRound.replace(/\(([^)]+)\)$/, '').trim();
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return {
+      name: nameWithoutRound || `Round ${idx + 1}`,
+      date: roundDate,
+    };
+  });
+};
+
+const formatSelectionProcessString = (rounds) => {
+  if (!Array.isArray(rounds) || rounds.length === 0) {
+    return '';
+  }
+  return rounds
+    .map((r, idx) => {
+      const name = (typeof r === 'object' && r !== null ? r.name : r) || `Round ${idx + 1}`;
+      const date = typeof r === 'object' && r !== null ? r.date : '';
+      const cleanName = String(name).trim() || `Round ${idx + 1}`;
+      return date ? `Round ${idx + 1}: ${cleanName} (${date})` : `Round ${idx + 1}: ${cleanName}`;
+    })
+    .join(', ');
+};
+
 const emptyDriveForm = {
   companyId: '',
   companyName: '',
@@ -37,6 +117,11 @@ const emptyDriveForm = {
   status: 'Upcoming',
   jobDescription: '',
   selectionProcess: 'Round 1: Online Assessment, Round 2: Technical Interview, Round 3: HR Interview',
+  roundsList: [
+    { name: 'Online Assessment', date: '' },
+    { name: 'Technical Interview', date: '' },
+    { name: 'HR Interview', date: '' },
+  ],
   applicationLink: '',
 };
 
@@ -121,7 +206,16 @@ const DrivesPage = () => {
 
   const openCreateModal = () => {
     setEditId(null);
-    setForm(emptyDriveForm);
+    const initialRounds = [
+      { name: 'Online Assessment', date: '' },
+      { name: 'Technical Interview', date: '' },
+      { name: 'HR Interview', date: '' },
+    ];
+    setForm({
+      ...emptyDriveForm,
+      roundsList: initialRounds,
+      selectionProcess: formatSelectionProcessString(initialRounds),
+    });
     setCompanySearch('');
     setShowCompanyList(false);
     fetchCompanies();
@@ -133,6 +227,8 @@ const DrivesPage = () => {
     fetchCompanies();
     const cId = (drive.companyId?._id || drive.companyId)?.toString() || '';
     const rolesArr = drive.roles && drive.roles.length > 0 ? drive.roles : [drive.role || ''];
+    const parsedRounds = parseRoundsFromSelectionProcess(drive.selectionProcess, drive.rounds);
+
     setForm({
       companyId: cId,
       companyName: drive.companyName || drive.companyId?.name || '',
@@ -151,12 +247,62 @@ const DrivesPage = () => {
       registrationDeadline: drive.registrationDeadline ? drive.registrationDeadline.split('T')[0] : '',
       status: drive.status || 'Upcoming',
       jobDescription: drive.jobDescription || '',
-      selectionProcess: drive.selectionProcess || '',
+      selectionProcess: drive.selectionProcess || formatSelectionProcessString(parsedRounds),
+      roundsList: parsedRounds,
       applicationLink: drive.applicationLink || '',
     });
     setCompanySearch('');
     setShowCompanyList(false);
     setShowModal(true);
+  };
+
+  const handleRoundNameChange = (index, newName) => {
+    const updated = [...(form.roundsList || [])];
+    const curr = typeof updated[index] === 'object' && updated[index] !== null
+      ? updated[index]
+      : { name: updated[index] || '', date: '' };
+    updated[index] = { ...curr, name: newName };
+    setForm((prev) => ({
+      ...prev,
+      roundsList: updated,
+      selectionProcess: formatSelectionProcessString(updated),
+    }));
+  };
+
+  const handleRoundDateChange = (index, newDate) => {
+    const updated = [...(form.roundsList || [])];
+    const curr = typeof updated[index] === 'object' && updated[index] !== null
+      ? updated[index]
+      : { name: updated[index] || '', date: '' };
+    updated[index] = { ...curr, date: newDate };
+    setForm((prev) => ({
+      ...prev,
+      roundsList: updated,
+      selectionProcess: formatSelectionProcessString(updated),
+    }));
+  };
+
+  const handleAddRound = (roundName = '', roundDate = '') => {
+    const defaultName = roundName || `Technical Round ${(form.roundsList || []).length + 1}`;
+    const updated = [...(form.roundsList || []), { name: defaultName, date: roundDate || '' }];
+    setForm((prev) => ({
+      ...prev,
+      roundsList: updated,
+      selectionProcess: formatSelectionProcessString(updated),
+    }));
+  };
+
+  const handleRemoveRound = (index) => {
+    if ((form.roundsList || []).length <= 1) {
+      toast.error('At least one recruitment round is required');
+      return;
+    }
+    const updated = (form.roundsList || []).filter((_, idx) => idx !== index);
+    setForm((prev) => ({
+      ...prev,
+      roundsList: updated,
+      selectionProcess: formatSelectionProcessString(updated),
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -171,11 +317,27 @@ const DrivesPage = () => {
       .filter(Boolean);
     const primaryRole = rolesList[0] || form.role || 'Software Engineer';
 
+    const activeRounds = (form.roundsList || [])
+      .map((r) => {
+        if (typeof r === 'object' && r !== null) {
+          return { name: (r.name || '').trim(), date: r.date || '' };
+        }
+        return { name: String(r || '').trim(), date: '' };
+      })
+      .filter((r) => Boolean(r.name));
+
+    const formattedSelectionProcess =
+      activeRounds.length > 0
+        ? formatSelectionProcessString(activeRounds)
+        : form.selectionProcess || 'Round 1: Online Assessment';
+
     const payload = {
       ...form,
       role: primaryRole,
       roles: rolesList.length > 0 ? rolesList : [primaryRole],
       visitNumber: Number(form.visitNumber) || 1,
+      selectionProcess: formattedSelectionProcess,
+      roundsList: activeRounds,
     };
 
     try {
@@ -760,7 +922,26 @@ const DrivesPage = () => {
                       type="date"
                       className="form-input"
                       value={form.driveDate}
-                      onChange={(e) => setForm({ ...form, driveDate: e.target.value })}
+                      onChange={(e) => {
+                        const newDriveDate = e.target.value;
+                        setForm((prev) => {
+                          const updatedRounds = [...(prev.roundsList || [])];
+                          if (updatedRounds.length > 0) {
+                            const r0 = typeof updatedRounds[0] === 'object' && updatedRounds[0] !== null
+                              ? updatedRounds[0]
+                              : { name: updatedRounds[0] || 'Online Assessment', date: '' };
+                            if (!r0.date || r0.date === prev.driveDate) {
+                              updatedRounds[0] = { ...r0, date: newDriveDate };
+                            }
+                          }
+                          return {
+                            ...prev,
+                            driveDate: newDriveDate,
+                            roundsList: updatedRounds,
+                            selectionProcess: formatSelectionProcessString(updatedRounds),
+                          };
+                        });
+                      }}
                       required
                     />
                   </div>
@@ -798,14 +979,257 @@ const DrivesPage = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Selection Process & Rounds</label>
-                  <input
-                    className="form-input"
-                    placeholder="Round 1: Online Test, Round 2: Tech Interview, Round 3: HR"
-                    value={form.selectionProcess}
-                    onChange={(e) => setForm({ ...form, selectionProcess: e.target.value })}
-                  />
+                {/* Dynamic Selection Process & Recruitment Rounds */}
+                <div
+                  className="form-group"
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginTop: '4px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div>
+                      <label className="form-label" style={{ fontWeight: 800, color: '#0b1d37', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🎯</span> Selection Process & Recruitment Rounds
+                      </label>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Add, remove, or customize the interview stages for this drive
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddRound('')}
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        padding: '5px 12px',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        gap: '6px',
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        color: '#0b1d37',
+                      }}
+                    >
+                      <HiOutlinePlus style={{ color: '#0284c7' }} /> Add Round
+                    </button>
+                  </div>
+
+                  {/* List of Rounds */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(form.roundsList || []).map((roundItem, idx) => {
+                      const roundName = typeof roundItem === 'object' && roundItem !== null ? roundItem.name : roundItem;
+                      const roundDate = typeof roundItem === 'object' && roundItem !== null ? roundItem.date : '';
+
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            background: '#ffffff',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          {/* Round Number Badge */}
+                          <div
+                            style={{
+                              background: '#0b1d37',
+                              color: '#ffffff',
+                              fontWeight: 800,
+                              fontSize: '0.75rem',
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              whiteSpace: 'nowrap',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              minWidth: '78px',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <span>Round {idx + 1}</span>
+                          </div>
+
+                          {/* Round Name Input */}
+                          <input
+                            type="text"
+                            className="form-input"
+                            style={{
+                              flex: '1 1 180px',
+                              padding: '8px 12px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '6px',
+                              minWidth: '140px',
+                            }}
+                            placeholder={`e.g. ${idx === 0 ? 'Online Assessment' : idx === 1 ? 'Technical Interview' : 'HR Discussion'}`}
+                            value={roundName}
+                            onChange={(e) => handleRoundNameChange(idx, e.target.value)}
+                            required
+                          />
+
+                          {/* Round Scheduled Date Input */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '6px',
+                              padding: '4px 8px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', whiteSpace: 'nowrap' }}>
+                              📅 Date:
+                            </span>
+                            <input
+                              type="date"
+                              className="form-input"
+                              style={{
+                                width: '135px',
+                                padding: '4px 8px',
+                                fontSize: '0.78rem',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '4px',
+                                background: '#ffffff',
+                              }}
+                              title={`Scheduled Date for Round ${idx + 1}`}
+                              value={roundDate || ''}
+                              onChange={(e) => handleRoundDateChange(idx, e.target.value)}
+                            />
+                          </div>
+
+                          {/* Remove Round Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRound(idx)}
+                            disabled={(form.roundsList || []).length <= 1}
+                            title={(form.roundsList || []).length <= 1 ? 'At least one round required' : 'Remove this round'}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: (form.roundsList || []).length <= 1 ? '#cbd5e1' : '#ef4444',
+                              cursor: (form.roundsList || []).length <= 1 ? 'not-allowed' : 'pointer',
+                              padding: '6px',
+                              borderRadius: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1.1rem',
+                              transition: 'all 0.15s ease',
+                              marginLeft: 'auto',
+                            }}
+                            onMouseEnter={(e) => {
+                              if ((form.roundsList || []).length > 1) {
+                                e.currentTarget.style.background = '#fee2e2';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'none';
+                            }}
+                          >
+                            <HiOutlineTrash />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Quick Preset Buttons */}
+                  <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '6px' }}>
+                      ⚡ Quick Add Common Rounds:
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {[
+                        'Online Assessment',
+                        'Coding Round',
+                        'Technical Interview',
+                        'Group Discussion',
+                        'System Design',
+                        'HR Interview',
+                        'Managerial Round',
+                      ].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => handleAddRound(preset)}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '4px 9px',
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#334155',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = '#0b1d37';
+                            e.currentTarget.style.color = '#0b1d37';
+                            e.currentTarget.style.background = '#f1f5f9';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = '#cbd5e1';
+                            e.currentTarget.style.color = '#334155';
+                            e.currentTarget.style.background = '#ffffff';
+                          }}
+                        >
+                          <span>+</span> {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Live Progression Pipeline Preview */}
+                  {(form.roundsList || []).length > 0 && (
+                    <div
+                      style={{
+                        marginTop: '12px',
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                      }}
+                    >
+                      <strong style={{ color: '#0b1d37' }}>Pipeline Preview: </strong>
+                      {(form.roundsList || []).map((r, i) => {
+                        const name = (typeof r === 'object' && r !== null ? r.name : r) || '(Untitled)';
+                        const date = typeof r === 'object' && r !== null ? r.date : '';
+                        return (
+                          <span key={i}>
+                            <span style={{ fontWeight: 700, color: '#b45309' }}>Round {i + 1}</span>: {name}
+                            {date && (
+                              <span style={{ color: '#0284c7', fontWeight: 600, marginLeft: '4px' }}>
+                                ({date.split('-').reverse().join('/')})
+                              </span>
+                            )}
+                            {i < (form.roundsList || []).length - 1 && (
+                              <span style={{ margin: '0 6px', color: '#94a3b8' }}>→</span>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">

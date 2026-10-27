@@ -2,6 +2,7 @@ const Placement = require('../models/Placement');
 const Student = require('../models/Student');
 const Company = require('../models/Company');
 const Alumni = require('../models/Alumni');
+const { isBatchEligibleForPlacement, getCurrentFinalYearBatch } = require('../utils/batchUtils');
 
 // @desc    Get all placements with filters
 // @route   GET /api/placements
@@ -111,6 +112,17 @@ exports.createPlacement = async (req, res, next) => {
     if (!student) {
       res.status(404);
       throw new Error('Student not found');
+    }
+
+    // Only final-year graduating students and previous batches are eligible for placements.
+    // Third-year and junior students enter placement only in their final year.
+    // The current final-year batch dynamically transitions after the month of May every year.
+    if (!isBatchEligibleForPlacement(student.batch)) {
+      const currentBatch = getCurrentFinalYearBatch();
+      res.status(400);
+      throw new Error(
+        `Students in batch ${student.batch} cannot be placed. Only current final-year (${currentBatch}) and graduating batches are eligible. Third-year students enter placements in their final year.`
+      );
     }
 
     // Check company exists

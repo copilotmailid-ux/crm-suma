@@ -486,3 +486,305 @@
   }
 }
 
+/* ===== Student Portal Main Dashboard & Rounds Pipeline ===== */
+
+.student-welcome-hero {
+  background: linear-gradient(135deg, #0b1d37 0%, #17335e 100%);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  color: #ffffff;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 20px rgba(11, 29, 55, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.student-welcome-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.student-welcome-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #c59e51 0%, #e0c27b 100%);
+  color: #0b1d37;
+  font-size: 1.4rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(197, 158, 81, 0.35);
+  flex-shrink: 0;
+}
+
+.student-welcome-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+}
+
+.student-welcome-meta {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.student-academic-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.student-academic-chip {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px 14px;
+  text-align: center;
+}
+
+.student-chip-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  display: block;
+}
+
+.student-chip-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Dashboard Two-Column Grid */
+.student-dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.student-section-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+.student-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.student-section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.student-section-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0284c7;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.student-section-link:hover {
+  text-decoration: underline;
+  color: #0369a1;
+}
+
+/* Compact Drive & Event Dashboard Cards */
+.dash-drive-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  transition: all 0.15s ease;
+}
+
+.dash-drive-item:last-child {
+  margin-bottom: 0;
+}
+
+.dash-drive-item:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* My Active Pipeline Section */
+.student-pipeline-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.student-pipeline-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.student-pipeline-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Horizontal Round Stepper */
+.student-stepper-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 4px 6px;
+  scrollbar-width: thin;
+}
+
+.student-step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: center;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.student-step-node.cleared {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.student-step-node.in_progress {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.student-step-node.selected {
+  border-color: #fbbf24;
+  background: #fefce8;
+}
+
+.student-step-node.eliminated {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.student-step-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.student-step-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+
+.student-step-date {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.student-step-status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-top: 4px;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* Modal Enhanced Round Details */
+.round-detail-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: all 0.15s ease;
+}
+
+.round-detail-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.round-detail-card.active-round {
+  border-color: #93c5fd;
+  background: #f8faff;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
+
+.round-detail-card.cleared-round {
+  border-color: #86efac;
+  background: #fafffb;
+}
+
+.round-detail-card.eliminated-round {
+  border-color: #fca5a5;
+  background: #fffafa;
+}
+
+@media (max-width: 860px) {
+  .student-dash-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .student-welcome-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .student-academic-chips {
+    justify-content: flex-start;
+  }
+}
+

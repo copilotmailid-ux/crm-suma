@@ -104,7 +104,7 @@ const batches = [
   { batch: '2021-2025', prefix: '21', placementRate: 0.85, isAlumniEligible: true },
   { batch: '2022-2026', prefix: '22', placementRate: 0.72, isAlumniEligible: false },
   { batch: '2023-2027', prefix: '23', placementRate: 0.35, isAlumniEligible: false },
-  { batch: '2024-2028', prefix: '24', placementRate: 0.08, isAlumniEligible: false }
+  { batch: '2024-2028', prefix: '24', placementRate: 0.0, isAlumniEligible: false }
 ];
 
 const deptSkills = {

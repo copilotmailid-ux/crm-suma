@@ -1551,66 +1551,6 @@ const FacultyTimetablePage = ({ initialTab = null }) => {
                 })}
               </div>
             )}
-
-            {/* 1-Row Preview Indicator with direct link to Full Roster */}
-            {filteredDashboardEvents.length > 3 && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: 'linear-gradient(135deg, rgba(11, 29, 55, 0.03), rgba(197, 158, 81, 0.08))',
-                  border: '1px solid rgba(197, 158, 81, 0.3)',
-                  borderRadius: '12px',
-                  padding: '12px 18px',
-                  flexWrap: 'wrap',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      background: 'rgba(197, 158, 81, 0.15)',
-                      color: '#b45309',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1rem',
-                      fontWeight: 800,
-                    }}
-                  >
-                    💡
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.86rem', color: '#0f172a', fontWeight: 700, display: 'block' }}>
-                      Showing 1 Row Preview ({oneRowDashboardEvents.length} of {filteredDashboardEvents.length} Sessions)
-                    </span>
-                    <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                      Access complete schedule, student attendance rosters, and trainer feedback in Full Roster.
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => navigate('/placement-events')}
-                  style={{
-                    gap: '6px',
-                    fontWeight: 700,
-                    background: '#ffffff',
-                    border: '1px solid #cbd5e1',
-                    color: '#0b1d37',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                  }}
-                >
-                  <HiOutlineCalendar style={{ color: '#0284c7' }} /> View Full Roster ({events.length}) →
-                </button>
-              </div>
-            )}
           </div>
 
           {/* SECTION 2: WEEKLY SCHEDULE LOAD & DEPARTMENT BREAKDOWN */}
